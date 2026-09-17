@@ -2,3 +2,9 @@ node_modules/
 data/uploads/*
 !data/uploads/.gitkeep
 .env
+
+# Toute variante de .env (ex: .env.atlas.backup) reste hors de Git,
+# sauf les gabarits sans secret.
+.env.*
+!.env.example
+!.env.local.example

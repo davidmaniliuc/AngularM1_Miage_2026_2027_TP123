@@ -1,0 +1,38 @@
+# MongoDB local pour Guitar Practice Cloud (alternative à MongoDB Atlas).
+# Démarrage : docker compose up -d
+# Arrêt     : docker compose down        (les données sont conservées)
+# Remise à zéro : docker compose down -v (les données sont supprimées)
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: gpc-mongo
+    restart: unless-stopped
+    ports:
+      # Exposé uniquement sur la machine locale, jamais sur le réseau.
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Équivalent local du bouton "Browse Collections" d'Atlas.
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: gpc-mongo-express
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
+      ME_CONFIG_BASICAUTH: "false"
+
+volumes:
+  mongo-data:
