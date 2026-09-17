@@ -13,7 +13,16 @@ export class ProfilePageComponent {
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
-  load(): void {
+  constructor() {
+    const currentUser = this.auth.currentUser();
+    if (currentUser) {
+      this.form.setValue({ name: currentUser.name });
+    } else {
+      this.load();
+    }
+  }
+
+  private load(): void {
     this.auth.profile().subscribe({
       next: (user) => {
         console.debug('[ProfilePage] Profil chargé', user.id);

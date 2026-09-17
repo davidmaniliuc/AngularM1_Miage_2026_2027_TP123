@@ -20,6 +20,11 @@
                         "styles": [
                             "src/styles.css"
                         ]
+                    },
+                    "configurations": {
+                        "development": {
+                            "optimization": false
+                        }
                     }
                 },
                 "serve": {
@@ -32,9 +37,17 @@
                     "defaultConfiguration": "development"
                 },
                 "test": {
-                    "builder": "@angular/build:unit-test"
+                    "builder": "@angular/build:unit-test",
+                    "options": {
+                        "setupFiles": [
+                            "src/test-setup.ts"
+                        ]
+                    }
                 }
             }
         }
+    },
+    "cli": {
+      "analytics": false
     }
 }
