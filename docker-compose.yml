@@ -1,7 +1,10 @@
-# MongoDB local pour Guitar Practice Cloud (alternative à MongoDB Atlas).
+# Stack complète Guitar Practice Cloud : base + backend + frontend.
+# Le runtime JavaScript est Bun (image oven/bun), pas Node.
+#
 # Démarrage : docker compose up -d
+# Logs      : docker compose logs -f backend frontend
 # Arrêt     : docker compose down        (les données sont conservées)
-# Remise à zéro : docker compose down -v (les données sont supprimées)
+# Reset     : docker compose down -v     (les données sont supprimées)
 
 services:
   mongo:
@@ -34,5 +37,51 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
       ME_CONFIG_BASICAUTH: "false"
 
+  backend:
+    image: oven/bun:1.4.2
+    container_name: gpc-backend
+    restart: unless-stopped
+    working_dir: /app
+    # `bun run src/server.js` remplace `node --env-file=.env src/server.js` :
+    # Bun charge le .env tout seul, et les variables ci-dessous ont priorité.
+    command: sh -c "bun install && bun --watch run src/server.js"
+    volumes:
+      - ./backend:/app
+      # Volume nommé : les node_modules du conteneur (Linux) n'écrasent pas
+      # ceux de votre machine (macOS), et inversement.
+      - backend-deps:/app/node_modules
+    env_file:
+      - ./backend/.env
+    environment:
+      # Dans le réseau Docker, la base s'appelle `mongo`, pas `127.0.0.1`.
+      MONGODB_URI: mongodb://mongo:27017/guitar-practice-cloud
+      PORT: "3000"
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    image: oven/bun:1.4.2
+    container_name: gpc-frontend
+    restart: unless-stopped
+    working_dir: /app
+    # --host 0.0.0.0 : sans ça, le serveur n'écoute que dans le conteneur.
+    # proxy.conf.docker.json cible `backend` au lieu de `localhost`.
+    command: >
+      sh -c "bun install &&
+      bun run ng serve --host 0.0.0.0 --port 4200
+      --proxy-config proxy.conf.docker.json"
+    volumes:
+      - ./frontend-starter:/app
+      - frontend-deps:/app/node_modules
+    ports:
+      - "127.0.0.1:4200:4200"
+    depends_on:
+      - backend
+
 volumes:
   mongo-data:
+  backend-deps:
+  frontend-deps:

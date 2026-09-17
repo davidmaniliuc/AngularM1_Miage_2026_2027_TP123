@@ -8,3 +8,7 @@ data/uploads/*
 .env.*
 !.env.example
 !.env.local.example
+
+# Lockfile généré par `bun install` dans les conteneurs Docker.
+# La référence du projet reste package-lock.json.
+bun.lock

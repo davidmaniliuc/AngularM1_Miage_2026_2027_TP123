@@ -1,3 +1,7 @@
 node_modules/
 dist/
 .angular/
+
+# Lockfile généré par `bun install` dans les conteneurs Docker.
+# La référence du projet reste package-lock.json.
+bun.lock

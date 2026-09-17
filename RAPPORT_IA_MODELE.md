@@ -4,4 +4,6 @@ Pour chaque mission, détailler et fournir des explications concernant : objecti
 
 Préparation obligatoire avant la séance
 
-Prompt pour mongo db en local : there is this assignement but I want to run mongo db in local instead with docker compose can you do the thing for the projet to use local mogo db but don't update the assigment
+_Prompt pour mongo db en local :_ there is this assignement but I want to run mongo db in local instead with docker compose can you do the thing for the projet to use local mogo db but don't update the assigment
+
+_Prompt pour completer le compose et usiliser bun :_ yes make the compose launch the whole app front back + bd : and use bun insead of node
