@@ -12,6 +12,23 @@ export class AuthService {
   readonly currentUser = signal<User | null>(null);
   readonly token = signal<string | null>(localStorage.getItem('gpc_token'));
 
+  /**
+   * Recharge le profil quand un jeton survit à un rechargement de page.
+   *
+   * Appelée au démarrage depuis `main.ts`, et surtout pas depuis le
+   * constructeur : `authInterceptor` fait `inject(AuthService)`, donc une
+   * requête émise pendant la construction du service déclenche une dépendance
+   * circulaire (NG0200) et n'est jamais envoyée.
+   *
+   * Un 401 est déjà traité globalement par l'intercepteur (déconnexion +
+   * redirection) ; une panne réseau ponctuelle ne doit pas invalider le jeton.
+   */
+  restoreSession(): void {
+    if (this.token()) {
+      this.profile().subscribe({ error: () => {} });
+    }
+  }
+
   login(email: string, password: string) {
     return this.http
       .post<AuthResponse>('/api/auth/login', { email, password })
