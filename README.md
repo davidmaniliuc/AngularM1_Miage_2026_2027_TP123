@@ -5,7 +5,7 @@ Ce dépôt contient uniquement les ressources nécessaires aux trois TP :
 
 ## Prérequis
 
-- Node.js 22 ou plus récent ;
+- Bun 1.4 ou plus récent (ou Docker, qui fournit Bun) ;
 - un compte MongoDB Atlas par binôme ;
 - Git et un navigateur récent.
 - Un IDE de qualité
@@ -54,7 +54,7 @@ Le backend contient également ses propres consignes pour les assistants :
 [`backend/AGENTS.md`](backend/AGENTS.md), [`backend/CLAUDE.md`](backend/CLAUDE.md),
 [`backend/GEMINI.md`](backend/GEMINI.md) et
 [`backend/best-practices.md`](backend/best-practices.md). Elles couvrent
-Node.js, Express, Mongoose, MongoDB, l’authentification, Multer, les uploads,
+Bun, TypeScript, Hono, Mongoose, MongoDB, l’authentification, les uploads,
 les logs et les tests.
 
 Les fichiers audio présents dans `frontend-starter/fichiers-audio-de-test/` sont

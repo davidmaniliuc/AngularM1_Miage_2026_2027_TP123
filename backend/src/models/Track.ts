@@ -1,14 +1,32 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, type Model } from "mongoose";
+import type { PublicTrack } from "../types";
 
 /*
  * Ce schéma conserve les métadonnées d'une piste. Le fichier audio lui-même
  * reste sur le disque ; storedName contient le nom technique utilisé côté
  * serveur et n'est jamais exposé par toPublic().
  */
-const schema = new mongoose.Schema(
+export interface TrackDoc {
+  ownerId: mongoose.Types.ObjectId;
+  title: string;
+  originalName: string;
+  storedName: string;
+  mimeType: string;
+  size: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TrackMethods {
+  toPublic(): PublicTrack;
+}
+
+type TrackModel = Model<TrackDoc, {}, TrackMethods>;
+
+const schema = new Schema<TrackDoc, TrackModel, TrackMethods>(
   {
     ownerId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
@@ -29,10 +47,9 @@ schema.index({ ownerId: 1, createdAt: -1 });
  * Convertit un document Mongoose en objet sûr pour le frontend.
  * L'identifiant MongoDB devient la propriété simple `id` attendue par Angular.
  */
-schema.methods.toPublic = function () {
-  console.debug(`[track-model] Préparation de la piste publique ${this.id}`);
+schema.method("toPublic", function toPublic(): PublicTrack {
   return {
-    id: this.id,
+    id: this.id as string,
     ownerId: String(this.ownerId),
     title: this.title,
     originalName: this.originalName,
@@ -40,6 +57,6 @@ schema.methods.toPublic = function () {
     size: this.size,
     createdAt: this.createdAt,
   };
-};
+});
 
-export const Track = mongoose.model("Track", schema);
+export const Track = mongoose.model<TrackDoc, TrackModel>("Track", schema);

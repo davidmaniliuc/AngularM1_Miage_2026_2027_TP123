@@ -19,3 +19,10 @@ Preuves Network (JWT et mot de passe caviardés avant capture) :
 - [`GET /api/users/me` sans token → `401 {"message":"Authentification requise"}`](screenshots/tp1-mission1/users-me-401-sans-token.png)
 
 Capture manquante à ajouter : une requête `/api/users/me` **authentifiée** (avec en-tête `Authorization` visible), pour couvrir le 3e point du Checkpoint ("lecture ou modification de `/api/users/me`").
+
+Migration de express vers le framework hono et restructuration du backend :
+"is hono better or elysia (with bun chosed already)"
+"and keeping express?"
+gader express a été déconseillé par claude notament pour la sécurité de types offerte par les autres alternatives
+"can you migrate all the backend to hono (with ts)"
+la migration s'est faite avec une spec puis un plan d'implemenation

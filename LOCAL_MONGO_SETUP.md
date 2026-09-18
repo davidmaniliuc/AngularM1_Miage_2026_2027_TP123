@@ -43,7 +43,7 @@ docker compose up -d
 | Service             | Adresse                   | Rôle                                                      |
 | ------------------- | ------------------------- | --------------------------------------------------------- |
 | `gpc-mongo`         | `localhost:27017`         | La base MongoDB                                            |
-| `gpc-backend`       | http://localhost:3000     | L'API Express, exécutée par Bun                            |
+| `gpc-backend`       | http://localhost:3000     | L'API Hono (TypeScript), exécutée par Bun                  |
 | `gpc-frontend`      | http://localhost:4200     | Le serveur de développement Angular, exécuté par Bun       |
 | `gpc-mongo-express` | http://localhost:8081     | Interface web, équivalent du "Browse Collections" d'Atlas  |
 
@@ -64,9 +64,9 @@ afficher `(healthy)`.
 - http://localhost:4200/api/health doit aussi renvoyer `{"status":"ok"}` : cela
   prouve que le proxy Angular atteint bien le backend.
 
-Remarque : au démarrage, le backend affiche `[startup] Connecté à MongoDB Atlas`.
-Ce message est codé en dur dans `backend/src/server.js` et n'a pas été modifié ;
-avec cette configuration, la connexion se fait bien sur la base locale.
+Remarque : au démarrage, le backend affiche `[startup] Connecté à MongoDB`.
+Ce message est codé en dur dans `backend/src/server.ts` et ne mentionne pas
+Atlas ; avec cette configuration, la connexion se fait bien sur la base locale.
 
 ## 4. Vérifier les données
 

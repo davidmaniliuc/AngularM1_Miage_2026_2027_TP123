@@ -42,9 +42,9 @@ services:
     container_name: gpc-backend
     restart: unless-stopped
     working_dir: /app
-    # `bun run src/server.js` remplace `node --env-file=.env src/server.js` :
+    # Bun exécute directement le TypeScript : aucune étape de compilation.
     # Bun charge le .env tout seul, et les variables ci-dessous ont priorité.
-    command: sh -c "bun install && bun --watch run src/server.js"
+    command: sh -c "bun install && bun --watch run src/server.ts"
     volumes:
       - ./backend:/app
       # Volume nommé : les node_modules du conteneur (Linux) n'écrasent pas

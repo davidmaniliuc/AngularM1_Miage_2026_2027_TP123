@@ -4,9 +4,9 @@ Suis `AGENTS.md` et lis `best-practices.md` avant de modifier l’API. Consulte
 `../API_CONTRACT.md` pour connaître les routes et les formats attendus.
 
 Travaille par petites étapes. Commence par identifier les fichiers concernés et
-le flux `route Express -> middleware -> handler -> Mongoose -> MongoDB`. Pour un
-upload, décris aussi le flux `multipart/form-data -> Multer -> validation ->
-stockage -> métadonnées`.
+le flux `route Hono -> middleware -> handler -> Mongoose -> MongoDB`. Pour un
+upload, décris aussi le flux `multipart/form-data -> c.req.parseBody() ->
+validation -> Bun.write -> métadonnées`.
 
 Ne modifie pas le contrat HTTP sans mettre à jour `../API_CONTRACT.md` dans la
 même mission. Toute nouvelle route ou route modifiée doit documenter sa

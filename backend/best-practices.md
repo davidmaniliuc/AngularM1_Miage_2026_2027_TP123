@@ -4,47 +4,50 @@ Ce document sert de référence pour les travaux dans `backend/`. Les assistants
 peuvent proposer du code, mais l’étudiant doit comprendre, tester et expliquer
 chaque modification.
 
-## Node.js et configuration
+## Bun, TypeScript et configuration
 
-- Utiliser une version Node.js compatible avec `package.json`.
+- Bun exécute directement le TypeScript : il n'y a pas d'étape de compilation. `bun run typecheck` vérifie les types avec `tsc --noEmit`.
 - Garder la configuration dans des variables d’environnement et fournir des valeurs d’exemple dans `.env.example`.
 - Ne jamais committer `.env`, une URI MongoDB complète, un mot de passe ou un secret JWT.
 - Préférer `async`/`await` et des fonctions courtes dont la responsabilité est identifiable.
 - Attendre la connexion à MongoDB avant d’accepter les requêtes qui nécessitent la base.
 
-## Express : routes et middlewares
+## Hono : routes et middlewares
 
 Une requête suit généralement ce chemin :
 
 ```text
-route -> middleware -> handler/controller -> modèle Mongoose -> MongoDB
+route -> middleware -> handler -> modèle Mongoose -> MongoDB
 ```
 
 - Les routes décrivent les URL et les méthodes HTTP. Toute route ajoutée ou modifiée doit entraîner la mise à jour de `../API_CONTRACT.md` dans la même mission, avec la méthode, l’URL, l’authentification, les paramètres, le corps, les réponses et les erreurs.
-- Les middlewares traitent l’authentification, la validation, les logs ou les fichiers reçus.
-- Un handler orchestre l’opération et renvoie une réponse une seule fois.
+- Hono n'a pas de parseur de corps global : un handler lit `await c.req.json()` ou `await c.req.parseBody()` et traite lui-même un corps absent ou illisible.
+- `c.req.query("page")`, `c.req.param("id")` et `c.req.header("Authorization")` remplacent `req.query`, `req.params` et `req.headers`.
+- Un handler retourne toujours une `Response` : `return c.json(body, status)`, `return c.body(null, 204)`.
+- Un middleware s'écrit avec `createMiddleware<AppEnv>` ; il partage des données via `c.set(...)` / `c.get(...)` au lieu de poser une propriété sur `req`.
+- Une erreur se signale avec `throw new HTTPException(status, { message })`, jamais avec `next(error)`.
 - Utiliser des codes HTTP cohérents : `2xx` succès, `4xx` requête invalide ou non autorisée, `5xx` erreur serveur.
-- Vérifier `req.params`, `req.query`, `req.body` et `req.file`.
 - Ne pas faire confiance aux données envoyées par le navigateur.
 
 Pour une erreur asynchrone, ne pas l’ignorer :
 
-```js
+```ts
 try {
   const result = await operation();
-  console.log('[operation] succès', { id: result.id });
-  return res.status(200).json(result);
+  console.log("[operation] succès", { id: result.id });
+  return c.json(result);
 } catch (error) {
-  console.error('[operation] échec', error);
-  return res.status(500).json({ message: 'Erreur interne du serveur' });
+  console.error("[operation] échec", error);
+  throw new HTTPException(500, { message: "Erreur interne du serveur" });
 }
 ```
 
-Dans une application plus grande, un middleware d’erreur centralisé peut
-recevoir les erreurs via `next(error)`. Il doit journaliser l’erreur côté
-serveur, sans révéler la stack ni les secrets au client en production.
+Un gestionnaire centralisé, posé une seule fois avec `app.onError`, reçoit
+toute erreur levée par un handler ou un middleware. Il doit journaliser
+l’erreur côté serveur, sans révéler la stack ni les secrets au client en
+production.
 
-Documentation : [middleware Express](https://expressjs.com/en/guide/using-middleware.html).
+Documentation : [middleware Hono](https://hono.dev/docs/guides/middleware).
 
 ## Mongoose et MongoDB
 
@@ -61,27 +64,16 @@ Documentation : [middleware Express](https://expressjs.com/en/guide/using-middle
 Documentation : [Mongoose Schemas](https://mongoosejs.com/docs/guide.html) et
 [sécurité MongoDB](https://www.mongodb.com/docs/manual/core/security/).
 
-## Multer et les uploads
+## Uploads de fichiers
 
-Multer est un middleware Express qui analyse les requêtes
-`multipart/form-data` et rend les fichiers accessibles via `req.file` ou
-`req.files`. Il est utile pour recevoir un fichier, mais il ne constitue pas à
-lui seul une validation de sécurité.
+- `c.req.parseBody()` rend un objet dont chaque champ est une chaîne (champ texte) ou un `File` (champ fichier). Rien n'est validé automatiquement.
+- Vérifier d'abord l'en-tête `Content-Length` : `parseBody()` charge tout le corps en mémoire, donc un envoi manifestement trop gros doit être refusé avant d'être lu.
+- Vérifier ensuite que le champ est bien une instance de `File`, que son type MIME figure dans la liste autorisée et que sa taille respecte la limite.
+- Ne jamais réutiliser le nom d'origine comme nom de stockage : générer un nom avec `crypto.randomUUID()` et ne conserver que l'extension, en minuscules.
+- Écrire avec `Bun.write(chemin, file)`, puis enregistrer les métadonnées. Si l'enregistrement échoue, supprimer le fichier orphelin et journaliser l'échec éventuel du nettoyage.
+- Servir un fichier avec `c.body(Bun.file(chemin).stream())` après avoir vérifié que la ressource appartient bien à l'utilisateur.
 
-Documentation : [dépôt officiel Multer](https://github.com/expressjs/multer).
-
-Bonnes pratiques :
-
-- utiliser Multer uniquement sur les routes qui acceptent un upload ;
-- définir une limite de taille (`limits.fileSize`) ;
-- filtrer les extensions et types autorisés, puis vérifier le contenu si nécessaire ;
-- générer un nom interne unique plutôt que d’utiliser directement `originalname` ;
-- empêcher les chemins relatifs, les caractères dangereux et les collisions ;
-- ne jamais exécuter ni interpréter un fichier envoyé par un utilisateur ;
-- prévoir le cas où aucun fichier n’est reçu et traiter explicitement les erreurs Multer ;
-- stocker les fichiers dans un répertoire contrôlé ;
-- supprimer le fichier si l’écriture MongoDB échoue après l’upload, ou prévoir un nettoyage ;
-- pour des fichiers volumineux, réfléchir au streaming et aux téléchargements partiels.
+Documentation : [Hono — corps de requête](https://hono.dev/docs/api/request#parsebody).
 
 ## Lecture audio et authentification
 
