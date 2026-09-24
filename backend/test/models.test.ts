@@ -60,3 +60,26 @@ test("une piste référence son propriétaire et cache storedName", () => {
   expect(Track.schema.path("ownerId").options.ref).toBe("User");
   expect(track.toPublic()).not.toHaveProperty("storedName");
 });
+
+test("toPublic() calcule hasCover sans exposer coverStoredName", async () => {
+  const track = await Track.create({
+    ownerId: new mongoose.Types.ObjectId(),
+    title: "Wither",
+    originalName: "wither.m4a",
+    storedName: "a.flac",
+    mimeType: "audio/flac",
+    size: 10,
+    artist: "Frank Ocean",
+    coverStoredName: "c.jpg",
+    coverMimeType: "image/jpeg",
+  });
+
+  const pub = track.toPublic();
+  expect(pub.hasCover).toBe(true);
+  expect(pub.artist).toBe("Frank Ocean");
+  expect(pub).not.toHaveProperty("coverStoredName");
+
+  // Relu depuis la base, le champ n'est chargé qu'avec select("+coverStoredName").
+  const reloaded = await Track.findById(track.id).select("+coverStoredName");
+  expect(reloaded!.toPublic().hasCover).toBe(true);
+});

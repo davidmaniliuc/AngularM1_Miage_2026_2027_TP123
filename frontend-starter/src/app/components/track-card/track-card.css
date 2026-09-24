@@ -35,6 +35,7 @@
 .cover.format-m4a { --cover: var(--gpc-format-m4a); }
 .cover.format-wav { --cover: var(--gpc-format-wav); }
 .cover.format-ogg { --cover: var(--gpc-format-ogg); }
+.cover.format-flac { --cover: var(--gpc-format-flac); }
 .cover .overlay {
   position: absolute;
   inset: 0;

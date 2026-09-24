@@ -3,6 +3,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Track } from '../../shared/models/track.model';
 import { formatFormat } from '../../shared/utils/audio-file';
+import { trackSubtitle } from '../../shared/utils/track-subtitle';
+import { TrackCoverComponent } from '../track-cover/track-cover';
 import { computePeaks } from '../../shared/utils/waveform';
 
 const BARS = 96;
@@ -14,7 +16,7 @@ const FLAT = Array.from({ length: BARS }, () => 0.3);
  */
 @Component({
   selector: 'app-audio-player',
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatIconModule, TrackCoverComponent],
   templateUrl: './audio-player.html',
   styleUrl: './audio-player.css',
 })
@@ -37,6 +39,7 @@ export class AudioPlayerComponent {
   protected readonly Math = Math;
 
   readonly format = computed(() => formatFormat(this.track().mimeType));
+  readonly subtitle = computed(() => trackSubtitle(this.track()));
   readonly progress = computed(() => (this.duration() ? this.currentTime() / this.duration() : 0));
   readonly bars = computed(() => {
     const played = this.progress() * this.peaks().length;

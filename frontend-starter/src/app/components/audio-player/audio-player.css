@@ -21,6 +21,8 @@ audio { display: none; }
 
 .now { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .cover {
+  position: relative;
+  overflow: hidden;
   flex: none;
   display: grid;
   place-items: center;
@@ -36,6 +38,7 @@ audio { display: none; }
 .cover.format-m4a { background: var(--gpc-format-m4a); }
 .cover.format-wav { background: var(--gpc-format-wav); }
 .cover.format-ogg { background: var(--gpc-format-ogg); }
+.cover.format-flac { background: var(--gpc-format-flac); }
 .now-text { min-width: 0; }
 .now-text b, .now-text small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .now-text b { font-size: 14px; }

@@ -31,6 +31,13 @@ export class TrackService {
     });
   }
 
+  /** Cover image as a Blob: an <img src> could not send the JWT. */
+  cover(id: string) {
+    return this.http.get(`/api/tracks/${id}/cover`, {
+      responseType: 'blob',
+    });
+  }
+
   remove(id: string) {
     return this.http.delete<void>(`/api/tracks/${id}`);
   }

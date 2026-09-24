@@ -8,6 +8,7 @@ import {
   resetDb,
   disconnectTestDb,
 } from "./helpers";
+import { Track } from "../src/models/Track";
 
 beforeAll(connectTestDb);
 afterEach(resetDb);
@@ -167,11 +168,43 @@ test("chaque piste garde exactement les champs publics", async () => {
   );
 
   expect(Object.keys(page.items[0] ?? {}).sort()).toEqual(
-    ["createdAt", "id", "mimeType", "originalName", "ownerId", "size", "title"],
+    ["createdAt", "hasCover", "id", "mimeType", "originalName", "ownerId", "size", "title"],
   );
   expect(page.items[0]?.ownerId).toBe(user.id);
 });
 
 test("sans jeton : 401", async () => {
   expect((await request("/api/tracks")).status).toBe(401);
+});
+
+test("la liste expose artist, album et hasCover, jamais coverStoredName", async () => {
+  const { token, user } = await registerUser();
+  await seedTracks(user.id, 2);
+  await Track.updateOne(
+    { title: "Piste 2" },
+    {
+      artist: "Frank Ocean",
+      album: "Endless",
+      coverStoredName: "secret.jpg",
+      coverMimeType: "image/jpeg",
+      transcodedFrom: "alac",
+    },
+  );
+
+  const body = await json<PageBody>(
+    await request("/api/tracks", { headers: authHeaders(token) }),
+  );
+  const [withCover, withoutCover] = body.items;
+
+  expect(withCover).toMatchObject({
+    title: "Piste 2",
+    artist: "Frank Ocean",
+    album: "Endless",
+    transcodedFrom: "alac",
+    hasCover: true,
+  });
+  expect(withCover).not.toHaveProperty("coverStoredName");
+  expect(withCover).not.toHaveProperty("coverMimeType");
+  expect(withoutCover).toMatchObject({ title: "Piste 1", hasCover: false });
+  expect(withoutCover).not.toHaveProperty("artist");
 });

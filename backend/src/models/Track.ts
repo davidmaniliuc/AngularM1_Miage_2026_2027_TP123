@@ -3,17 +3,24 @@ import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 import type { PublicTrack } from "../types";
 
 /*
- * Ce schéma conserve les métadonnées d'une piste. Le fichier audio lui-même
- * reste sur le disque ; storedName contient le nom technique utilisé côté
- * serveur et n'est jamais exposé par toPublic().
+ * Ce schéma conserve les métadonnées d'une piste. Le fichier audio et sa
+ * pochette restent sur le disque ; storedName et coverStoredName contiennent
+ * les noms techniques utilisés côté serveur et ne sont jamais exposés par
+ * toPublic().
  */
 export interface TrackDoc {
   ownerId: mongoose.Types.ObjectId;
   title: string;
   originalName: string;
   storedName: string;
+  /** Type du fichier stocké (audio/flac après conversion d'un ALAC). */
   mimeType: string;
   size: number;
+  artist?: string;
+  album?: string;
+  coverStoredName?: string;
+  coverMimeType?: string;
+  transcodedFrom?: "alac";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +45,11 @@ const schema = new Schema<TrackDoc, TrackModel, TrackMethods>(
     storedName: { type: String, required: true, select: false },
     mimeType: { type: String, required: true },
     size: { type: Number, required: true, min: 0 },
+    artist: { type: String, trim: true },
+    album: { type: String, trim: true },
+    coverStoredName: { type: String, select: false },
+    coverMimeType: { type: String },
+    transcodedFrom: { type: String, enum: ["alac"] },
   },
   { timestamps: true },
 );
@@ -64,6 +76,11 @@ schema.method("toPublic", function toPublic(): PublicTrack {
     originalName: this.originalName,
     mimeType: this.mimeType,
     size: this.size,
+    artist: this.artist,
+    album: this.album,
+    transcodedFrom: this.transcodedFrom,
+    // coverStoredName n'est présent que si la requête l'a sélectionné.
+    hasCover: Boolean(this.coverStoredName),
     createdAt: this.createdAt,
   };
 });

@@ -43,8 +43,8 @@
       <mat-icon>upload</mat-icon>
       <strong>{{ dragging() ? 'Déposez le fichier ici' : 'Déposez un fichier audio' }}</strong>
       <span>ou <u>parcourez vos fichiers</u></span>
-      <small id="file-hint">MP3, WAV, OGG ou M4A, 25 Mo maximum</small>
-      <input class="sr-only" type="file" accept=".mp3,.wav,.ogg,.m4a,audio/*"
+      <small id="file-hint">MP3, WAV, OGG, M4A ou FLAC, 100 Mo maximum</small>
+      <input class="sr-only" type="file" accept=".mp3,.wav,.ogg,.m4a,.flac,audio/*"
              aria-describedby="file-hint" (change)="choose($event)" />
     </label>
   }

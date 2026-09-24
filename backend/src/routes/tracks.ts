@@ -6,10 +6,13 @@ import { Track } from "../models/Track";
 import { MAX_FILE_SIZE } from "../config";
 import {
   audioPath,
+  discardFiles,
   removeAudio,
   saveAudio,
   validateAudio,
 } from "../lib/uploads";
+import { createdFiles, processAudio } from "../lib/ingest";
+import { coverPath, removeCover } from "../lib/covers";
 import type { AppEnv, Page, PublicTrack } from "../types";
 
 export const tracksRoutes = new Hono<AppEnv>();
@@ -64,6 +67,11 @@ tracksRoutes.get("/", async (c) => {
         originalName: 1,
         mimeType: 1,
         size: 1,
+        artist: 1,
+        album: 1,
+        transcodedFrom: 1,
+        // Vrai si le champ existe, sans jamais recopier sa valeur.
+        hasCover: { $ne: [{ $type: "$coverStoredName" }, "missing"] },
         createdAt: 1,
       },
     },
@@ -95,11 +103,15 @@ tracksRoutes.get("/", async (c) => {
 
 /**
  * Reçoit un formulaire multipart contenant le champ fichier "audio" et le
- * champ texte "title".
+ * champ texte facultatif "title".
  *
- * Différence avec Multer : parseBody() met tout le corps en mémoire avant que
- * l'on puisse lire la taille du fichier. On regarde donc d'abord l'en-tête
- * Content-Length pour rejeter un envoi manifestement trop gros sans le lire.
+ * parseBody() met tout le corps en mémoire avant que l'on puisse lire la
+ * taille du fichier. On regarde donc d'abord l'en-tête Content-Length pour
+ * rejeter un envoi manifestement trop gros sans le lire.
+ *
+ * Le fichier est ensuite écrit, analysé par son contenu (lib/ingest.ts) et,
+ * si c'est de l'ALAC, converti en FLAC. Le titre vient du formulaire, sinon
+ * du tag title, sinon du nom du fichier.
  */
 tracksRoutes.post("/", async (c) => {
   const { sub } = c.get("auth");
@@ -118,38 +130,51 @@ tracksRoutes.post("/", async (c) => {
   }
 
   const { file } = validation;
-  const title = typeof body["title"] === "string" && body["title"]
-    ? body["title"]
-    : file.name;
-
   const storedName = await saveAudio(file);
+
+  let result;
+  try {
+    result = await processAudio(storedName);
+  } catch (error) {
+    // processAudio a déjà nettoyé ce qu'elle avait créé ; reste l'original.
+    await discardFiles([audioPath(storedName)]);
+    throw error;
+  }
+
+  if (!result.ok) {
+    await discardFiles([audioPath(storedName)]);
+    throw new HTTPException(400, { message: result.message });
+  }
+
+  const { audio } = result;
+  const formTitle = typeof body["title"] === "string" ? body["title"].trim() : "";
 
   try {
     const track = await Track.create({
       ownerId: new mongoose.Types.ObjectId(sub),
-      title,
+      title: formTitle || audio.title || file.name,
       originalName: file.name,
-      storedName,
-      mimeType: file.type,
-      size: file.size,
+      storedName: audio.storedName,
+      mimeType: audio.mimeType,
+      size: audio.size,
+      artist: audio.artist,
+      album: audio.album,
+      coverStoredName: audio.cover?.storedName,
+      coverMimeType: audio.cover?.mimeType,
+      transcodedFrom: audio.transcodedFrom,
     });
+
+    // L'ALAC d'origine n'est plus utile une fois le FLAC enregistré en base.
+    if (audio.storedName !== storedName) {
+      await discardFiles([audioPath(storedName)]);
+    }
 
     console.log(`[tracks] Upload enregistré : ${track.id}`);
     return c.json(track.toPublic(), 201);
   } catch (error) {
     console.error("[tracks] Erreur après l'écriture du fichier", error);
-
-    // Si MongoDB échoue après l'écriture sur disque, on nettoie le fichier
-    // orphelin. Un échec du nettoyage est lui aussi journalisé.
-    try {
-      await removeAudio(storedName);
-    } catch (cleanupError) {
-      console.error(
-        `[tracks] Impossible de supprimer le fichier orphelin ${storedName}`,
-        cleanupError,
-      );
-    }
-
+    // Si MongoDB échoue, on supprime l'original et tout ce qui a été créé.
+    await discardFiles([audioPath(storedName), ...createdFiles(audio, storedName)]);
     throw error;
   }
 });
@@ -188,6 +213,46 @@ tracksRoutes.get("/:id/audio", async (c) => {
   return c.body(file.stream());
 });
 
+/**
+ * Envoie la pochette d'une piste après vérification de sa propriété.
+ * Tous les échecs donnent le même 404 : on ne révèle pas qu'une piste
+ * existe quand elle appartient à un autre utilisateur.
+ */
+tracksRoutes.get("/:id/cover", async (c) => {
+  const { sub } = c.get("auth");
+  const id = c.req.param("id");
+  const notFound = () => new HTTPException(404, { message: "Pochette inconnue" });
+
+  if (!mongoose.isValidObjectId(id)) {
+    throw notFound();
+  }
+
+  const track = await Track.findOne({ _id: id, ownerId: sub }).select(
+    "+coverStoredName",
+  );
+
+  if (!track?.coverStoredName || !track.coverMimeType) {
+    console.warn(`[tracks] Pochette introuvable ou interdite : ${id}`);
+    throw notFound();
+  }
+
+  const file = Bun.file(coverPath(track.coverStoredName));
+
+  if (!(await file.exists())) {
+    console.error(`[tracks] Pochette absente du disque pour la piste ${track.id}`);
+    throw notFound();
+  }
+
+  c.header("Content-Type", track.coverMimeType);
+  c.header("Content-Length", String(file.size));
+  // private : le navigateur peut garder l'image, un proxy partagé non.
+  c.header("Cache-Control", "private, max-age=86400");
+  // Le navigateur doit croire Content-Type et ne pas deviner le format.
+  c.header("X-Content-Type-Options", "nosniff");
+
+  return c.body(file.stream());
+});
+
 /** Supprime la métadonnée et le fichier physique correspondant. */
 tracksRoutes.delete("/:id", async (c) => {
   const { sub } = c.get("auth");
@@ -200,11 +265,21 @@ tracksRoutes.delete("/:id", async (c) => {
   const track = await Track.findOneAndDelete({
     _id: id,
     ownerId: sub,
-  }).select("+storedName");
+  }).select("+storedName +coverStoredName");
 
   if (!track) {
     console.warn(`[tracks] Suppression impossible : ${id}`);
     throw new HTTPException(404, { message: "Piste inconnue" });
+  }
+
+  // Une pochette orpheline est moins grave qu'un fichier audio orphelin :
+  // son échec est journalisé mais ne change pas la réponse.
+  if (track.coverStoredName) {
+    try {
+      await removeCover(track.coverStoredName);
+    } catch (error) {
+      console.error(`[tracks] Pochette non supprimée : ${track.coverStoredName}`, error);
+    }
   }
 
   try {

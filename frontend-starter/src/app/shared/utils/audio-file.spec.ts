@@ -16,12 +16,18 @@ describe('validateAudioFile', () => {
     expect(validateAudioFile(fileOf('image/png', 1000, 'photo.png'))).toContain('Format non accepté');
   });
 
-  it('rejects a file larger than 25 Mo', () => {
-    expect(validateAudioFile(fileOf('audio/mpeg', MAX_AUDIO_SIZE + 1))).toContain('25 Mo');
+  it('rejects a file larger than 100 Mo', () => {
+    expect(validateAudioFile(fileOf('audio/mpeg', MAX_AUDIO_SIZE + 1))).toContain('100 Mo');
   });
 
-  it('accepts an mp3 of exactly 25 Mo', () => {
+  it('accepts an mp3 of exactly 100 Mo', () => {
+    expect(MAX_AUDIO_SIZE).toBe(100 * 1024 * 1024);
     expect(validateAudioFile(fileOf('audio/mpeg', MAX_AUDIO_SIZE))).toBeNull();
+  });
+
+  it('accepts FLAC, whatever MIME variant the browser sends', () => {
+    expect(validateAudioFile(fileOf('audio/flac', 1000, 'a.flac'))).toBeNull();
+    expect(validateAudioFile(fileOf('audio/x-flac', 1000, 'a.flac'))).toBeNull();
   });
 });
 

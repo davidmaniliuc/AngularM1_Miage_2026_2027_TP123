@@ -2,15 +2,16 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
-import { ALLOWED_MIME, MAX_FILE_SIZE, UPLOADS_DIR } from "../config";
+import { ALLOWED_MIME, COVERS_DIR, MAX_FILE_SIZE, UPLOADS_DIR } from "../config";
 
 /**
- * Crée le dossier des uploads au démarrage : l'application doit en disposer
- * avant de pouvoir accepter le premier fichier.
+ * Crée le dossier des uploads et celui des pochettes au démarrage :
+ * l'application doit en disposer avant d'accepter le premier fichier.
  */
 export function ensureUploadsDir(): void {
   try {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    // recursive crée UPLOADS_DIR en même temps que son sous-dossier.
+    fs.mkdirSync(COVERS_DIR, { recursive: true });
     console.log(`[startup] Dossier des uploads prêt : ${UPLOADS_DIR}`);
   } catch (error) {
     console.error("[startup] Impossible de créer le dossier des uploads", error);
@@ -73,4 +74,20 @@ export async function saveAudio(file: File): Promise<string> {
 export async function removeAudio(storedName: string): Promise<void> {
   await fsPromises.unlink(audioPath(storedName));
   console.log(`[upload] Fichier supprimé : ${storedName}`);
+}
+
+/**
+ * Supprime une liste de fichiers sans jamais lever d'erreur : sert au
+ * nettoyage après un échec, où l'erreur d'origine doit rester celle qu'on
+ * remonte. Un fichier déjà absent n'est pas une erreur ; un autre échec est
+ * journalisé pour que l'administrateur voie le fichier orphelin.
+ */
+export async function discardFiles(paths: string[]): Promise<void> {
+  for (const filePath of paths) {
+    try {
+      await fsPromises.rm(filePath, { force: true });
+    } catch (error) {
+      console.error(`[upload] Fichier orphelin non supprimé : ${filePath}`, error);
+    }
+  }
 }

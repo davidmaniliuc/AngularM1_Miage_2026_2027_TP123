@@ -12,11 +12,17 @@ Le contrat HTTP ne dépend pas du choix de persistance : le backend fourni utili
 | GET | `/users/me` | JWT | `200 User` |
 | PUT | `/users/me` | `{name}` + JWT | `200 User` |
 | GET | `/tracks?page=1&limit=5` | JWT | `Page<Track>` |
-| POST | `/tracks` | multipart : `audio`, `title` | `201 Track` |
+| POST | `/tracks` | multipart : `audio`, `title` (facultatif) | `201 Track` |
 | GET | `/tracks/:id/audio` | JWT | flux audio |
+| GET | `/tracks/:id/cover` | JWT | image (JPEG, PNG ou WebP) |
 | DELETE | `/tracks/:id` | JWT | `204` (bonus) |
 
-Formats acceptés : MP3, WAV, OGG et M4A, 25 Mo maximum.
+Formats acceptés : MP3, WAV, OGG, M4A (AAC ou ALAC) et FLAC, 100 Mo maximum.
+Le format est déterminé par le contenu du fichier, pas par le type MIME envoyé.
+Un M4A en ALAC est converti en FLAC à l'upload : la piste renvoyée a alors
+`mimeType: "audio/flac"` et `transcodedFrom: "alac"`.
+
+Sans `title`, le titre est le tag `title` du fichier, sinon son nom.
 
 ## `GET /tracks` — liste paginée
 
@@ -31,7 +37,7 @@ La pagination est calculée côté serveur par le plugin Mongoose `mongoose-aggr
 
 | Champ | Type | Description |
 |---|---|---|
-| `items` | `Track[]` | Pistes de la page. Chaque `Track` contient `id`, `ownerId`, `title`, `originalName`, `mimeType`, `size` (octets) et `createdAt`. |
+| `items` | `Track[]` | Pistes de la page. Chaque `Track` contient `id`, `ownerId`, `title`, `originalName`, `mimeType` (type du fichier stocké), `size` (octets), `createdAt`, `hasCover` (booléen) et, s'ils existent, `artist`, `album` et `transcodedFrom`. |
 | `page` | `number` | Page renvoyée (après bornage). |
 | `limit` | `number` | Taille de page appliquée (après bornage). |
 | `total` | `number` | Nombre total de pistes de l'utilisateur. |
@@ -48,7 +54,7 @@ Exemple : `GET /api/tracks?page=2&limit=5` pour 7 pistes :
 
 ```json
 {
-  "items": [{ "id": "…", "ownerId": "…", "title": "Piste 2", "originalName": "piste-2.mp3", "mimeType": "audio/mpeg", "size": 3605337, "createdAt": "2026-09-24T08:00:00.000Z" }],
+  "items": [{ "id": "…", "ownerId": "…", "title": "Piste 2", "originalName": "piste-2.mp3", "mimeType": "audio/mpeg", "size": 3605337, "hasCover": false, "createdAt": "2026-09-24T08:00:00.000Z" }],
   "page": 2, "limit": 5, "total": 7, "pages": 2,
   "pagingCounter": 6, "hasPrevPage": true, "hasNextPage": false, "prevPage": 1, "nextPage": null
 }
@@ -59,3 +65,18 @@ Une page au-delà de la dernière renvoie `items: []` avec les métadonnées cor
 - **Erreurs** : `401 {"message":"Authentification requise"}` sans jeton, avec un jeton invalide ou expiré, ou si le jeton ne contient pas d'identifiant utilisateur valide.
 
 Erreurs courantes : `400` validation, `401` authentification, `404` ressource, `409` email déjà utilisé.
+
+## `GET /tracks/:id/cover` — pochette
+
+Pochette extraite du fichier audio (tag ID3 `APIC`, atome MP4 `covr` ou bloc
+FLAC `PICTURE`). Réservée au propriétaire de la piste.
+
+- `200` : binaire de l'image, avec `Content-Type` (`image/jpeg`, `image/png` ou
+  `image/webp`), `Content-Length`, `Cache-Control: private, max-age=86400` et
+  `X-Content-Type-Options: nosniff`.
+- `404 { "message": "Pochette inconnue" }` : identifiant invalide, piste d'un
+  autre utilisateur, piste sans pochette (`hasCover: false`) ou fichier absent.
+- `401` sans jeton.
+
+Une balise `<img src>` ne peut pas envoyer l'en-tête `Authorization` : le
+frontend télécharge l'image en `Blob`, puis l'affiche avec un ObjectURL.

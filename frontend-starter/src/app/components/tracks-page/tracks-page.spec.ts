@@ -16,6 +16,7 @@ const track: Track = {
   originalName: 'blues.mp3',
   mimeType: 'audio/mpeg',
   size: 10_313_062,
+  hasCover: false,
   createdAt: '2026-09-01T10:00:00.000Z',
 };
 const other: Track = { ...track, id: 't2', title: 'Funk en Mi', originalName: 'funk.wav', mimeType: 'audio/wav' };

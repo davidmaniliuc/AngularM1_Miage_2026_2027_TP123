@@ -2,6 +2,7 @@
           [attr.aria-current]="current() ? 'true' : null">
   <button type="button" class="cover" [class]="formatClass()" (click)="play.emit()"
           [disabled]="loading()" [attr.aria-label]="playLabel()">
+    <app-track-cover [track]="track()" />
     <span class="format" aria-hidden="true">{{ format() }}</span>
     <span class="overlay" aria-hidden="true">
       @if (loading()) {
@@ -20,7 +21,7 @@
         <span class="sr-only">en lecture</span>
       }
     </h3>
-    <p class="file" [title]="track().originalName">{{ track().originalName }}</p>
+    <p class="file" [title]="track().originalName">{{ subtitle() }}</p>
     <p class="mobile-meta">{{ format() }}, {{ size() }}, {{ track().createdAt | date: 'd MMM y' }}</p>
   </div>
 

@@ -7,11 +7,21 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Track } from '../../shared/models/track.model';
 import { formatFormat, formatSize } from '../../shared/utils/audio-file';
+import { trackSubtitle } from '../../shared/utils/track-subtitle';
+import { TrackCoverComponent } from '../track-cover/track-cover';
 
 /** One track of the library, shown as a horizontal card. */
 @Component({
   selector: 'app-track-card',
-  imports: [DatePipe, MatCardModule, MatIconModule, MatButtonModule, MatMenuModule, MatProgressSpinnerModule],
+  imports: [
+    DatePipe,
+    MatCardModule,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
+    TrackCoverComponent,
+  ],
   templateUrl: './track-card.html',
   styleUrl: './track-card.css',
 })
@@ -29,6 +39,7 @@ export class TrackCardComponent {
 
   readonly format = computed(() => formatFormat(this.track().mimeType));
   readonly size = computed(() => formatSize(this.track().size));
+  readonly subtitle = computed(() => trackSubtitle(this.track()));
   readonly formatClass = computed(() => 'format-' + this.format().toLowerCase());
   readonly showPause = computed(() => this.current() && this.playing());
   readonly playLabel = computed(

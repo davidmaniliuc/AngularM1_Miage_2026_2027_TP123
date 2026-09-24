@@ -6,6 +6,7 @@ import {
   saveAudio,
   removeAudio,
   audioPath,
+  discardFiles,
 } from "../src/lib/uploads";
 import { MAX_FILE_SIZE } from "../src/config";
 
@@ -33,7 +34,7 @@ test("un type MIME non audio est refusé", () => {
 });
 
 test("un fichier trop volumineux est refusé", () => {
-  const result = validateAudio(audioFile("big.mp3", "audio/mpeg", MAX_FILE_SIZE + 1));
+  const result = validateAudio(audioFile("big.flac", "audio/flac", MAX_FILE_SIZE + 1));
   expect(result.ok).toBe(false);
   expect(result.ok === false && result.message).toBe("Fichier trop volumineux");
 });
@@ -51,5 +52,17 @@ test("saveAudio écrit le fichier sous un nom aléatoire et removeAudio le suppr
   expect(Bun.file(audioPath(storedName)).size).toBe(128);
 
   await removeAudio(storedName);
+  expect(fs.existsSync(audioPath(storedName))).toBe(false);
+});
+
+test("la limite est de 100 Mo et le FLAC est accepté", () => {
+  expect(MAX_FILE_SIZE).toBe(100 * 1024 * 1024);
+  expect(validateAudio(audioFile("a.flac", "audio/flac")).ok).toBe(true);
+  expect(validateAudio(audioFile("a.flac", "audio/x-flac")).ok).toBe(true);
+});
+
+test("discardFiles supprime, ignore les absents et ne lève jamais d'erreur", async () => {
+  const storedName = await saveAudio(audioFile("x.mp3", "audio/mpeg", 8));
+  await discardFiles([audioPath(storedName), audioPath("absent.mp3")]);
   expect(fs.existsSync(audioPath(storedName))).toBe(false);
 });

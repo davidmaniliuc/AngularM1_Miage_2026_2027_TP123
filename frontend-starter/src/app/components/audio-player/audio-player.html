@@ -6,11 +6,14 @@
          (error)="audioError.emit()"></audio>
 
   <div class="now">
-    <span class="cover" [class]="'format-' + format().toLowerCase()" aria-hidden="true">{{ format() }}</span>
+    <span class="cover" [class]="'format-' + format().toLowerCase()" aria-hidden="true">
+      {{ format() }}
+      <app-track-cover [track]="track()" />
+    </span>
     <div class="now-text">
       <span class="sr-only">En cours :</span>
       <b>{{ track().title }}</b>
-      <small>{{ track().originalName }}</small>
+      <small>{{ subtitle() }}</small>
     </div>
   </div>
 

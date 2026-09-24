@@ -26,14 +26,21 @@ export interface PublicUser {
   createdAt: Date;
 }
 
-/** Champs d'une piste qu'une réponse HTTP peut exposer (jamais storedName). */
+/** Champs d'une piste qu'une réponse HTTP peut exposer (jamais storedName ni coverStoredName). */
 export interface PublicTrack {
   id: string;
   ownerId: string;
   title: string;
   originalName: string;
+  /** Type du fichier stocké : audio/flac pour un ALAC converti. */
   mimeType: string;
   size: number;
+  artist?: string;
+  album?: string;
+  /** "alac" si le fichier envoyé a été converti en FLAC. */
+  transcodedFrom?: string;
+  /** Une pochette est disponible sur GET /tracks/:id/cover. */
+  hasCover: boolean;
   createdAt: Date;
 }
 

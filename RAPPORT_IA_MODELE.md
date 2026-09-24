@@ -92,3 +92,14 @@ prompts  "angular marerial et fait des maquetes pour avoir un truc jolié"
 "implemente le A studio"
 
 Avancé Pagination Mongoose :
+ fait ça stp : Pagination Mongoose
+
+feature simple
+
+Avancé image de couverture :
+
+"## AVANCÉ — Image de couverture je vuex faire ça comment je dois faire on passe par les métadaté des fichers est ce qu'il faut ffmpeg?"
+"mais y'a aussi des alac et flac et ça marche pas :"
+"comment je dois faire propose une spec"
+"et comment les metadoées sont résupérées? c'est avec ffmpeg?"
+"mais y'a moyen de garder la pochette en converissent an flac avec ffmpeg :/"

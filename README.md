@@ -23,6 +23,14 @@ cp .env.example .env
 Renseigner dans `.env` l’URI MongoDB Atlas et le secret JWT. Ne jamais publier
 ce fichier ni copier un secret dans le code Angular.
 
+Hors de Docker, le backend a besoin de **ffmpeg** pour convertir les fichiers
+ALAC (Apple Lossless) en FLAC : `brew install ffmpeg` sur macOS,
+`sudo apt install ffmpeg` sur Debian/Ubuntu. Dans Docker, l'image du backend
+l'installe déjà.
+
+Après une mise à jour, les pistes importées avant l'ajout des pochettes se
+migrent avec `npm run migrate:media`.
+
 ```bash
 npm install
 npm start

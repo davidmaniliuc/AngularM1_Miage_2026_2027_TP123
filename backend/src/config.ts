@@ -28,10 +28,17 @@ export const UPLOADS_DIR = path.resolve(
   process.env.UPLOADS_DIR || "data/uploads",
 );
 
-// La taille maximale d'un fichier audio est de 25 Mo.
-export const MAX_FILE_SIZE = 25 * 1024 * 1024;
+// Les pochettes extraites des fichiers audio sont rangées à part.
+export const COVERS_DIR = path.join(UPLOADS_DIR, "covers");
 
-// Les types MIME autorisés correspondent aux formats demandés dans le sujet.
+// La taille maximale d'un fichier audio est de 100 Mo : un morceau sans
+// perte (FLAC, ALAC) de 5 minutes pèse souvent 30 à 50 Mo.
+export const MAX_FILE_SIZE = 100 * 1024 * 1024;
+
+/*
+ * Premier filtre, peu coûteux, sur le type annoncé par le navigateur.
+ * Le vrai format est ensuite déterminé par le contenu (lib/metadata.ts).
+ */
 export const ALLOWED_MIME: ReadonlySet<string> = new Set([
   "audio/mpeg",
   "audio/wav",
@@ -39,4 +46,6 @@ export const ALLOWED_MIME: ReadonlySet<string> = new Set([
   "audio/ogg",
   "audio/mp4",
   "audio/x-m4a",
+  "audio/flac",
+  "audio/x-flac",
 ]);

@@ -86,7 +86,8 @@ export class UploadDialogComponent {
     this.progress.set(0);
     this.serverError.set('');
     this.dialogRef.disableClose = true;
-    const title = this.title.value.trim() || file.name;
+    // Empty on purpose: the backend then uses the file's title tag, or its name.
+    const title = this.title.value.trim();
 
     this.service.upload(file, title).subscribe({
       next: (event) => {

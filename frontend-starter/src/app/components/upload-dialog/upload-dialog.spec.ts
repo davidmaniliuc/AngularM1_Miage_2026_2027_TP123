@@ -17,6 +17,7 @@ describe('UploadDialogComponent', () => {
     originalName: 'song.mp3',
     mimeType: 'audio/mpeg',
     size: 5,
+    hasCover: false,
     createdAt: '2026-09-24T08:00:00.000Z',
   };
 
@@ -66,7 +67,7 @@ describe('UploadDialogComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Format non accepté');
   });
 
-  it('refuses a file larger than 25 Mo before any HTTP call', () => {
+  it('refuses a file larger than 100 Mo before any HTTP call', () => {
     const fixture = create();
     const big = mp3();
     Object.defineProperty(big, 'size', { value: MAX_AUDIO_SIZE + 1 });
@@ -75,7 +76,7 @@ describe('UploadDialogComponent', () => {
     fixture.detectChanges();
 
     httpMock.expectNone((r) => r.method === 'POST');
-    expect(fixture.nativeElement.textContent).toContain('25 Mo');
+    expect(fixture.nativeElement.textContent).toContain('100 Mo');
   });
 
   it('sends multipart audio + title, shows progress, blocks double submit and closes with the track', () => {
@@ -104,14 +105,20 @@ describe('UploadDialogComponent', () => {
     expect(dialogRef.close).toHaveBeenCalledWith(created);
   });
 
-  it('uses the file name when the title is empty', () => {
+  it('sends an empty title when none is typed, so the backend can use the file tag', () => {
     const fixture = create();
     selectFile(fixture, mp3());
     fixture.componentInstance.upload();
 
     const req = httpMock.expectOne((r) => r.method === 'POST');
-    expect((req.request.body as FormData).get('title')).toBe('song.mp3');
+    expect((req.request.body as FormData).get('title')).toBe('');
     req.flush(created);
+  });
+
+  it('accepts .flac in the file picker', () => {
+    const fixture = create();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input[type="file"]');
+    expect(input.accept).toContain('.flac');
   });
 
   it('shows the server error and allows a new attempt', () => {

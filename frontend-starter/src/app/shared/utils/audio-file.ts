@@ -10,18 +10,20 @@ export const ALLOWED_AUDIO_TYPES: ReadonlySet<string> = new Set([
   'audio/ogg',
   'audio/mp4',
   'audio/x-m4a',
+  'audio/flac',
+  'audio/x-flac',
 ]);
 
-export const MAX_AUDIO_SIZE = 25 * 1024 * 1024;
+export const MAX_AUDIO_SIZE = 100 * 1024 * 1024;
 
 /** Returns an error message, or null when the file can be sent. */
 export function validateAudioFile(file: File | undefined): string | null {
   if (!file) return 'Choisissez un fichier audio.';
   if (!ALLOWED_AUDIO_TYPES.has(file.type)) {
-    return `Format non accepté (${file.type || 'inconnu'}). Formats possibles : MP3, WAV, OGG, M4A.`;
+    return `Format non accepté (${file.type || 'inconnu'}). Formats possibles : MP3, WAV, OGG, M4A, FLAC.`;
   }
   if (file.size > MAX_AUDIO_SIZE) {
-    return `Fichier trop volumineux (${formatSize(file.size)}). Taille maximale : 25 Mo.`;
+    return `Fichier trop volumineux (${formatSize(file.size)}). Taille maximale : 100 Mo.`;
   }
   return null;
 }
@@ -42,6 +44,8 @@ const FORMAT_LABELS: Record<string, string> = {
   'audio/ogg': 'OGG',
   'audio/mp4': 'M4A',
   'audio/x-m4a': 'M4A',
+  'audio/flac': 'FLAC',
+  'audio/x-flac': 'FLAC',
 };
 
 /** Short, human-readable label for a MIME type. */

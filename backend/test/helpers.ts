@@ -1,3 +1,4 @@
+import path from "node:path";
 import mongoose from "mongoose";
 import { createApp } from "../src/app";
 import { Track } from "../src/models/Track";
@@ -79,4 +80,10 @@ export async function resetDb(): Promise<void> {
 /** Referme la connexion à la fin d'un fichier de test. */
 export async function disconnectTestDb(): Promise<void> {
   await mongoose.disconnect();
+}
+
+/** Charge une fixture de test/fixtures comme si le navigateur l'envoyait. */
+export async function fixtureFile(name: string, type: string, as = name): Promise<File> {
+  const bytes = await Bun.file(path.join(import.meta.dir, "fixtures", name)).arrayBuffer();
+  return new File([bytes], as, { type });
 }
