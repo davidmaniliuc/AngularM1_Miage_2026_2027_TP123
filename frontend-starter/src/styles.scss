@@ -1,0 +1,74 @@
+@use '@angular/material' as mat;
+
+/*
+ * Thème Angular Material 3 — direction « Studio » (docs/maquettes/tp2-bibliotheque.html).
+ * mat.theme() génère toutes les variables --mat-sys-* ; on ajuste ensuite
+ * quelques couleurs pour coller exactement à la maquette.
+ */
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (primary: mat.$green-palette, tertiary: mat.$orange-palette),
+    typography: 'Instrument Sans',
+    density: 0,
+  ));
+
+  @include mat.paginator-overrides((
+    container-background-color: transparent,
+    container-text-color: var(--mat-sys-on-surface-variant),
+    form-field-container-height: 36px,
+    form-field-container-vertical-padding: 6px,
+  ));
+
+  --mat-sys-primary: #17664f;
+  --mat-sys-on-primary: #fff;
+  --mat-sys-primary-container: #dcefe6;
+  --mat-sys-on-primary-container: #0c3b2d;
+  --mat-sys-surface: #f4f6f5;
+  --mat-sys-surface-container-lowest: #fff;
+  --mat-sys-on-surface: #14201b;
+  --mat-sys-on-surface-variant: #5d6b65;
+  --mat-sys-outline: #8e9c96;
+  --mat-sys-outline-variant: #e1e7e4;
+  --mat-sys-error: #b3261e;
+  --mat-sys-error-container: #fbe9e7;
+
+  /* Tokens propres à l'application */
+  --gpc-live: #d9822b;
+  --gpc-live-soft: #fbeedd;
+  --gpc-format-mp3: #17664f;
+  --gpc-format-m4a: #3d55b8;
+  --gpc-format-wav: #a8671c;
+  --gpc-format-ogg: #8a3d86;
+  --gpc-wave-rest: #cfd9d4;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body {
+  margin: 0;
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface);
+}
+a { color: var(--mat-sys-primary); }
+main { max-width: 1080px; margin: 0 auto; padding: 32px 16px; }
+
+.material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 450, 'opsz' 24; }
+.icon-fill { font-variation-settings: 'FILL' 1, 'wght' 450, 'opsz' 24; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.error { color: var(--mat-sys-error); }
+
+/*
+ * Pages de formulaire du TP1 (connexion, inscription, profil) : leurs styles
+ * sont limités à .card pour ne pas écraser les composants Material.
+ */
+.card { max-width: 480px; margin: 0 auto; padding: 1.5rem; background: #fff; border: 1px solid var(--mat-sys-outline-variant); border-radius: 16px; }
+.card h1 { margin-top: 0; font-size: 1.75rem; letter-spacing: -0.02em; }
+.card form { display: grid; gap: 0.4rem; }
+.card label { display: grid; gap: 0.4rem; margin: 0.6rem 0; font-size: 0.9rem; }
+.card input { font: inherit; padding: 0.75rem; border: 1px solid var(--mat-sys-outline); border-radius: 8px; }
+.card button { justify-self: start; margin-top: 0.6rem; padding: 0.7rem 1.2rem; font: inherit; font-weight: 600; color: #fff; background: var(--mat-sys-primary); border: 0; border-radius: 10px; cursor: pointer; }
+.card button:disabled { opacity: 0.45; }
+
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--mat-sys-primary) 60%, transparent); outline-offset: 2px; }

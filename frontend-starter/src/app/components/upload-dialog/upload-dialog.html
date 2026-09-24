@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>Importer une piste</h2>
+
+<form mat-dialog-content id="upload-form" (submit)="$event.preventDefault(); upload()">
+  <mat-form-field appearance="outline" class="title-field">
+    <mat-label>Titre</mat-label>
+    <input matInput [formControl]="title" placeholder="Nom du fichier par défaut" />
+  </mat-form-field>
+
+  @if (file(); as selected) {
+    <div class="file" [class.bad]="fileError()">
+      <span class="cover" [class]="'format-' + fileFormat().toLowerCase()" aria-hidden="true">
+        @if (fileError()) {
+          <mat-icon class="icon-fill">block</mat-icon>
+        } @else {
+          {{ fileFormat() }}
+        }
+      </span>
+      <div class="file-name">
+        <b>{{ selected.name }}</b>
+        <small>
+          @if (uploading()) {
+            {{ formatSize(selected.size * progress() / 100) }} sur {{ formatSize(selected.size) }}
+          } @else {
+            {{ selected.type || 'type inconnu' }}, {{ formatSize(selected.size) }}
+          }
+        </small>
+      </div>
+      @if (uploading()) {
+        <span class="percent" aria-hidden="true">{{ progress() }} %</span>
+      } @else {
+        <button mat-icon-button type="button" (click)="clearFile()" [attr.aria-label]="'Retirer ' + selected.name">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+      @if (uploading()) {
+        <mat-progress-bar class="progress" mode="determinate" [value]="progress()"
+                          [attr.aria-label]="'Envoi de ' + selected.name" />
+      }
+    </div>
+  } @else {
+    <label class="drop" [class.over]="dragging()"
+           (dragover)="onDragOver($event)" (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
+      <mat-icon>upload</mat-icon>
+      <strong>{{ dragging() ? 'Déposez le fichier ici' : 'Déposez un fichier audio' }}</strong>
+      <span>ou <u>parcourez vos fichiers</u></span>
+      <small id="file-hint">MP3, WAV, OGG ou M4A, 25 Mo maximum</small>
+      <input class="sr-only" type="file" accept=".mp3,.wav,.ogg,.m4a,audio/*"
+             aria-describedby="file-hint" (change)="choose($event)" />
+    </label>
+  }
+
+  @if (fileError()) {
+    <p class="hint-error" role="alert"><mat-icon>error</mat-icon>{{ fileError() }}</p>
+  }
+  @if (serverError()) {
+    <p class="hint-error" role="alert"><mat-icon>error</mat-icon>{{ serverError() }}</p>
+  }
+</form>
+
+<div mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close [disabled]="uploading()">Annuler</button>
+  <button mat-flat-button type="submit" form="upload-form" data-test="upload" [disabled]="!canUpload()">
+    {{ uploading() ? 'Envoi…' : 'Importer' }}
+  </button>
+</div>

@@ -1,1 +1,67 @@
-:host { display: block; }
+:host { display: block; min-height: 100vh; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 64px;
+  padding: 0 max(16px, calc((100vw - 1080px) / 2 + 16px));
+  background: var(--mat-sys-surface-container-lowest);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--mat-sys-on-surface);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+.mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--mat-sys-primary);
+}
+.mark mat-icon { font-size: 19px; width: 19px; height: 19px; }
+
+nav { display: flex; flex: 1; align-items: center; gap: 4px; }
+nav > a {
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+nav > a:hover { color: var(--mat-sys-on-surface); }
+nav > a.active { color: var(--mat-sys-on-surface); background: var(--mat-sys-surface); }
+
+.user { display: flex; align-items: center; gap: 10px; margin-left: auto; font-size: 14px; color: var(--mat-sys-on-surface-variant); }
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+  font-size: 13px;
+  font-weight: 700;
+}
+nav > a[routerLink='/login'] { margin-left: auto; }
+
+@media (max-width: 720px) {
+  .topbar { gap: 8px; }
+  .brand, .name, .logout-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  nav > a { padding: 8px 10px; }
+}

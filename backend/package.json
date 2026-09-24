@@ -11,7 +11,8 @@
     "dependencies": {
         "bcryptjs": "^3.0.3",
         "hono": "^4.13.8",
-        "mongoose": "^9.10.1"
+        "mongoose": "^9.10.1",
+        "mongoose-aggregate-paginate-v2": "^1.1.5"
     },
     "devDependencies": {
         "@types/bun": "^1.4.2",

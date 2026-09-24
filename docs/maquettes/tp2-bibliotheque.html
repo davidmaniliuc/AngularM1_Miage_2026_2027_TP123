@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maquettes bibliothèque</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&family=Material+Symbols+Rounded:opsz,wght,FILL@20..24,400..600,0..1&display=swap" rel="stylesheet" />
+<style>
+/* ============ Planche ============ */
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body { margin: 0; font-family: 'Instrument Sans', system-ui, sans-serif; background: #dfe3e1; color: #15201c; }
+.sym { font-family: 'Material Symbols Rounded'; font-weight: 450; font-style: normal; font-size: 22px; line-height: 1; display: inline-block; vertical-align: middle; font-variation-settings: 'FILL' 0, 'opsz' 24; user-select: none; }
+.sym.fill { font-variation-settings: 'FILL' 1, 'opsz' 24; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.board-nav { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; padding: 12px 16px; background: #fff; border-bottom: 1px solid #cdd3d0; }
+.board-nav strong { font-size: 15px; }
+.seg { display: inline-flex; padding: 3px; border-radius: 10px; background: #eef1ef; }
+.seg button { border: 0; background: none; padding: 7px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #5e6b66; }
+.seg button[aria-pressed="true"] { background: #fff; color: #15201c; box-shadow: 0 1px 2px #0002; }
+.dir { display: none; max-width: 1320px; margin: 0 auto; padding: 32px 16px 80px; }
+.dir.active { display: block; }
+.dir-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; margin-bottom: 28px; }
+.dir-intro h2 { margin: 0 0 8px; font: 700 30px/1.1 'Bricolage Grotesque', sans-serif; }
+.dir-intro p { margin: 0; max-width: 62ch; line-height: 1.55; color: #3d4a45; }
+.dir-intro dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; align-self: end; }
+.dir-intro dt { color: #5e6b66; }
+.dir-intro dd { margin: 0; }
+.swatches { display: flex; gap: 6px; }
+.swatches i { width: 22px; height: 22px; border-radius: 6px; box-shadow: inset 0 0 0 1px #0002; }
+@media (max-width: 800px) { .dir-intro { grid-template-columns: 1fr; } }
+
+.frame-title { margin: 28px 0 10px; font-size: 13px; font-weight: 600; color: #5e6b66; }
+.browser { border-radius: 12px; overflow: hidden; box-shadow: 0 24px 60px -20px #0f1f1a55, 0 0 0 1px #0000001a; background: #fff; }
+.browser-bar { display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 14px; background: #eceeed; border-bottom: 1px solid #d6dbd8; }
+.browser-bar i { width: 11px; height: 11px; border-radius: 50%; background: #c9cfcc; }
+.browser-bar span { margin: 0 auto; padding: 3px 60px; border-radius: 6px; background: #fff; font-size: 12px; color: #5e6b66; }
+.lower { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 1000px) { .lower { grid-template-columns: minmax(0, 1fr); } }
+.phone { width: 390px; max-width: 100%; height: 780px; border-radius: 44px; padding: 12px; background: #1d2421; box-shadow: 0 24px 60px -20px #0f1f1a66; }
+.phone-screen { height: 100%; border-radius: 34px; overflow: hidden auto; }
+.states { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
+.state { display: grid; gap: 10px; align-content: start; }
+.state > p { margin: 0; font-size: 13px; font-weight: 600; color: #5e6b66; }
+.state-canvas { padding: 20px; border-radius: 14px; }
+
+/* ============ Waveform (commune) ============ */
+.wave { display: flex; align-items: center; gap: 2px; height: 36px; min-width: 0; overflow: hidden; }
+.wave b { flex: 1; min-width: 1px; border-radius: 2px; background: var(--wave-rest); }
+.wave b.p { background: var(--wave-played); }
+
+/* ============ Direction A : Studio ============ */
+.studio {
+  --bg: #f4f6f5; --surface: #fff; --ink: #14201b; --muted: #5d6b65; --line: #e1e7e4;
+  --primary: #17664f; --on-primary: #fff; --primary-soft: #dcefe6; --live: #d9822b; --live-soft: #fbeedd; --error: #b3261e; --error-soft: #fbe9e7;
+  --wave-rest: #cfd9d4; --wave-played: var(--primary);
+  --f-mp3: #17664f; --f-m4a: #3d55b8; --f-wav: #a8671c; --f-ogg: #8a3d86;
+  container-type: inline-size; background: var(--bg); color: var(--ink); font-family: 'Instrument Sans', sans-serif;
+}
+.studio .topbar { display: flex; align-items: center; gap: 32px; height: 64px; padding: 0 28px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.studio .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -.01em; }
+.studio .mark { width: 28px; height: 28px; border-radius: 8px; background: var(--primary); display: grid; place-items: center; color: #fff; }
+.studio .mark .sym { font-size: 18px; }
+.studio nav { display: flex; gap: 4px; }
+.studio nav a { padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.studio nav a[aria-current] { color: var(--ink); background: var(--bg); }
+.studio .user { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+.studio .avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-weight: 700; font-size: 13px; }
+
+.studio main { max-width: 1080px; margin: 0 auto; padding: 36px 28px 28px; }
+.studio .toolbar { display: flex; align-items: end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
+.studio h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+.studio .count { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+.studio .actions { display: flex; gap: 10px; }
+.studio .search { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); }
+.studio .search input { border: 0; outline: 0; font: inherit; font-size: 14px; width: 170px; background: none; color: var(--ink); }
+.studio .btn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border: 0; border-radius: 10px; font-size: 14px; font-weight: 600; }
+.studio .btn.filled { background: var(--primary); color: var(--on-primary); }
+.studio .btn.text { background: none; color: var(--primary); }
+.studio .btn.tonal { background: var(--primary-soft); color: var(--primary); }
+.studio .btn:disabled { opacity: .5; cursor: default; }
+
+.studio .cols, .studio .track { display: grid; grid-template-columns: 52px minmax(0, 1fr) 96px 120px 40px; gap: 16px; align-items: center; }
+.studio .cols { padding: 0 16px 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.studio .cols span:nth-child(3), .studio .track .size { text-align: right; }
+.studio .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.studio .track { padding: 10px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); position: relative; }
+.studio .track.live { border-color: color-mix(in srgb, var(--live) 45%, transparent); background: linear-gradient(90deg, var(--live-soft), var(--surface) 55%); }
+.studio .cover { position: relative; width: 52px; height: 52px; border: 0; border-radius: 10px; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .04em; background: var(--c, var(--f-mp3)); overflow: hidden; }
+.studio .cover .sym { position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; background: #0007; opacity: 0; transition: opacity .15s; }
+.studio .track:hover .cover .sym, .studio .cover:focus-visible .sym, .studio .live .cover .sym { opacity: 1; }
+.studio .m4a { --c: var(--f-m4a); } .studio .wav { --c: var(--f-wav); } .studio .ogg { --c: var(--f-ogg); }
+.studio .info h3 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.005em; display: flex; align-items: center; gap: 8px; }
+.studio .info p { margin: 3px 0 0; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio .size, .studio time { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.studio .icon { width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: var(--muted); display: grid; place-items: center; }
+.studio .eq { display: inline-flex; align-items: end; gap: 2px; height: 12px; }
+.studio .eq i { width: 3px; background: var(--live); border-radius: 1px; animation: eq 1s ease-in-out infinite; }
+.studio .eq i:nth-child(2) { animation-delay: -.3s; } .studio .eq i:nth-child(3) { animation-delay: -.6s; }
+@keyframes eq { 0%, 100% { height: 30%; } 50% { height: 100%; } }
+@media (prefers-reduced-motion: reduce) { .eq i { animation: none !important; height: 70% !important; } }
+
+.studio .paginator { display: flex; justify-content: flex-end; align-items: center; gap: 24px; padding: 16px 0 0; font-size: 13px; color: var(--muted); }
+.studio .paginator .select { display: inline-flex; align-items: center; gap: 4px; padding: 6px 4px 6px 10px; border-bottom: 1px solid var(--muted); color: var(--ink); }
+.studio .paginator .nav { display: flex; }
+.studio .paginator .icon:disabled { opacity: .35; }
+
+.studio .player { position: sticky; bottom: 0; display: grid; grid-template-columns: 260px auto minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 14px 28px; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px -16px #0f1f1a40; }
+.studio .now { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.studio .now .cover { width: 44px; height: 44px; }
+.studio .now b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.studio .now small { font-size: 12px; color: var(--muted); }
+.studio .controls { display: flex; align-items: center; gap: 4px; }
+.studio .play-big { width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.studio .scrub { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* états A */
+.studio.canvas { container-type: normal; }
+.studio .dialog { background: var(--surface); border-radius: 24px; padding: 24px; box-shadow: 0 18px 40px -12px #0f1f1a40; }
+.studio .dialog h3 { margin: 0 0 16px; font-size: 22px; font-weight: 600; }
+.studio .field { position: relative; margin-bottom: 16px; }
+.studio .field input { width: 100%; height: 52px; padding: 0 14px; border: 1px solid #8e9c96; border-radius: 6px; font: inherit; font-size: 15px; background: none; }
+.studio .field label { position: absolute; top: -8px; left: 10px; padding: 0 4px; font-size: 12px; background: var(--surface); color: var(--primary); }
+.studio .field.focus input { border: 2px solid var(--primary); }
+.studio .drop { display: grid; justify-items: center; gap: 6px; padding: 22px; border: 1.5px dashed #a9b6b0; border-radius: 14px; text-align: center; font-size: 14px; color: var(--muted); }
+.studio .drop .sym { font-size: 30px; color: var(--primary); }
+.studio .drop strong { color: var(--ink); font-weight: 600; }
+.studio .drop u { color: var(--primary); text-underline-offset: 3px; }
+.studio .drop.over { border-color: var(--primary); background: var(--primary-soft); }
+.studio .file { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: 12px; background: var(--bg); }
+.studio .file .cover { width: 40px; height: 40px; }
+.studio .file b { display: block; font-size: 14px; }
+.studio .file small { font-size: 12px; color: var(--muted); }
+.studio .file.bad { background: var(--error-soft); }
+.studio .file.bad .cover { background: var(--error); }
+.studio .hint-err { display: flex; gap: 8px; margin: 10px 0 0; font-size: 13px; color: var(--error); line-height: 1.4; }
+.studio .hint-err .sym { font-size: 18px; }
+.studio .progress { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--primary-soft); overflow: hidden; }
+.studio .progress i { display: block; height: 100%; width: 64%; background: var(--primary); }
+.studio .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.studio .snackbar { display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 8px; background: #2b3431; color: #eef3f0; font-size: 14px; box-shadow: 0 8px 20px -6px #0006; }
+.studio .snackbar button { margin-left: auto; border: 0; background: none; color: #8fd9bb; font-weight: 600; }
+.studio .empty { display: grid; justify-items: center; gap: 8px; padding: 36px 20px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); text-align: center; }
+.studio .empty .ring { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); }
+.studio .empty .ring .sym { font-size: 30px; }
+.studio .empty h4 { margin: 8px 0 0; font-size: 17px; }
+.studio .empty p { margin: 0 0 8px; font-size: 14px; color: var(--muted); max-width: 30ch; }
+.studio .banner { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--error-soft); color: #5c1410; font-size: 14px; line-height: 1.45; }
+.studio .banner .sym { color: var(--error); }
+
+@container (max-width: 640px) {
+  .studio .topbar { padding: 0 16px; gap: 12px; }
+  .studio .topbar nav, .studio .user span:not(.avatar) { display: none; }
+  .studio main { padding: 24px 16px 16px; }
+  .studio h1 { font-size: 26px; }
+  .studio .actions { width: 100%; }
+  .studio .search { flex: 1; } .studio .search input { width: 100%; }
+  .studio .btn.filled .label { display: none; }
+  .studio .btn.filled { width: 42px; padding: 0; justify-content: center; }
+  .studio .cols { display: none; }
+  .studio .track { grid-template-columns: 52px minmax(0, 1fr) 40px; row-gap: 2px; }
+  .studio .track .size, .studio .track time { display: none; }
+  .studio .info .mobile-meta { display: block; }
+  .studio .paginator { justify-content: space-between; gap: 8px; }
+  .studio .paginator .per { display: none; }
+  .studio .player { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 10px 16px; }
+  .studio .player .scrub { grid-column: 1 / -1; grid-row: 1; }
+  .studio .player .controls .aux, .studio .player .vol { display: none; }
+}
+.studio .info .mobile-meta { display: none; }
+
+/* ============ Direction B : Scène ============ */
+.scene {
+  --bg: #0d1613; --surface: #14201c; --surface-2: #1a2924; --ink: #e9f2ee; --muted: #93a79f; --line: #243630;
+  --primary: #72d6b1; --on-primary: #06231a; --live: #f2b35a; --error: #ff8a80;
+  --wave-rest: #2b3f38; --wave-played: var(--primary);
+  --f-mp3: linear-gradient(135deg, #1e7a5f, #0f3d30); --f-m4a: linear-gradient(135deg, #4a5fd0, #1f2a6b);
+  --f-wav: linear-gradient(135deg, #c07a26, #5e3508); --f-ogg: linear-gradient(135deg, #a4489f, #4a1646);
+  container-type: inline-size; background: var(--bg); color: var(--ink); font-family: 'Instrument Sans', sans-serif;
+}
+.scene h1, .scene h2, .scene h3, .scene .logo { font-family: 'Bricolage Grotesque', sans-serif; }
+.scene .topbar { display: flex; align-items: center; gap: 32px; height: 64px; padding: 0 32px; border-bottom: 1px solid var(--line); }
+.scene .logo { font-weight: 700; font-size: 18px; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+.scene .logo .sym { color: var(--primary); }
+.scene nav { display: flex; gap: 22px; font-size: 14px; color: var(--muted); }
+.scene nav a[aria-current] { color: var(--ink); box-shadow: 0 2px 0 var(--primary); padding-bottom: 4px; }
+.scene .user { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--muted); }
+.scene .avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--primary); font-weight: 700; font-size: 13px; }
+.scene main { max-width: 1160px; margin: 0 auto; padding: 32px; }
+
+.scene .stage { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 20px; margin-bottom: 40px; }
+.scene .now { position: relative; padding: 28px; border-radius: 24px; background: radial-gradient(120% 140% at 0% 0%, #1f4a3c 0%, var(--surface) 55%); border: 1px solid var(--line); overflow: hidden; }
+.scene .now .state-label { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--live); font-weight: 600; }
+.scene .now .state-label i { width: 8px; height: 8px; border-radius: 50%; background: var(--live); box-shadow: 0 0 0 4px #f2b35a33; }
+.scene .now h1 { margin: 14px 0 6px; font-size: clamp(30px, 5cqi, 52px); line-height: 1; font-weight: 700; letter-spacing: -.03em; }
+.scene .now .sub { margin: 0 0 26px; font-size: 14px; color: var(--muted); }
+.scene .now .wave { height: 64px; gap: 3px; }
+.scene .times { display: flex; justify-content: space-between; margin: 8px 0 18px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.scene .controls { display: flex; align-items: center; gap: 12px; }
+.scene .icon { width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; color: var(--muted); display: grid; place-items: center; }
+.scene .play-big { width: 60px; height: 60px; border: 0; border-radius: 50%; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; }
+.scene .play-big .sym { font-size: 32px; }
+.scene .controls .vol { margin-left: auto; display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.scene .controls .vol span.track-bar { width: 90px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--ink) 70%, var(--wave-rest) 70%); }
+
+.scene .import { padding: 24px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); display: grid; gap: 14px; align-content: start; }
+.scene .import h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.scene .field { position: relative; }
+.scene .field input { width: 100%; height: 50px; padding: 0 14px; border: 1px solid #3a514a; border-radius: 10px; background: var(--bg); font: inherit; font-size: 15px; color: var(--ink); }
+.scene .field label { position: absolute; top: -8px; left: 10px; padding: 0 4px; font-size: 12px; color: var(--muted); background: var(--surface); }
+.scene .drop { display: grid; justify-items: center; gap: 6px; padding: 22px 16px; border: 1.5px dashed #3a514a; border-radius: 14px; text-align: center; font-size: 14px; color: var(--muted); }
+.scene .drop .sym { font-size: 28px; color: var(--primary); }
+.scene .drop strong { color: var(--ink); font-weight: 600; }
+.scene .drop u { color: var(--primary); text-underline-offset: 3px; }
+.scene .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 20px; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; }
+.scene .btn.filled { background: var(--primary); color: var(--on-primary); }
+.scene .btn.outline { background: none; border: 1px solid #3a514a; color: var(--ink); }
+.scene .btn:disabled { opacity: .5; cursor: default; }
+
+.scene .section-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.scene .section-head h2 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+.scene .section-head .count { color: var(--muted); font-size: 14px; }
+.scene .search { margin-left: auto; display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+.scene .search input { border: 0; outline: 0; background: none; color: var(--ink); font: inherit; font-size: 14px; width: 180px; }
+
+.scene .grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
+.scene .card { border-radius: 18px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.scene .card.live { border-color: #f2b35a88; box-shadow: 0 0 0 1px #f2b35a55; }
+.scene .art { position: relative; aspect-ratio: 1.25; background: var(--c, var(--f-mp3)); display: grid; align-content: end; padding: 14px; }
+.scene .art .fmt { font: 800 34px/1 'Bricolage Grotesque', sans-serif; letter-spacing: -.03em; color: #ffffffd9; }
+.scene .art .fab { position: absolute; right: 12px; bottom: 12px; width: 46px; height: 46px; border: 0; border-radius: 50%; background: #fff; color: #0d1613; display: grid; place-items: center; box-shadow: 0 6px 16px -4px #0008; }
+.scene .live .art .fab { background: var(--live); }
+.scene .art .badge { position: absolute; left: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #0d1613cc; font-size: 12px; font-weight: 600; color: var(--live); }
+.scene .m4a { --c: var(--f-m4a); } .scene .wav { --c: var(--f-wav); } .scene .ogg { --c: var(--f-ogg); }
+.scene .card-body { padding: 14px 16px 16px; }
+.scene .card-body h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+.scene .card-body p { margin: 4px 0 12px; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scene .facts { display: flex; gap: 8px; flex-wrap: wrap; }
+.scene .facts span { padding: 3px 9px; border-radius: 6px; background: var(--surface-2); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.scene .paginator { display: flex; justify-content: flex-end; align-items: center; gap: 24px; padding: 20px 0 0; font-size: 13px; color: var(--muted); }
+.scene .paginator .select { display: inline-flex; align-items: center; gap: 4px; padding: 6px 4px 6px 10px; border-bottom: 1px solid var(--muted); color: var(--ink); }
+.scene .paginator .nav { display: flex; }
+.scene .paginator .icon:disabled { opacity: .35; }
+
+/* états B */
+.scene.canvas { container-type: normal; }
+.scene .file { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: 12px; background: var(--surface-2); }
+.scene .file .mini { width: 40px; height: 40px; border-radius: 10px; background: var(--f-mp3); display: grid; place-items: center; font-size: 10px; font-weight: 700; }
+.scene .file b { display: block; font-size: 14px; }
+.scene .file small { font-size: 12px; color: var(--muted); }
+.scene .file.bad { box-shadow: inset 0 0 0 1px var(--error); }
+.scene .file.bad .mini { background: #5c1f1b; color: var(--error); }
+.scene .hint-err { display: flex; gap: 8px; margin: 0; font-size: 13px; color: var(--error); line-height: 1.4; }
+.scene .hint-err .sym { font-size: 18px; }
+.scene .progress { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--wave-rest); overflow: hidden; }
+.scene .progress i { display: block; height: 100%; width: 64%; background: var(--primary); }
+.scene .snackbar { display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; }
+.scene .snackbar button { margin-left: auto; border: 0; background: none; color: #17664f; font-weight: 700; }
+.scene .empty { display: grid; justify-items: center; gap: 8px; padding: 36px 20px; border-radius: 18px; border: 1.5px dashed #3a514a; text-align: center; }
+.scene .empty .sym { font-size: 36px; color: var(--primary); }
+.scene .empty h4 { margin: 6px 0 0; font: 600 19px 'Bricolage Grotesque', sans-serif; }
+.scene .empty p { margin: 0 0 8px; font-size: 14px; color: var(--muted); max-width: 30ch; }
+.scene .banner { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 14px 16px; border-radius: 14px; background: #3a1714; color: #ffd8d3; font-size: 14px; line-height: 1.45; }
+.scene .banner .sym { color: var(--error); }
+
+@container (max-width: 640px) {
+  .scene .topbar { padding: 0 16px; gap: 12px; }
+  .scene nav, .scene .user span:not(.avatar) { display: none; }
+  .scene main { padding: 20px 16px; }
+  .scene .stage { grid-template-columns: 1fr; gap: 14px; margin-bottom: 28px; }
+  .scene .now { padding: 20px; }
+  .scene .now h1 { font-size: 30px; }
+  .scene .now .wave { height: 44px; }
+  .scene .controls .vol { display: none; }
+  .scene .controls { justify-content: center; }
+  .scene .import .drop, .scene .import .field { display: none; }
+  .scene .import { grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 16px 18px; }
+  .scene .import .btn { height: 42px; }
+  .scene .search { margin-left: 0; width: 100%; } .scene .search input { width: 100%; }
+  .scene .grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .scene .art .fmt { font-size: 24px; }
+  .scene .art .fab { width: 40px; height: 40px; }
+  .scene .card-body { padding: 12px; }
+  .scene .card-body h3 { font-size: 15px; }
+  .scene .facts span:last-child { display: none; }
+  .scene .paginator { justify-content: space-between; gap: 8px; }
+  .scene .paginator .per { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="board-nav">
+  <strong>Maquettes TP2 : bibliothèque audio</strong>
+  <div class="seg" role="group" aria-label="Direction">
+    <button type="button" data-dir="a" aria-pressed="true">A. Studio</button>
+    <button type="button" data-dir="b" aria-pressed="false">B. Scène</button>
+  </div>
+</div>
+
+<!-- ================= A. STUDIO ================= -->
+<section class="dir active" id="dir-a">
+  <div class="dir-intro">
+    <div>
+      <h2>A. Studio</h2>
+      <p>Une bibliothèque de travail, claire et dense, pensée comme un gestionnaire d'échantillons : on parcourt, on filtre, on lance. Chaque piste est une card horizontale avec des colonnes alignées. L'import passe par un dialog, et le lecteur reste fixé en bas avec la forme d'onde du morceau en cours. L'ambre est réservé à un seul état : « en lecture ».</p>
+    </div>
+    <dl>
+      <dt>Couleurs</dt><dd class="swatches"><i style="background:#17664f"></i><i style="background:#d9822b"></i><i style="background:#f4f6f5"></i><i style="background:#14201b"></i><i style="background:#3d55b8"></i><i style="background:#8a3d86"></i></dd>
+      <dt>Typo</dt><dd>Instrument Sans (400 à 700), chiffres tabulaires</dd>
+      <dt>Material</dt><dd>mat-card, mat-paginator, mat-dialog, mat-form-field outline, mat-progress-bar, mat-snack-bar, mat-menu</dd>
+      <dt>Thème</dt><dd>M3 clair, primary vert (identité actuelle conservée)</dd>
+    </dl>
+  </div>
+
+  <p class="frame-title">Desktop, 1280 px</p>
+  <div class="browser"><div class="browser-bar"><i></i><i></i><i></i><span>localhost:4200/tracks</span></div><div data-tpl="tpl-studio"></div></div>
+
+  <div class="lower">
+    <div><p class="frame-title">Mobile, 390 px</p><div class="phone"><div class="phone-screen" data-tpl="tpl-studio"></div></div></div>
+    <div>
+      <p class="frame-title">États et composants</p>
+      <div class="states">
+        <div class="state"><p>Dialog d'import : prêt</p>
+          <div class="studio canvas state-canvas" style="background:#e8ecea">
+            <div class="dialog">
+              <h3>Importer une piste</h3>
+              <div class="field focus"><label>Titre</label><input value="Funk en Mi mineur" /></div>
+              <div class="drop over"><span class="sym">upload</span><strong>Déposez le fichier ici</strong><span>MP3, WAV, OGG ou M4A, 25 Mo maximum</span></div>
+              <div class="dialog-actions"><button class="btn text">Annuler</button><button class="btn filled" disabled>Importer</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="state"><p>Fichier refusé avant l'envoi</p>
+          <div class="studio canvas state-canvas" style="background:#e8ecea">
+            <div class="dialog">
+              <h3>Importer une piste</h3>
+              <div class="file bad"><span class="cover"><span class="sym fill" style="opacity:1;background:none">block</span></span><div><b>photo-concert.png</b><small>image/png, 2,1 Mo</small></div><button class="icon" aria-label="Retirer"><span class="sym">close</span></button></div>
+              <p class="hint-err"><span class="sym">error</span>Ce fichier n'est pas un fichier audio. Choisissez un MP3, WAV, OGG ou M4A.</p>
+              <div class="dialog-actions"><button class="btn text">Annuler</button><button class="btn filled" disabled>Importer</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="state"><p>Envoi en cours : double envoi bloqué</p>
+          <div class="studio canvas state-canvas" style="background:#e8ecea">
+            <div class="dialog">
+              <h3>Importer une piste</h3>
+              <div class="file"><span class="cover wav">WAV</span><div><b>funk-em.wav</b><small>14 Mo sur 21,8 Mo</small></div><span style="font-size:13px;color:var(--muted)">64 %</span><div class="progress"><i></i></div></div>
+              <div class="dialog-actions"><button class="btn text" disabled>Annuler</button><button class="btn filled" disabled>Envoi…</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="state"><p>Succès : snackbar, formulaire vidé, retour page 1</p>
+          <div class="studio canvas state-canvas" style="background:#e8ecea"><div class="snackbar">« Funk en Mi mineur » importée.<button>Écouter</button></div></div>
+        </div>
+        <div class="state"><p>Bibliothèque vide</p>
+          <div class="studio canvas state-canvas" style="background:#e8ecea">
+            <div class="empty"><span class="ring"><span class="sym">library_music</span></span><h4>Aucune piste pour l'instant</h4><p>Importez un premier backing track pour commencer à jouer dessus.</p><button class="btn filled"><span class="sym">add</span>Importer une piste</button></div>
+          </div>
+        </div>
+        <div class="state"><p>Erreur de lecture</p>
+          <div class="studio canvas state-canvas" style="background:#e8ecea">
+            <div class="banner"><span class="sym fill">error</span><span><b>Lecture impossible.</b> « Wither » est introuvable ou ne vous appartient pas. Actualisez la liste puis réessayez.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= B. SCÈNE ================= -->
+<section class="dir" id="dir-b">
+  <div class="dir-intro">
+    <div>
+      <h2>B. Scène</h2>
+      <p>Le morceau en cours est la vedette. Un grand bandeau affiche le titre en gros et la forme d'onde, comme un écran de retour sur scène. La bibliothèque est une grille de cards, chacune avec une pochette générée à partir du format (elle pourra accueillir la vraie image de couverture, prévue en option avancée). Le thème est sombre et teinté de vert, pour jouer en salle de répétition sans se faire éblouir.</p>
+    </div>
+    <dl>
+      <dt>Couleurs</dt><dd class="swatches"><i style="background:#0d1613"></i><i style="background:#14201c"></i><i style="background:#72d6b1"></i><i style="background:#f2b35a"></i><i style="background:#4a5fd0"></i><i style="background:#a4489f"></i></dd>
+      <dt>Typo</dt><dd>Bricolage Grotesque (titres), Instrument Sans (texte)</dd>
+      <dt>Material</dt><dd>mat-card, mat-paginator, mat-form-field, mat-fab, mat-progress-bar, mat-snack-bar</dd>
+      <dt>Thème</dt><dd>M3 sombre, primary menthe, tertiary ambre</dd>
+    </dl>
+  </div>
+
+  <p class="frame-title">Desktop, 1280 px</p>
+  <div class="browser"><div class="browser-bar"><i></i><i></i><i></i><span>localhost:4200/tracks</span></div><div data-tpl="tpl-scene"></div></div>
+
+  <div class="lower">
+    <div><p class="frame-title">Mobile, 390 px</p><div class="phone"><div class="phone-screen" data-tpl="tpl-scene"></div></div></div>
+    <div>
+      <p class="frame-title">États et composants</p>
+      <div class="states">
+        <div class="state"><p>Fichier refusé avant l'envoi</p>
+          <div class="scene canvas state-canvas" style="background:#0d1613"><div class="import" style="padding:18px">
+            <div class="file bad"><span class="mini">PNG</span><div><b>photo-concert.png</b><small>image/png, 2,1 Mo</small></div><button class="icon" aria-label="Retirer"><span class="sym">close</span></button></div>
+            <p class="hint-err"><span class="sym">error</span>Ce fichier n'est pas un fichier audio. Choisissez un MP3, WAV, OGG ou M4A.</p>
+          </div></div>
+        </div>
+        <div class="state"><p>Envoi en cours : double envoi bloqué</p>
+          <div class="scene canvas state-canvas" style="background:#0d1613"><div class="import" style="padding:18px">
+            <div class="file"><span class="mini" style="background:var(--f-wav)">WAV</span><div><b>funk-em.wav</b><small>14 Mo sur 21,8 Mo</small></div><span style="font-size:13px;color:var(--muted)">64 %</span><div class="progress"><i></i></div></div>
+            <button class="btn filled" disabled>Envoi…</button>
+          </div></div>
+        </div>
+        <div class="state"><p>Succès</p>
+          <div class="scene canvas state-canvas" style="background:#0d1613"><div class="snackbar">« Funk en Mi mineur » importée.<button>Écouter</button></div></div>
+        </div>
+        <div class="state"><p>Bibliothèque vide</p>
+          <div class="scene canvas state-canvas" style="background:#0d1613"><div class="empty"><span class="sym">library_music</span><h4>Votre scène est vide</h4><p>Importez un premier backing track pour commencer à jouer dessus.</p><button class="btn filled"><span class="sym">add</span>Importer une piste</button></div></div>
+        </div>
+        <div class="state"><p>Erreur de lecture</p>
+          <div class="scene canvas state-canvas" style="background:#0d1613"><div class="banner"><span class="sym fill">error</span><span><b>Lecture impossible.</b> « Wither » est introuvable ou ne vous appartient pas. Actualisez la liste puis réessayez.</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Templates ================= -->
+<template id="tpl-studio">
+  <div class="studio">
+    <header class="topbar">
+      <a class="logo" href="#"><span class="mark"><span class="sym fill">graphic_eq</span></span>Guitar Practice Cloud</a>
+      <nav><a href="#" aria-current="page">Bibliothèque</a><a href="#">Profil</a></nav>
+      <div class="user"><span>dog</span><span class="avatar">D</span></div>
+    </header>
+    <main>
+      <div class="toolbar">
+        <div><h1>Mes pistes</h1><p class="count">6 pistes, 69,7 Mo au total</p></div>
+        <div class="actions">
+          <label class="search"><span class="sym">search</span><input placeholder="Filtrer par titre" aria-label="Filtrer par titre" /></label>
+          <button class="btn filled" aria-label="Importer une piste"><span class="sym">add</span><span class="label">Importer</span></button>
+        </div>
+      </div>
+      <div class="cols" aria-hidden="true"><span></span><span>Titre</span><span>Taille</span><span>Ajoutée le</span><span></span></div>
+      <ul class="list">
+        <li class="track live" aria-current="true">
+          <button class="cover" aria-label="Mettre en pause Blues shuffle en La">MP3<span class="sym fill">pause</span></button>
+          <div class="info"><h3>Blues shuffle en La <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr">en lecture</span></h3><p>blues-shuffle-la.mp3</p><p class="mobile-meta">3,4 Mo, 18 sept.</p></div>
+          <span class="size">3,4 Mo</span><time>18 sept. 2026</time>
+          <button class="icon" aria-label="Plus d'actions"><span class="sym">more_vert</span></button>
+        </li>
+        <li class="track">
+          <button class="cover m4a" aria-label="Lire Wither">M4A<span class="sym fill">play_arrow</span></button>
+          <div class="info"><h3>Wither</h3><p>Frank Ocean - Endless - Wither.m4a</p><p class="mobile-meta">16,3 Mo, 24 sept.</p></div>
+          <span class="size">16,3 Mo</span><time>24 sept. 2026</time>
+          <button class="icon" aria-label="Plus d'actions"><span class="sym">more_vert</span></button>
+        </li>
+        <li class="track">
+          <button class="cover wav" aria-label="Lire Funk en Mi mineur">WAV<span class="sym fill">play_arrow</span></button>
+          <div class="info"><h3>Funk en Mi mineur</h3><p>funk-em.wav</p><p class="mobile-meta">21,8 Mo, 12 sept.</p></div>
+          <span class="size">21,8 Mo</span><time>12 sept. 2026</time>
+          <button class="icon" aria-label="Plus d'actions"><span class="sym">more_vert</span></button>
+        </li>
+        <li class="track">
+          <button class="cover m4a" aria-label="Lire Mine">M4A<span class="sym fill">play_arrow</span></button>
+          <div class="info"><h3>Mine</h3><p>Frank Ocean - Endless - Mine.m4a</p><p class="mobile-meta">5,5 Mo, 24 sept.</p></div>
+          <span class="size">5,5 Mo</span><time>24 sept. 2026</time>
+          <button class="icon" aria-label="Plus d'actions"><span class="sym">more_vert</span></button>
+        </li>
+        <li class="track">
+          <button class="cover ogg" aria-label="Lire Ballade en Ré">OGG<span class="sym fill">play_arrow</span></button>
+          <div class="info"><h3>Ballade en Ré</h3><p>ballade-re.ogg</p><p class="mobile-meta">2,9 Mo, 2 sept.</p></div>
+          <span class="size">2,9 Mo</span><time>2 sept. 2026</time>
+          <button class="icon" aria-label="Plus d'actions"><span class="sym">more_vert</span></button>
+        </li>
+      </ul>
+      <div class="paginator">
+        <span class="per">Pistes par page <span class="select">5 <span class="sym">arrow_drop_down</span></span></span>
+        <span>1 à 5 sur 6</span>
+        <span class="nav"><button class="icon" disabled aria-label="Page précédente"><span class="sym">chevron_left</span></button><button class="icon" aria-label="Page suivante"><span class="sym">chevron_right</span></button></span>
+      </div>
+    </main>
+    <footer class="player" aria-label="Lecteur">
+      <div class="now"><span class="cover">MP3</span><div style="min-width:0"><b>Blues shuffle en La</b><small>blues-shuffle-la.mp3</small></div></div>
+      <div class="controls">
+        <button class="icon aux" aria-label="Reculer de 10 secondes"><span class="sym">replay_10</span></button>
+        <button class="play-big" aria-label="Pause"><span class="sym fill">pause</span></button>
+        <button class="icon aux" aria-label="Avancer de 10 secondes"><span class="sym">forward_10</span></button>
+      </div>
+      <div class="scrub"><span>1:12</span><div class="wave" data-wave="90" data-played=".45"></div><span>2:40</span></div>
+      <button class="icon vol" aria-label="Volume"><span class="sym">volume_up</span></button>
+    </footer>
+  </div>
+</template>
+
+<template id="tpl-scene">
+  <div class="scene">
+    <header class="topbar">
+      <a class="logo" href="#"><span class="sym fill">graphic_eq</span>Guitar Practice Cloud</a>
+      <nav><a href="#" aria-current="page">Bibliothèque</a><a href="#">Profil</a></nav>
+      <div class="user"><span>dog</span><span class="avatar">D</span></div>
+    </header>
+    <main>
+      <div class="stage">
+        <section class="now" aria-label="En lecture">
+          <p class="state-label"><i></i>En lecture</p>
+          <h1>Blues shuffle en La</h1>
+          <p class="sub">blues-shuffle-la.mp3, MP3, 3,4 Mo</p>
+          <div class="wave" data-wave="110" data-played=".45"></div>
+          <div class="times"><span>1:12</span><span>2:40</span></div>
+          <div class="controls">
+            <button class="icon" aria-label="Reculer de 10 secondes"><span class="sym">replay_10</span></button>
+            <button class="play-big" aria-label="Pause"><span class="sym fill">pause</span></button>
+            <button class="icon" aria-label="Avancer de 10 secondes"><span class="sym">forward_10</span></button>
+            <span class="vol"><span class="sym">volume_up</span><span class="track-bar"></span></span>
+          </div>
+        </section>
+        <section class="import">
+          <h2>Importer</h2>
+          <div class="field"><label>Titre</label><input placeholder="Nom du fichier par défaut" /></div>
+          <div class="drop"><span class="sym">upload</span><strong>Déposez un fichier audio</strong><span>ou <u>parcourez</u>. MP3, WAV, OGG, M4A jusqu'à 25 Mo.</span></div>
+          <button class="btn filled"><span class="sym">add</span>Importer</button>
+        </section>
+      </div>
+
+      <div class="section-head">
+        <h2>Bibliothèque</h2><span class="count">6 pistes</span>
+        <label class="search"><span class="sym">search</span><input placeholder="Filtrer par titre" aria-label="Filtrer par titre" /></label>
+      </div>
+      <ul class="grid">
+        <li class="card live" aria-current="true"><div class="art"><span class="badge"><span class="sym fill" style="font-size:14px">graphic_eq</span>En lecture</span><span class="fmt">MP3</span><button class="fab" aria-label="Mettre en pause Blues shuffle en La"><span class="sym fill">pause</span></button></div>
+          <div class="card-body"><h3>Blues shuffle en La</h3><p>blues-shuffle-la.mp3</p><div class="facts"><span>3,4 Mo</span><span>18 sept. 2026</span></div></div></li>
+        <li class="card"><div class="art m4a"><span class="fmt">M4A</span><button class="fab" aria-label="Lire Wither"><span class="sym fill">play_arrow</span></button></div>
+          <div class="card-body"><h3>Wither</h3><p>Frank Ocean - Endless - Wither.m4a</p><div class="facts"><span>16,3 Mo</span><span>24 sept. 2026</span></div></div></li>
+        <li class="card"><div class="art wav"><span class="fmt">WAV</span><button class="fab" aria-label="Lire Funk en Mi mineur"><span class="sym fill">play_arrow</span></button></div>
+          <div class="card-body"><h3>Funk en Mi mineur</h3><p>funk-em.wav</p><div class="facts"><span>21,8 Mo</span><span>12 sept. 2026</span></div></div></li>
+        <li class="card"><div class="art m4a"><span class="fmt">M4A</span><button class="fab" aria-label="Lire Mine"><span class="sym fill">play_arrow</span></button></div>
+          <div class="card-body"><h3>Mine</h3><p>Frank Ocean - Endless - Mine.m4a</p><div class="facts"><span>5,5 Mo</span><span>24 sept. 2026</span></div></div></li>
+        <li class="card"><div class="art ogg"><span class="fmt">OGG</span><button class="fab" aria-label="Lire Ballade en Ré"><span class="sym fill">play_arrow</span></button></div>
+          <div class="card-body"><h3>Ballade en Ré</h3><p>ballade-re.ogg</p><div class="facts"><span>2,9 Mo</span><span>2 sept. 2026</span></div></div></li>
+      </ul>
+      <div class="paginator">
+        <span class="per">Pistes par page <span class="select">5 <span class="sym">arrow_drop_down</span></span></span>
+        <span>1 à 5 sur 6</span>
+        <span class="nav"><button class="icon" disabled aria-label="Page précédente"><span class="sym">chevron_left</span></button><button class="icon" aria-label="Page suivante"><span class="sym">chevron_right</span></button></span>
+      </div>
+    </main>
+  </div>
+</template>
+
+<script>
+  // Clone chaque template dans ses cadres (desktop + mobile)
+  document.querySelectorAll('[data-tpl]').forEach((slot) => {
+    slot.appendChild(document.getElementById(slot.dataset.tpl).content.cloneNode(true));
+  });
+
+  // Forme d'onde déterministe (dans l'app, elle serait calculée depuis le Blob via Web Audio)
+  document.querySelectorAll('[data-wave]').forEach((el) => {
+    const n = Number(el.dataset.wave), played = Number(el.dataset.played);
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+    for (let i = 0; i < n; i++) {
+      const env = 0.35 + 0.65 * Math.abs(Math.sin(i / n * Math.PI * 3.2));
+      const b = document.createElement('b');
+      b.style.height = Math.max(10, Math.round((0.25 + rnd() * 0.75) * env * 100)) + '%';
+      if (i / n < played) b.className = 'p';
+      el.appendChild(b);
+    }
+  });
+
+  const segs = document.querySelectorAll('.seg button');
+  if (location.hash === '#b') setTimeout(() => segs[1].click());
+  segs.forEach((b) => b.addEventListener('click', () => {
+    segs.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('.dir').forEach((d) => d.classList.toggle('active', d.id === 'dir-' + b.dataset.dir));
+  }));
+</script>
+</body>
+</html>

@@ -14,16 +14,24 @@ export class TrackService {
     });
   }
 
+  /** Emits upload progress events, then the created track in the final HttpResponse. */
   upload(file: File, title: string) {
     const body = new FormData();
     body.append('audio', file);
     body.append('title', title);
-    return this.http.post<Track>('/api/tracks', body);
+    return this.http.post<Track>('/api/tracks', body, {
+      reportProgress: true,
+      observe: 'events',
+    });
   }
 
   audio(id: string) {
     return this.http.get(`/api/tracks/${id}/audio`, {
       responseType: 'blob',
     });
+  }
+
+  remove(id: string) {
+    return this.http.delete<void>(`/api/tracks/${id}`);
   }
 }

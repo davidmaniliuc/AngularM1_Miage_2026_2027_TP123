@@ -1,0 +1,47 @@
+<section class="player" aria-label="Lecteur audio">
+  <!-- Hidden element: the custom controls below drive it. -->
+  <audio #audio [src]="src()" autoplay preload="auto"
+         (play)="onPlayState(true)" (pause)="onPlayState(false)" (ended)="onPlayState(false)"
+         (timeupdate)="onTimeUpdate()" (loadedmetadata)="onMetadata()" (durationchange)="onMetadata()"
+         (error)="audioError.emit()"></audio>
+
+  <div class="now">
+    <span class="cover" [class]="'format-' + format().toLowerCase()" aria-hidden="true">{{ format() }}</span>
+    <div class="now-text">
+      <span class="sr-only">En cours :</span>
+      <b>{{ track().title }}</b>
+      <small>{{ track().originalName }}</small>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button mat-icon-button type="button" class="aux" (click)="skip(-10)" aria-label="Reculer de 10 secondes">
+      <mat-icon>replay_10</mat-icon>
+    </button>
+    <button type="button" class="play" (click)="toggle()" [attr.aria-label]="playing() ? 'Mettre en pause' : 'Lire'">
+      <mat-icon class="icon-fill">{{ playing() ? 'pause' : 'play_arrow' }}</mat-icon>
+    </button>
+    <button mat-icon-button type="button" class="aux" (click)="skip(10)" aria-label="Avancer de 10 secondes">
+      <mat-icon>forward_10</mat-icon>
+    </button>
+  </div>
+
+  <div class="scrub">
+    <span class="time">{{ formatTime(currentTime()) }}</span>
+    <div class="wave" role="slider" tabindex="0" aria-label="Position dans le morceau"
+         [attr.aria-valuemin]="0" [attr.aria-valuemax]="Math.round(duration())"
+         [attr.aria-valuenow]="Math.round(currentTime())"
+         [attr.aria-valuetext]="formatTime(currentTime()) + ' sur ' + formatTime(duration())"
+         (click)="seekFromPointer($event)" (keydown)="seekFromKeyboard($event)">
+      @for (bar of bars(); track $index) {
+        <i [class.played]="bar.played" [style.height.%]="bar.height"></i>
+      }
+    </div>
+    <span class="time">{{ formatTime(duration()) }}</span>
+  </div>
+
+  <button mat-icon-button type="button" class="volume" (click)="toggleMute()"
+          [attr.aria-label]="muted() ? 'Réactiver le son' : 'Couper le son'" [attr.aria-pressed]="muted()">
+    <mat-icon>{{ muted() ? 'volume_off' : 'volume_up' }}</mat-icon>
+  </button>
+</section>

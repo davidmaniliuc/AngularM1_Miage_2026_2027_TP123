@@ -14,12 +14,12 @@ Le contrat est : `GET /api/tracks?page=1&limit=5`, `POST /api/tracks` avec les c
 
 ## Déroulement conseillé
 
-| Temps | Activité | Production attendue |
-|---|---|---|
-| 0:00–0:10 | Vérification du flux d’authentification | utilisateur connecté |
-| 0:10–0:55 | Bibliothèque paginée | pages serveur fonctionnelles |
-| 0:55–1:45 | Upload et lecture audio | piste envoyée et lue |
-| 1:45–2:00 | Cards, erreurs et vérification Network | interface présentable et preuves |
+| Temps     | Activité                                | Production attendue              |
+| --------- | --------------------------------------- | -------------------------------- |
+| 0:00–0:10 | Vérification du flux d’authentification | utilisateur connecté             |
+| 0:10–0:55 | Bibliothèque paginée                    | pages serveur fonctionnelles     |
+| 0:55–1:45 | Upload et lecture audio                 | piste envoyée et lue             |
+| 1:45–2:00 | Cards, erreurs et vérification Network  | interface présentable et preuves |
 
 ## Mission 2 — Bibliothèque paginée
 
@@ -73,7 +73,7 @@ Ajoutez ou complétez uniquement les éléments d’interface manquants pendant 
 
 Présenter les morceaux sous forme de cards responsives et accessibles. Une card peut afficher le titre, le nom original, le format, la taille, la date d’ajout et une action de lecture.
 
-Vérifiez le mécanisme de lecture déjà présent et complétez ce qui manque : afficher le morceau en cours, afficher une erreur audio compréhensible et révoquer l’`ObjectURL` finale à la destruction du composant.  Distinguez le téléchargement complet d’un `Blob`, le buffering du navigateur et le streaming côté serveur.
+Vérifiez le mécanisme de lecture déjà présent et complétez ce qui manque : afficher le morceau en cours, afficher une erreur audio compréhensible et révoquer l’`ObjectURL` finale à la destruction du composant. Distinguez le téléchargement complet d’un `Blob`, le buffering du navigateur et le streaming côté serveur.
 
 ### Questions sur mémoire buffering et streaming
 

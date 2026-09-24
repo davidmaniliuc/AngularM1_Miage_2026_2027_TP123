@@ -37,11 +37,21 @@ export interface PublicTrack {
   createdAt: Date;
 }
 
-/** Enveloppe de pagination attendue par le frontend Angular. */
+/**
+ * Enveloppe de pagination attendue par le frontend Angular.
+ * Les cinq premiers champs existaient déjà ; les suivants sont calculés par
+ * mongoose-aggregate-paginate-v2 et documentés dans API_CONTRACT.md.
+ */
 export interface Page<T> {
   items: T[];
   page: number;
   limit: number;
   total: number;
   pages: number;
+  /** Numéro (à partir de 1) du premier élément de la page dans la liste complète. */
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
 }

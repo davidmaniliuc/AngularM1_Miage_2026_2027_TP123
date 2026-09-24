@@ -1,0 +1,44 @@
+<mat-card appearance="outlined" class="track-card" [class.live]="current()"
+          [attr.aria-current]="current() ? 'true' : null">
+  <button type="button" class="cover" [class]="formatClass()" (click)="play.emit()"
+          [disabled]="loading()" [attr.aria-label]="playLabel()">
+    <span class="format" aria-hidden="true">{{ format() }}</span>
+    <span class="overlay" aria-hidden="true">
+      @if (loading()) {
+        <mat-spinner diameter="24" />
+      } @else {
+        <mat-icon class="icon-fill">{{ showPause() ? 'pause' : 'play_arrow' }}</mat-icon>
+      }
+    </span>
+  </button>
+
+  <div class="info">
+    <h3>
+      {{ track().title }}
+      @if (showPause()) {
+        <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="sr-only">en lecture</span>
+      }
+    </h3>
+    <p class="file" [title]="track().originalName">{{ track().originalName }}</p>
+    <p class="mobile-meta">{{ format() }}, {{ size() }}, {{ track().createdAt | date: 'd MMM y' }}</p>
+  </div>
+
+  <span class="size">{{ size() }}</span>
+  <time [attr.datetime]="track().createdAt">{{ track().createdAt | date: 'd MMM y' }}</time>
+
+  <button mat-icon-button type="button" [matMenuTriggerFor]="menu"
+          [attr.aria-label]="'Plus d’actions pour ' + track().title">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu" xPosition="before">
+    <button mat-menu-item type="button" (click)="play.emit()">
+      <mat-icon>{{ showPause() ? 'pause' : 'play_arrow' }}</mat-icon>
+      <span>{{ showPause() ? 'Mettre en pause' : 'Lire' }}</span>
+    </button>
+    <button mat-menu-item type="button" class="danger" (click)="remove.emit()">
+      <mat-icon>delete</mat-icon>
+      <span>Supprimer</span>
+    </button>
+  </mat-menu>
+</mat-card>

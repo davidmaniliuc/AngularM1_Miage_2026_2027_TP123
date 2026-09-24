@@ -1,4 +1,6 @@
-# Rapport d'usage de l'IA - TP1
+# Rapport d'usage de l'IA
+
+# TP1
 
 Pour chaque mission, détailler et fournir des explications concernant : objectif; prompt principal; plan proposé par l'agent; vérifications réalisées par le binôme; erreurs ou propositions rejetées; fichiers effectivement modifiés; preuve de fonctionnement; ce que chaque membre sait maintenant expliquer sans l'agent.
 
@@ -26,3 +28,67 @@ Migration de express vers le framework hono et restructuration du backend :
 gader express a été déconseillé par claude notament pour la sécurité de types offerte par les autres alternatives
 "can you migrate all the backend to hono (with ts)"
 la migration s'est faite avec une spec puis un plan d'implemenation
+
+# TP2 — Bibliothèque, upload et lecture audio
+
+Prompts de départ :
+
+- « Commence SUJET_ETUDIANT_TP2.md et dis moi ce que je dois faire pour compléter le RAPPORT_IA_MODELE.md »
+- « ok commence point par point et dis moi ce que je dois faire de mon côté »
+
+## Mission 2 — Bibliothèque paginée
+
+**Objectif.** Afficher les pistes de l'utilisateur page par page, avec une nouvelle requête `GET /api/tracks?page=…&limit=…` à chaque changement de page. Il est interdit de tout récupérer puis de découper la liste dans Angular.
+
+**Plan proposé par l'agent.**
+
+1. Constat sur l'existant : `TrackService.list(page, limit)` transmettait déjà `page` et `limit` via `HttpParams`. Le composant avait les signals `tracks`, `page`, `pages` et `loading`, et le template utilisait déjà `@for` / `@empty` / `@if`.
+2. Ce qui manquait : un signal `error` affiché dans le template, des boutons « Précédent » / « Suivant » (libellés complets) désactivés aux bornes _et_ pendant un chargement, et une garde dans `go()` contre une page hors bornes.
+3. Écrire d'abord des tests (vitest + `HttpTestingController`), les voir échouer, puis implémenter.
+
+**Flux.**
+
+```text
+TracksPageComponent.go(n) → page.set(n) → load()
+  → TrackService.list(page(), limit) → HttpClient.get('/api/tracks', { params: { page, limit } })
+  → GET /api/tracks?page=n&limit=5 → { items, page, limit, total, pages }
+  → tracks.set(items), pages.set(pages), loading.set(false)
+```
+
+Côté backend (`backend/src/routes/tracks.ts`, route `GET /`), `page` et `limit` sont bornés (page ≥ 1, 1 ≤ limit ≤ 20), puis la page est lue avec `skip((page - 1) * limit).limit(limit)` et le total avec `countDocuments`, les deux en parallèle.
+
+**Fichiers modifiés.**
+
+- `frontend-starter/src/app/components/tracks-page/tracks-page.ts` : signal `error`, constante `limit`, garde dans `go()`, `messageOf()` qui lit le `{ message }` renvoyé par le backend.
+- `frontend-starter/src/app/components/tracks-page/tracks-page.html` : message d'erreur `role="alert"`, boutons « Précédent » / « Suivant ».
+- `frontend-starter/src/app/components/tracks-page/tracks-page.spec.ts` (nouveau) : 5 tests (page 1 + limit 5 au démarrage, `page=2` au clic sur Suivant, boutons désactivés aux bornes, état vide, erreur affichée).
+
+**Vérifications.**
+
+- Tests automatisés : `npm test` → 17/17 tests passent, dont les 5 nouveaux.
+- Vérification manuelle : 6 pistes uploadées, soit 2 pages. Dans l'onglet Network, chaque clic sur « Précédent » / « Suivant » déclenche une nouvelle requête avec le bon paramètre `page`, et « Suivant » est désactivé sur la dernière page (captures ci-dessous).
+
+**Preuve Network.**
+
+JWT et cookie caviardés avant capture.
+
+- [Page 1 — `GET /api/tracks?page=1&limit=5` → `200 OK`](screenshots/tp2-mission2/network-page-1.png)
+- [Page 2 — `GET /api/tracks?page=2&limit=5` → `200 OK`, « Page 2 / 2 », bouton « Suivant » désactivé](screenshots/tp2-mission2/network-page-2.png)
+
+![Pagination — page 1](screenshots/tp2-mission2/network-page-1.png)
+
+![Pagination — page 2](screenshots/tp2-mission2/network-page-2.png)
+
+**Propositions rejetées / erreurs de l'IA.** _À COMPLÉTER par le binôme (ou « aucune » si c'est le cas)._
+
+**Options avancées.** Paginator Angular Material : réalisé (voir la section suivante). Les boutons « Précédent » / « Suivant » et la méthode `go()` décrits plus haut ont été remplacés par `mat-paginator`. `aggregate-paginate-v2` : non réalisé.
+
+**Ce que chaque membre sait maintenant expliquer sans l'agent.** _À COMPLÉTER par chaque membre, avec ses propres mots (pourquoi la pagination serveur, rôle de chaque signal, comment `HttpParams` construit la query string, à quoi servent `skip` et `limit` côté Mongo)._
+
+Avancé utilisation de angular material :
+
+prompts  "angular marerial et fait des maquetes pour avoir un truc jolié"
+"fait des trucs plus pro et travaillés"
+"implemente le A studio"
+
+Avancé Pagination Mongoose :

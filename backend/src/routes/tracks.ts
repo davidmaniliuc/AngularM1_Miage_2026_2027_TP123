@@ -17,6 +17,13 @@ export const tracksRoutes = new Hono<AppEnv>();
 // Toutes les routes de ce module exigent un jeton valide.
 tracksRoutes.use("*", requireAuth);
 
+/*
+ * Correspondance entre les noms du plugin et ceux du contrat : docs devient
+ * items, totalDocs devient total, totalPages devient pages. Les autres
+ * métadonnées du plugin (hasNextPage, nextPage…) gardent leur nom.
+ */
+const PAGE_LABELS = { docs: "items", totalDocs: "total", totalPages: "pages" };
+
 /** Retourne une page des pistes appartenant exclusivement à l'utilisateur. */
 tracksRoutes.get("/", async (c) => {
   const { sub } = c.get("auth");
@@ -27,48 +34,62 @@ tracksRoutes.get("/", async (c) => {
    */
   const page = Math.max(1, Number(c.req.query("page")) || 1);
   const limit = Math.min(20, Math.max(1, Number(c.req.query("limit")) || 5));
-  const filter = { ownerId: sub };
+
+  /*
+   * Contrairement à find(), un pipeline d'agrégation ne convertit pas les
+   * types : ownerId doit être un vrai ObjectId, sinon $match ne trouve rien.
+   * `sub` vient d'un jeton signé, mais on le valide quand même.
+   */
+  if (!mongoose.isValidObjectId(sub)) {
+    console.warn("[tracks] Identifiant utilisateur invalide dans le jeton");
+    throw new HTTPException(401, { message: "Authentification requise" });
+  }
+  const ownerId = new mongoose.Types.ObjectId(sub);
 
   console.log(`[tracks] Lecture page=${page}, limit=${limit}, user=${sub}`);
 
   /*
-   * La lecture et le comptage sont lancés en parallèle avec Promise.all :
-   * les deux requêtes partent en même temps au lieu de s'attendre.
-   * .lean() retourne des objets JavaScript simples, sans méthode Mongoose,
-   * ce qui suffit ici et coûte moins cher.
+   * $project recopie champ par champ ce que le frontend a le droit de voir :
+   * storedName ne peut pas fuiter, et _id devient l'`id` attendu par Angular.
+   * Le tri est confié au plugin, qui l'applique avant le découpage en pages.
    */
-  const [items, total] = await Promise.all([
-    Track.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .select("-storedName")
-      .lean(),
-    Track.countDocuments(filter),
+  const pipeline = Track.aggregate<PublicTrack>([
+    { $match: { ownerId } },
+    {
+      $project: {
+        _id: 0,
+        id: { $toString: "$_id" },
+        ownerId: { $toString: "$ownerId" },
+        title: 1,
+        originalName: 1,
+        mimeType: 1,
+        size: 1,
+        createdAt: 1,
+      },
+    },
   ]);
 
-  // Chaque document est recopié champ par champ : rien ne peut fuiter par
-  // accident, et l'_id de MongoDB devient l'`id` attendu par Angular.
-  const publicItems: PublicTrack[] = items.map((track) => ({
-    id: String(track._id),
-    ownerId: String(track.ownerId),
-    title: track.title,
-    originalName: track.originalName,
-    mimeType: track.mimeType,
-    size: track.size,
-    createdAt: track.createdAt,
-  }));
-
-  console.log(`[tracks] ${publicItems.length} piste(s) envoyée(s) sur ${total}`);
-
-  const body: Page<PublicTrack> = {
-    items: publicItems,
+  const result = await Track.aggregatePaginate<PublicTrack>(pipeline, {
     page,
     limit,
-    total,
-    pages: Math.max(1, Math.ceil(total / limit)),
+    sort: { createdAt: -1 },
+    customLabels: PAGE_LABELS,
+  });
+
+  const body: Page<PublicTrack> = {
+    items: result.items as PublicTrack[],
+    page: result.page ?? page,
+    limit: result.limit,
+    total: result.total as number,
+    pages: result.pages as number,
+    pagingCounter: result.pagingCounter,
+    hasPrevPage: result.hasPrevPage,
+    hasNextPage: result.hasNextPage,
+    prevPage: result.prevPage ?? null,
+    nextPage: result.nextPage ?? null,
   };
 
+  console.log(`[tracks] ${body.items.length} piste(s) envoyée(s) sur ${body.total}`);
   return c.json(body);
 });
 

@@ -1,4 +1,5 @@
-import mongoose, { Schema, type Model } from "mongoose";
+import mongoose, { Schema, type AggregatePaginateModel, type Model } from "mongoose";
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 import type { PublicTrack } from "../types";
 
 /*
@@ -21,7 +22,8 @@ export interface TrackMethods {
   toPublic(): PublicTrack;
 }
 
-type TrackModel = Model<TrackDoc, {}, TrackMethods>;
+// aggregatePaginate() est ajoutée au modèle par le plugin (voir plus bas).
+type TrackModel = Model<TrackDoc, {}, TrackMethods> & AggregatePaginateModel<TrackDoc>;
 
 const schema = new Schema<TrackDoc, TrackModel, TrackMethods>(
   {
@@ -42,6 +44,13 @@ const schema = new Schema<TrackDoc, TrackModel, TrackMethods>(
 
 // Cet index accélère la liste des pistes d'un utilisateur triées par date.
 schema.index({ ownerId: 1, createdAt: -1 });
+
+/*
+ * Le plugin ajoute Track.aggregatePaginate(pipeline, { page, limit }) : il
+ * exécute le pipeline d'agrégation sur une seule page et compte le total
+ * dans la même requête ($facet), puis calcule les métadonnées de pagination.
+ */
+schema.plugin(aggregatePaginate);
 
 /**
  * Convertit un document Mongoose en objet sûr pour le frontend.

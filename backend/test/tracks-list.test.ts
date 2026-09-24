@@ -24,6 +24,11 @@ type PageBody = {
   limit: number;
   total: number;
   pages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
 };
 
 function json<T>(response: Response): Promise<T> {
@@ -105,6 +110,66 @@ test("un utilisateur ne voit jamais les pistes d'un autre", async () => {
   expect(page.items).toHaveLength(0);
   expect(page.total).toBe(0);
   expect(page.pages).toBe(1);
+});
+
+test("les métadonnées du plugin décrivent la première page", async () => {
+  const { token, user } = await registerUser();
+  await seedTracks(user.id, 7);
+
+  const page = await json<PageBody>(
+    await request("/api/tracks?page=1&limit=5", { headers: authHeaders(token) }),
+  );
+
+  expect(page.pagingCounter).toBe(1);
+  expect(page.hasPrevPage).toBe(false);
+  expect(page.prevPage).toBeNull();
+  expect(page.hasNextPage).toBe(true);
+  expect(page.nextPage).toBe(2);
+});
+
+test("les métadonnées du plugin décrivent la dernière page", async () => {
+  const { token, user } = await registerUser();
+  await seedTracks(user.id, 7);
+
+  const page = await json<PageBody>(
+    await request("/api/tracks?page=2&limit=5", { headers: authHeaders(token) }),
+  );
+
+  expect(page.items.map((t) => t.title)).toEqual(["Piste 2", "Piste 1"]);
+  expect(page.pagingCounter).toBe(6);
+  expect(page.hasPrevPage).toBe(true);
+  expect(page.prevPage).toBe(1);
+  expect(page.hasNextPage).toBe(false);
+  expect(page.nextPage).toBeNull();
+});
+
+test("une page au-delà de la dernière renvoie une liste vide", async () => {
+  const { token, user } = await registerUser();
+  await seedTracks(user.id, 3);
+
+  const page = await json<PageBody>(
+    await request("/api/tracks?page=4&limit=5", { headers: authHeaders(token) }),
+  );
+
+  expect(page.items).toHaveLength(0);
+  expect(page.page).toBe(4);
+  expect(page.pages).toBe(1);
+  expect(page.total).toBe(3);
+  expect(page.hasNextPage).toBe(false);
+});
+
+test("chaque piste garde exactement les champs publics", async () => {
+  const { token, user } = await registerUser();
+  await seedTracks(user.id, 1);
+
+  const page = await json<PageBody>(
+    await request("/api/tracks", { headers: authHeaders(token) }),
+  );
+
+  expect(Object.keys(page.items[0] ?? {}).sort()).toEqual(
+    ["createdAt", "id", "mimeType", "originalName", "ownerId", "size", "title"],
+  );
+  expect(page.items[0]?.ownerId).toBe(user.id);
 });
 
 test("sans jeton : 401", async () => {
