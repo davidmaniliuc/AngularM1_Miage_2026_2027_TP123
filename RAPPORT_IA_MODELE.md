@@ -64,6 +64,8 @@ Avancé Pagination Mongoose :
 
 feature simple
 
+L'agent a ajouté le plugin `mongoose-aggregate-paginate-v2` sur le modèle `Track` et `GET /api/tracks` appelle maintenant `Track.aggregatePaginate(pipeline, { page, limit })`. Une seule agrégation donne la page et le total. Le plugin renvoie ses propres noms (`docs`, `totalDocs`...), on les a remis en `items`, `total`, `pages` comme avant et on a juste ajouté `hasPrevPage`, `hasNextPage`, `prevPage`, `nextPage` et `pagingCounter`. Comme ça le front n'a pas cassé. `API_CONTRACT.md` est mis à jour.
+
 Avancé image de couverture :
 
 "## AVANCÉ — Image de couverture je vuex faire ça comment je dois faire on passe par les métadaté des fichers est ce qu'il faut ffmpeg?"
@@ -71,6 +73,12 @@ Avancé image de couverture :
 "comment je dois faire propose une spec"
 "et comment les metadoées sont résupérées? c'est avec ffmpeg?"
 "mais y'a moyen de garder la pochette en converissent an flac avec ffmpeg :/"
+
+L'agent a dit qu'il ne fallait pas ffmpeg pour les métadonnées : la librairie `music-metadata` lit directement les tags (ID3 pour le MP3, les atomes MP4 pour le m4a, les blocs FLAC) et la pochette intégrée. On n'a pris que la pochette du fichier, pas d'upload d'image ni de recherche sur le web (MusicBrainz / Cover Art Archive), donc pas de souci de droits sur les images. On garde `artist` et `album`, et le tag `title` sert de titre si on n'en tape pas.
+
+Le problème c'était mes `.m4a` : ils sont en ALAC, et Chrome et Firefox ne savent pas le lire (« Lecture impossible »), seul Safari y arrive. Et le FLAC était refusé en 400 parce que `audio/flac` n'était pas dans la liste. Là ffmpeg sert, mais seulement pour convertir l'ALAC en FLAC à l'upload (sans perte, 0,4 s pour 22 Mo). Pour la pochette, l'agent a trouvé que ffmpeg la voit comme un flux vidéo, et avec `-map 0:v? -c:v copy -disposition:v attached_pic` elle est gardée dans le FLAC. On a aussi monté la limite à 100 Mo.
+
+Côté API : nouveaux champs `artist`, `album`, `hasCover` sur la piste et une route `GET /api/tracks/:id/cover` avec JWT, qui répond 404 si la piste est à un autre. Le front la récupère en `Blob` comme l'audio. Tout est dans la spec `docs/superpowers/specs/2026-09-24-media-metadata-covers-design.md`.
 
 ## Mission 3 — Upload et lecture audio
 
