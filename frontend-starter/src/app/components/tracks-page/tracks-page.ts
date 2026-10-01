@@ -6,8 +6,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { Track } from '../../shared/models/track.model';
+import { Track, TrackScope } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
+import { AuthService } from '../../shared/services/auth.service';
 import { TrackCardComponent } from '../track-card/track-card';
 import { AudioPlayerComponent } from '../audio-player/audio-player';
 import { UploadDialogComponent } from '../upload-dialog/upload-dialog';
@@ -27,11 +28,23 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '../confirm-dialog/con
 })
 export class TracksPageComponent {
   private readonly service = inject(TrackService);
+  private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly player = viewChild(AudioPlayerComponent);
 
   readonly pageSizeOptions = [5, 10, 20];
+  readonly scopes: { value: TrackScope; label: string }[] = [
+    { value: 'all', label: 'Tout' },
+    { value: 'mine', label: 'Mes pistes' },
+    { value: 'others', label: 'Des autres' },
+  ];
+
+  /** Mine plus other users' public tracks by default. */
+  readonly scope = signal<TrackScope>('all');
+  readonly heading = computed(
+    () => ({ all: 'Toutes les pistes', mine: 'Mes pistes', others: 'Pistes partagées' })[this.scope()],
+  );
 
   readonly tracks = signal<Track[]>([]);
   readonly page = signal(1);
@@ -65,7 +78,7 @@ export class TracksPageComponent {
   load(): void {
     this.loading.set(true);
     this.error.set('');
-    this.service.list(this.page(), this.limit()).subscribe({
+    this.service.list(this.page(), this.limit(), this.scope()).subscribe({
       next: (response) => {
         console.debug('[TracksPage] Pistes chargées', response.items.length);
         this.tracks.set(response.items);
@@ -93,6 +106,18 @@ export class TracksPageComponent {
     this.load();
   }
 
+  /** A new scope is a new list: start again from its first page. */
+  setScope(scope: TrackScope): void {
+    if (scope === this.scope()) return;
+    this.scope.set(scope);
+    this.page.set(1);
+    this.load();
+  }
+
+  isMine(track: Track): boolean {
+    return track.ownerId === this.auth.currentUser()?.id;
+  }
+
   openUpload(): void {
     this.dialog
       .open<UploadDialogComponent, void, Track>(UploadDialogComponent, { width: '480px', maxWidth: 'calc(100vw - 32px)' })
@@ -108,6 +133,8 @@ export class TracksPageComponent {
       .onAction()
       .subscribe(() => this.play(track));
     this.filter.set('');
+    // The new track would not be listed among other users' tracks.
+    if (this.scope() === 'others') this.scope.set('mine');
     this.page.set(1);
     this.load();
   }
@@ -143,6 +170,28 @@ export class TracksPageComponent {
   onAudioError(): void {
     const title = this.currentTrack()?.title ?? 'ce morceau';
     this.audioError.set(`Le navigateur ne parvient pas à lire ce fichier (« ${title} »).`);
+  }
+
+  toggleVisibility(track: Track): void {
+    const visibility = track.visibility === 'public' ? 'private' : 'public';
+    this.service.setVisibility(track.id, visibility).subscribe({
+      next: (updated) => {
+        console.debug('[TracksPage] Visibilité changée', track.id, visibility);
+        // PATCH does not send ownerName: keep the fields we already had.
+        this.tracks.update((tracks) => tracks.map((t) => (t.id === track.id ? { ...t, ...updated } : t)));
+        this.snackBar.open(
+          visibility === 'public'
+            ? `« ${track.title} » est maintenant publique.`
+            : `« ${track.title} » est maintenant privée.`,
+          undefined,
+          { duration: 4000 },
+        );
+      },
+      error: (error) => {
+        console.error('[TracksPage] Changement de visibilité impossible', error);
+        this.snackBar.open(this.messageOf(error, `Impossible de modifier « ${track.title} ».`), 'Fermer');
+      },
+    });
   }
 
   confirmRemove(track: Track): void {
@@ -194,7 +243,7 @@ export class TracksPageComponent {
    */
   private audioMessageOf(error: unknown, track: Track): string {
     if (error instanceof HttpErrorResponse && error.status === 404) {
-      return `« ${track.title} » est introuvable ou ne vous appartient pas. Actualisez la liste puis réessayez.`;
+      return `« ${track.title} » est introuvable ou n'est plus partagée. Actualisez la liste puis réessayez.`;
     }
     return `Impossible de charger « ${track.title} ». Vérifiez votre connexion et réessayez.`;
   }

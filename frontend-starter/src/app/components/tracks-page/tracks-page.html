@@ -1,10 +1,18 @@
 <section class="library" [class.with-player]="currentTrack()">
   <div class="toolbar">
     <div>
-      <h1>Mes pistes</h1>
+      <h1>{{ heading() }}</h1>
       <p class="count">{{ total() }} {{ total() > 1 ? 'pistes' : 'piste' }}</p>
     </div>
     <div class="actions">
+      <div class="scope" role="group" aria-label="Pistes affichées">
+        @for (option of scopes; track option.value) {
+          <button type="button" [class.selected]="scope() === option.value"
+                  [attr.aria-pressed]="scope() === option.value" (click)="setScope(option.value)">
+            {{ option.label }}
+          </button>
+        }
+      </div>
       <label class="search">
         <mat-icon>search</mat-icon>
         <input type="search" placeholder="Filtrer cette page par titre" aria-label="Filtrer cette page par titre"
@@ -49,7 +57,9 @@
                           [current]="currentTrack()?.id === track.id"
                           [playing]="playing()"
                           [loading]="audioLoadingId() === track.id"
+                          [mine]="isMine(track)"
                           (play)="play(track)"
+                          (toggleVisibility)="toggleVisibility(track)"
                           (remove)="confirmRemove(track)" />
         </li>
       } @empty {
@@ -60,6 +70,10 @@
               <h2>Aucun titre ne correspond à « {{ filter() }} »</h2>
               <p>Le filtre porte sur la page affichée.</p>
               <button mat-button type="button" (click)="filter.set('')">Effacer le filtre</button>
+            } @else if (scope() === 'others') {
+              <span class="ring"><mat-icon>public</mat-icon></span>
+              <h2>Aucune piste partagée pour l'instant</h2>
+              <p>Quand un autre utilisateur rendra une piste publique, elle apparaîtra ici.</p>
             } @else {
               <span class="ring"><mat-icon>library_music</mat-icon></span>
               <h2>Aucune piste pour l'instant</h2>

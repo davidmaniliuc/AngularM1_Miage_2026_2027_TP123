@@ -17,6 +17,8 @@ describe('UploadDialogComponent', () => {
     originalName: 'song.mp3',
     mimeType: 'audio/mpeg',
     size: 5,
+    ownerId: 'u1',
+    visibility: 'private',
     hasCover: false,
     createdAt: '2026-09-24T08:00:00.000Z',
   };
@@ -112,6 +114,27 @@ describe('UploadDialogComponent', () => {
 
     const req = httpMock.expectOne((r) => r.method === 'POST');
     expect((req.request.body as FormData).get('title')).toBe('');
+    req.flush(created);
+  });
+
+  it('sends visibility=private by default', () => {
+    const fixture = create();
+    selectFile(fixture, mp3());
+    fixture.componentInstance.upload();
+
+    const req = httpMock.expectOne((r) => r.method === 'POST');
+    expect((req.request.body as FormData).get('visibility')).toBe('private');
+    req.flush(created);
+  });
+
+  it('sends visibility=public when "Rendre publique" is checked', () => {
+    const fixture = create();
+    selectFile(fixture, mp3());
+    fixture.nativeElement.querySelector('mat-checkbox input').click();
+    fixture.componentInstance.upload();
+
+    const req = httpMock.expectOne((r) => r.method === 'POST');
+    expect((req.request.body as FormData).get('visibility')).toBe('public');
     req.flush(created);
   });
 

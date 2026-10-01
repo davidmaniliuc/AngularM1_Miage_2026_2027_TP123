@@ -41,6 +41,10 @@ export interface PublicTrack {
   transcodedFrom?: string;
   /** Une pochette est disponible sur GET /tracks/:id/cover. */
   hasCover: boolean;
+  /** "private" : visible par le propriétaire seul ; "public" : par tous. */
+  visibility: "private" | "public";
+  /** Nom du propriétaire, ajouté par GET /tracks (pas par POST ni PATCH). */
+  ownerName?: string;
   createdAt: Date;
 }
 

@@ -9,7 +9,12 @@
   @if (file(); as selected) {
     <div class="file" [class.bad]="fileError()">
       <span class="cover" [class]="'format-' + fileFormat().toLowerCase()" aria-hidden="true">
-        @if (fileError()) {
+        <mat-checkbox class="public" [formControl]="isPublic">
+    Rendre publique
+    <small>Les autres utilisateurs pourront l'écouter. Modifiable plus tard.</small>
+  </mat-checkbox>
+
+  @if (fileError()) {
           <mat-icon class="icon-fill">block</mat-icon>
         } @else {
           {{ fileFormat() }}

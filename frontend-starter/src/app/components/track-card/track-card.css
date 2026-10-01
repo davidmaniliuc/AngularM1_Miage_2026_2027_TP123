@@ -71,6 +71,19 @@
 .info p { margin: 3px 0 0; font-size: 13px; color: var(--mat-sys-on-surface-variant); }
 .file { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mobile-meta { display: none; }
+.owner { color: var(--mat-sys-primary); font-weight: 500; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px 1px 5px;
+  border-radius: 999px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge mat-icon { font-size: 13px; width: 13px; height: 13px; }
 
 .size, time { font-size: 14px; color: var(--mat-sys-on-surface-variant); font-variant-numeric: tabular-nums; }
 .size { text-align: right; }

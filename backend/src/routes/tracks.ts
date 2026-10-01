@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import mongoose from "mongoose";
 import { requireAuth } from "../middleware/auth";
-import { Track } from "../models/Track";
+import { Track, isVisibility, type TrackDoc } from "../models/Track";
 import { MAX_FILE_SIZE } from "../config";
 import {
   audioPath,
@@ -27,7 +27,33 @@ tracksRoutes.use("*", requireAuth);
  */
 const PAGE_LABELS = { docs: "items", totalDocs: "total", totalPages: "pages" };
 
-/** Retourne une page des pistes appartenant exclusivement à l'utilisateur. */
+/**
+ * Pistes qu'un utilisateur a le droit de lire : les siennes, plus celles que
+ * les autres ont rendues publiques. Modifier ou supprimer reste réservé au
+ * propriétaire (filtre { ownerId: sub } seul).
+ */
+function readableBy(sub: string): mongoose.QueryFilter<TrackDoc> {
+  return { $or: [{ ownerId: sub }, { visibility: "public" }] };
+}
+
+/*
+ * scope choisit les pistes listées :
+ * - mine (défaut, comportement du TP2) : toutes mes pistes ;
+ * - others : les pistes publiques des autres ;
+ * - all : les deux à la fois.
+ * Une valeur inconnue retombe sur mine, comme page et limit sont bornés.
+ */
+function scopeMatch(scope: string | undefined, ownerId: mongoose.Types.ObjectId) {
+  if (scope === "others") {
+    return { ownerId: { $ne: ownerId }, visibility: "public" };
+  }
+  if (scope === "all") {
+    return { $or: [{ ownerId }, { visibility: "public" }] };
+  }
+  return { ownerId };
+}
+
+/** Retourne une page de pistes : les miennes, celles des autres ou les deux (scope). */
 tracksRoutes.get("/", async (c) => {
   const { sub } = c.get("auth");
 
@@ -49,7 +75,9 @@ tracksRoutes.get("/", async (c) => {
   }
   const ownerId = new mongoose.Types.ObjectId(sub);
 
-  console.log(`[tracks] Lecture page=${page}, limit=${limit}, user=${sub}`);
+  const scope = c.req.query("scope");
+
+  console.log(`[tracks] Lecture page=${page}, limit=${limit}, scope=${scope ?? "mine"}, user=${sub}`);
 
   /*
    * $project recopie champ par champ ce que le frontend a le droit de voir :
@@ -57,7 +85,17 @@ tracksRoutes.get("/", async (c) => {
    * Le tri est confié au plugin, qui l'applique avant le découpage en pages.
    */
   const pipeline = Track.aggregate<PublicTrack>([
-    { $match: { ownerId } },
+    { $match: scopeMatch(scope, ownerId) },
+    // Le nom du propriétaire est affiché sur les pistes des autres.
+    {
+      $lookup: {
+        from: "users",
+        localField: "ownerId",
+        foreignField: "_id",
+        pipeline: [{ $project: { _id: 0, name: 1 } }],
+        as: "owner",
+      },
+    },
     {
       $project: {
         _id: 0,
@@ -70,6 +108,9 @@ tracksRoutes.get("/", async (c) => {
         artist: 1,
         album: 1,
         transcodedFrom: 1,
+        // Les pistes créées avant cette option n'ont pas le champ : privées.
+        visibility: { $ifNull: ["$visibility", "private"] },
+        ownerName: { $first: "$owner.name" },
         // Vrai si le champ existe, sans jamais recopier sa valeur.
         hasCover: { $ne: [{ $type: "$coverStoredName" }, "missing"] },
         createdAt: 1,
@@ -148,6 +189,8 @@ tracksRoutes.post("/", async (c) => {
 
   const { audio } = result;
   const formTitle = typeof body["title"] === "string" ? body["title"].trim() : "";
+  // Seul "public" rend la piste publique ; tout le reste la laisse privée.
+  const visibility = body["visibility"] === "public" ? "public" : "private";
 
   try {
     const track = await Track.create({
@@ -162,6 +205,7 @@ tracksRoutes.post("/", async (c) => {
       coverStoredName: audio.cover?.storedName,
       coverMimeType: audio.cover?.mimeType,
       transcodedFrom: audio.transcodedFrom,
+      visibility,
     });
 
     // L'ALAC d'origine n'est plus utile une fois le FLAC enregistré en base.
@@ -179,7 +223,7 @@ tracksRoutes.post("/", async (c) => {
   }
 });
 
-/** Envoie le contenu binaire d'une piste après vérification de sa propriété. */
+/** Envoie le contenu binaire d'une piste qui m'appartient ou qui est publique. */
 tracksRoutes.get("/:id/audio", async (c) => {
   const { sub } = c.get("auth");
   const id = c.req.param("id");
@@ -189,7 +233,7 @@ tracksRoutes.get("/:id/audio", async (c) => {
     throw new HTTPException(404, { message: "Piste inconnue" });
   }
 
-  const track = await Track.findOne({ _id: id, ownerId: sub }).select(
+  const track = await Track.findOne({ _id: id, ...readableBy(sub) }).select(
     "+storedName",
   );
 
@@ -214,9 +258,9 @@ tracksRoutes.get("/:id/audio", async (c) => {
 });
 
 /**
- * Envoie la pochette d'une piste après vérification de sa propriété.
+ * Envoie la pochette d'une piste qui m'appartient ou qui est publique.
  * Tous les échecs donnent le même 404 : on ne révèle pas qu'une piste
- * existe quand elle appartient à un autre utilisateur.
+ * privée existe quand elle appartient à un autre utilisateur.
  */
 tracksRoutes.get("/:id/cover", async (c) => {
   const { sub } = c.get("auth");
@@ -227,7 +271,7 @@ tracksRoutes.get("/:id/cover", async (c) => {
     throw notFound();
   }
 
-  const track = await Track.findOne({ _id: id, ownerId: sub }).select(
+  const track = await Track.findOne({ _id: id, ...readableBy(sub) }).select(
     "+coverStoredName",
   );
 
@@ -251,6 +295,38 @@ tracksRoutes.get("/:id/cover", async (c) => {
   c.header("X-Content-Type-Options", "nosniff");
 
   return c.body(file.stream());
+});
+
+/** Rend une de mes pistes publique ou privée. Corps : { visibility }. */
+tracksRoutes.patch("/:id", async (c) => {
+  const { sub } = c.get("auth");
+  const id = c.req.param("id");
+
+  if (!mongoose.isValidObjectId(id)) {
+    throw new HTTPException(404, { message: "Piste inconnue" });
+  }
+
+  const body: unknown = await c.req.json().catch(() => null);
+  const visibility = (body as { visibility?: unknown } | null)?.visibility;
+
+  if (!isVisibility(visibility)) {
+    throw new HTTPException(400, { message: "visibility doit valoir private ou public" });
+  }
+
+  // ownerId: sub seul : une piste publique d'un autre reste non modifiable.
+  const track = await Track.findOneAndUpdate(
+    { _id: id, ownerId: sub },
+    { visibility },
+    { new: true },
+  ).select("+coverStoredName");
+
+  if (!track) {
+    console.warn(`[tracks] Changement de visibilité impossible : ${id}`);
+    throw new HTTPException(404, { message: "Piste inconnue" });
+  }
+
+  console.log(`[tracks] Piste ${id} désormais ${visibility}`);
+  return c.json(track.toPublic());
 });
 
 /** Supprime la métadonnée et le fichier physique correspondant. */

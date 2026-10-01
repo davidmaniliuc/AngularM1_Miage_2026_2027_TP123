@@ -168,7 +168,18 @@ test("chaque piste garde exactement les champs publics", async () => {
   );
 
   expect(Object.keys(page.items[0] ?? {}).sort()).toEqual(
-    ["createdAt", "hasCover", "id", "mimeType", "originalName", "ownerId", "size", "title"],
+    [
+      "createdAt",
+      "hasCover",
+      "id",
+      "mimeType",
+      "originalName",
+      "ownerId",
+      "ownerName",
+      "size",
+      "title",
+      "visibility",
+    ],
   );
   expect(page.items[0]?.ownerId).toBe(user.id);
 });

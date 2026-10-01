@@ -9,6 +9,7 @@ import { TracksPageComponent } from './tracks-page';
 import { Track } from '../../shared/models/track.model';
 import { Page } from '../../shared/models/page.model';
 import { FrenchPaginatorIntl } from '../../shared/i18n/french-paginator-intl';
+import { AuthService } from '../../shared/services/auth.service';
 
 const track: Track = {
   id: 't1',
@@ -16,10 +17,14 @@ const track: Track = {
   originalName: 'blues.mp3',
   mimeType: 'audio/mpeg',
   size: 10_313_062,
+  ownerId: 'u1',
+  visibility: 'private',
   hasCover: false,
   createdAt: '2026-09-01T10:00:00.000Z',
 };
 const other: Track = { ...track, id: 't2', title: 'Funk en Mi', originalName: 'funk.wav', mimeType: 'audio/wav' };
+/** Public track of another user. */
+const shared: Track = { ...track, id: 't3', title: 'Jazz en Ré', ownerId: 'u2', ownerName: 'Bob', visibility: 'public' };
 
 const pageOf = (page: number, pages: number, items: Track[] = [track], limit = 5): Page<Track> => ({
   items,
@@ -50,6 +55,7 @@ describe('TracksPageComponent', () => {
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).currentUser.set({ id: 'u1', name: 'Alice', email: 'a@test.fr', createdAt: '' });
     URL.createObjectURL = vi.fn(() => 'blob:fake-' + Math.random());
     URL.revokeObjectURL = vi.fn();
   });
@@ -136,6 +142,58 @@ describe('TracksPageComponent', () => {
       fixture.componentInstance.filter.set('funk');
       fixture.detectChanges();
       expect(el(fixture).querySelectorAll('app-track-card').length).toBe(1);
+    });
+  });
+
+  describe('pistes publiques et privées', () => {
+    it('lists all readable tracks by default (scope=all)', () => {
+      TestBed.createComponent(TracksPageComponent).detectChanges();
+      const req = listRequest();
+      expect(req.request.params.get('scope')).toBe('all');
+      req.flush(pageOf(1, 1));
+    });
+
+    it('reloads page 1 with the chosen scope', () => {
+      const fixture = create(pageOf(1, 2));
+      fixture.componentInstance.onPage({ pageIndex: 1, pageSize: 5, length: 10 });
+      listRequest().flush(pageOf(2, 2));
+
+      const toggle = [...el(fixture).querySelectorAll<HTMLButtonElement>('.scope button')]
+        .find((button) => button.textContent?.includes('Des autres'))!;
+      toggle.click();
+
+      const req = listRequest();
+      expect(req.request.params.get('scope')).toBe('others');
+      expect(req.request.params.get('page')).toBe('1');
+      req.flush(pageOf(1, 1, [shared]));
+    });
+
+    it("shows the owner's name on other users' tracks only", () => {
+      const fixture = create(pageOf(1, 1, [track, shared]));
+      const cards = el(fixture).querySelectorAll('app-track-card');
+      expect(cards[0]!.textContent).not.toContain('Partagée par');
+      expect(cards[1]!.textContent).toContain('Partagée par Bob');
+    });
+
+    it('makes one of my tracks public and updates its card', () => {
+      const fixture = create(pageOf(1, 1, [track]));
+      fixture.componentInstance.toggleVisibility(track);
+
+      const req = httpMock.expectOne((r) => r.method === 'PATCH' && r.url === '/api/tracks/t1');
+      expect(req.request.body).toEqual({ visibility: 'public' });
+      req.flush({ ...track, visibility: 'public' });
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.tracks()[0]!.visibility).toBe('public');
+      expect(el(fixture).querySelector('app-track-card')!.textContent).toContain('Publique');
+    });
+
+    it('explains an empty list of shared tracks without proposing an import', () => {
+      const fixture = create();
+      fixture.componentInstance.setScope('others');
+      listRequest().flush(pageOf(1, 1, []));
+      fixture.detectChanges();
+      expect(el(fixture).textContent).toContain('Aucune piste partagée');
     });
   });
 

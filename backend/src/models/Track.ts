@@ -3,6 +3,18 @@ import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 import type { PublicTrack } from "../types";
 
 /*
+ * Une piste privée n'est visible que par son propriétaire. Une piste publique
+ * peut être listée et écoutée par tous les utilisateurs connectés, mais seul
+ * son propriétaire peut la modifier ou la supprimer.
+ */
+export const VISIBILITIES = ["private", "public"] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+
+export function isVisibility(value: unknown): value is Visibility {
+  return VISIBILITIES.includes(value as Visibility);
+}
+
+/*
  * Ce schéma conserve les métadonnées d'une piste. Le fichier audio et sa
  * pochette restent sur le disque ; storedName et coverStoredName contiennent
  * les noms techniques utilisés côté serveur et ne sont jamais exposés par
@@ -21,6 +33,7 @@ export interface TrackDoc {
   coverStoredName?: string;
   coverMimeType?: string;
   transcodedFrom?: "alac";
+  visibility: Visibility;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,12 +63,16 @@ const schema = new Schema<TrackDoc, TrackModel, TrackMethods>(
     coverStoredName: { type: String, select: false },
     coverMimeType: { type: String },
     transcodedFrom: { type: String, enum: ["alac"] },
+    // Privée par défaut : rien n'est partagé sans un choix explicite.
+    visibility: { type: String, enum: VISIBILITIES, default: "private" },
   },
   { timestamps: true },
 );
 
 // Cet index accélère la liste des pistes d'un utilisateur triées par date.
 schema.index({ ownerId: 1, createdAt: -1 });
+// Celui-ci sert aux listes qui incluent les pistes publiques des autres.
+schema.index({ visibility: 1, createdAt: -1 });
 
 /*
  * Le plugin ajoute Track.aggregatePaginate(pipeline, { page, limit }) : il
@@ -79,6 +96,7 @@ schema.method("toPublic", function toPublic(): PublicTrack {
     artist: this.artist,
     album: this.album,
     transcodedFrom: this.transcodedFrom,
+    visibility: this.visibility,
     // coverStoredName n'est présent que si la requête l'a sélectionné.
     hasCover: Boolean(this.coverStoredName),
     createdAt: this.createdAt,

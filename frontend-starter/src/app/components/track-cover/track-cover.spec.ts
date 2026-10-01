@@ -11,6 +11,8 @@ const base: Track = {
   originalName: 'wither.m4a',
   mimeType: 'audio/flac',
   size: 10,
+  ownerId: 'u1',
+  visibility: 'private',
   hasCover: true,
   createdAt: '2026-09-24T08:00:00.000Z',
 };

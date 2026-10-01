@@ -20,8 +20,18 @@
         <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="sr-only">en lecture</span>
       }
+      @if (mine() && isPublic()) {
+        <span class="badge" title="Visible par les autres utilisateurs">
+          <mat-icon>public</mat-icon>Publique
+        </span>
+      }
     </h3>
-    <p class="file" [title]="track().originalName">{{ subtitle() }}</p>
+    <p class="file" [title]="track().originalName">
+      @if (sharedBy()) {
+        <span class="owner">{{ sharedBy() }}</span> ·
+      }
+      {{ subtitle() }}
+    </p>
     <p class="mobile-meta">{{ format() }}, {{ size() }}, {{ track().createdAt | date: 'd MMM y' }}</p>
   </div>
 
@@ -37,9 +47,15 @@
       <mat-icon>{{ showPause() ? 'pause' : 'play_arrow' }}</mat-icon>
       <span>{{ showPause() ? 'Mettre en pause' : 'Lire' }}</span>
     </button>
-    <button mat-menu-item type="button" class="danger" (click)="remove.emit()">
-      <mat-icon>delete</mat-icon>
-      <span>Supprimer</span>
-    </button>
+    @if (mine()) {
+      <button mat-menu-item type="button" (click)="toggleVisibility.emit()">
+        <mat-icon>{{ isPublic() ? 'lock' : 'public' }}</mat-icon>
+        <span>{{ isPublic() ? 'Rendre privée' : 'Rendre publique' }}</span>
+      </button>
+      <button mat-menu-item type="button" class="danger" (click)="remove.emit()">
+        <mat-icon>delete</mat-icon>
+        <span>Supprimer</span>
+      </button>
+    }
   </mat-menu>
 </mat-card>

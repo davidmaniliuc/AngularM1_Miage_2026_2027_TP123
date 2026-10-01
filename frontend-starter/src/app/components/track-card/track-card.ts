@@ -33,13 +33,20 @@ export class TrackCardComponent {
   readonly playing = input(false);
   /** The audio Blob of this track is being downloaded. */
   readonly loading = input(false);
+  /** The current user owns this track: only then can it be shared or deleted. */
+  readonly mine = input(true);
 
   readonly play = output<void>();
   readonly remove = output<void>();
+  readonly toggleVisibility = output<void>();
 
   readonly format = computed(() => formatFormat(this.track().mimeType));
   readonly size = computed(() => formatSize(this.track().size));
   readonly subtitle = computed(() => trackSubtitle(this.track()));
+  readonly sharedBy = computed(() =>
+    this.mine() ? '' : `Partagée par ${this.track().ownerName ?? 'un autre utilisateur'}`,
+  );
+  readonly isPublic = computed(() => this.track().visibility === 'public');
   readonly formatClass = computed(() => 'format-' + this.format().toLowerCase());
   readonly showPause = computed(() => this.current() && this.playing());
   readonly playLabel = computed(

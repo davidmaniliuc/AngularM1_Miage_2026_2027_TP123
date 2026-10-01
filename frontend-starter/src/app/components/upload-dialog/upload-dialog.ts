@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
 import { formatFormat, formatSize, validateAudioFile } from '../../shared/utils/audio-file';
@@ -25,6 +26,7 @@ import { formatFormat, formatSize, validateAudioFile } from '../../shared/utils/
     MatInputModule,
     MatIconModule,
     MatProgressBarModule,
+    MatCheckboxModule,
   ],
   templateUrl: './upload-dialog.html',
   styleUrl: './upload-dialog.css',
@@ -34,6 +36,8 @@ export class UploadDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<UploadDialogComponent, Track>);
 
   readonly title = new FormControl('', { nonNullable: true });
+  /** Unchecked by default: nothing is shared without an explicit choice. */
+  readonly isPublic = new FormControl(false, { nonNullable: true });
   readonly file = signal<File | undefined>(undefined);
   readonly fileError = signal('');
   readonly serverError = signal('');
@@ -89,7 +93,9 @@ export class UploadDialogComponent {
     // Empty on purpose: the backend then uses the file's title tag, or its name.
     const title = this.title.value.trim();
 
-    this.service.upload(file, title).subscribe({
+    const visibility = this.isPublic.value ? 'public' : 'private';
+
+    this.service.upload(file, title, visibility).subscribe({
       next: (event) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.progress.set(Math.round((100 * event.loaded) / event.total));
