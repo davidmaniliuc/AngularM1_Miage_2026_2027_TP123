@@ -31,6 +31,26 @@ describe('authInterceptor', () => {
     httpMock.verify();
   });
 
+  it('adds Authorization: Bearer <token> when a token exists', () => {
+    auth.token.set('jwt-123');
+
+    http.get('/api/tracks').subscribe();
+    const req = httpMock.expectOne('/api/tracks');
+
+    expect(req.request.headers.get('Authorization')).toBe('Bearer jwt-123');
+    req.flush({});
+  });
+
+  it('sends no Authorization header without a token', () => {
+    auth.token.set(null);
+
+    http.get('/api/tracks').subscribe();
+    const req = httpMock.expectOne('/api/tracks');
+
+    expect(req.request.headers.has('Authorization')).toBe(false);
+    req.flush({});
+  });
+
   it('clears the session and navigates to /login on a 401 from a protected endpoint', async () => {
     auth.token.set('some-token');
     auth.currentUser.set({

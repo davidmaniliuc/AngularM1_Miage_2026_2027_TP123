@@ -1,8 +1,10 @@
 <mat-card appearance="outlined" class="track-card" [class.live]="current()"
+          [class.deleting]="deleting()" [attr.aria-busy]="deleting()"
+          [style.--cover-accent]="accent()" [style.--cover-accent-2]="accent2()"
           [attr.aria-current]="current() ? 'true' : null">
   <button type="button" class="cover" [class]="formatClass()" (click)="play.emit()"
           [disabled]="loading()" [attr.aria-label]="playLabel()">
-    <app-track-cover [track]="track()" />
+    <app-track-cover [track]="track()" (palette)="palette.set($event)" />
     <span class="format" aria-hidden="true">{{ format() }}</span>
     <span class="overlay" aria-hidden="true">
       @if (loading()) {
@@ -38,9 +40,13 @@
   <span class="size">{{ size() }}</span>
   <time [attr.datetime]="track().createdAt">{{ track().createdAt | date: 'd MMM y' }}</time>
 
-  <button mat-icon-button type="button" [matMenuTriggerFor]="menu"
-          [attr.aria-label]="'Plus d’actions pour ' + track().title">
-    <mat-icon>more_vert</mat-icon>
+  <button mat-icon-button type="button" [matMenuTriggerFor]="menu" [disabled]="deleting()"
+          [attr.aria-label]="deleting() ? 'Suppression de ' + track().title + ' en cours' : 'Plus d’actions pour ' + track().title">
+    @if (deleting()) {
+      <mat-spinner diameter="20" />
+    } @else {
+      <mat-icon>more_vert</mat-icon>
+    }
   </button>
   <mat-menu #menu="matMenu" xPosition="before">
     <button mat-menu-item type="button" (click)="play.emit()">

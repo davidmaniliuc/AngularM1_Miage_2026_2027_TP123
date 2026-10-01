@@ -97,6 +97,8 @@ describe('UploadDialogComponent', () => {
     expect(fixture.componentInstance.uploading()).toBe(true);
     expect(dialogRef.disableClose).toBe(true);
     expect(submit(fixture).disabled).toBe(true);
+    expect(fixture.componentInstance.title.disabled).toBe(true);
+    expect(fixture.componentInstance.isPublic.disabled).toBe(true);
 
     req.event({ type: HttpEventType.UploadProgress, loaded: 32, total: 50 });
     fixture.detectChanges();
@@ -159,5 +161,7 @@ describe('UploadDialogComponent', () => {
     expect(dialogRef.close).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Format audio non accepté');
     expect(submit(fixture).disabled).toBe(false);
+    expect(fixture.componentInstance.title.enabled).toBe(true);
+    expect(fixture.componentInstance.isPublic.enabled).toBe(true);
   });
 });

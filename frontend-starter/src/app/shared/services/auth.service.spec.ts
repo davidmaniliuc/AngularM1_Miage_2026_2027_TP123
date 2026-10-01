@@ -85,3 +85,47 @@ describe('AuthService.restoreSession', () => {
     httpMock.verify();
   });
 });
+
+describe('AuthService.login', () => {
+  let httpMock: HttpTestingController;
+  let auth: AuthService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    httpMock = TestBed.inject(HttpTestingController);
+    auth = TestBed.inject(AuthService);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    localStorage.clear();
+  });
+
+  it('sends POST /api/auth/login with email and password, then stores the token and user', () => {
+    auth.login('ada@example.com', 'secret123').subscribe();
+
+    const req = httpMock.expectOne('/api/auth/login');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'ada@example.com', password: 'secret123' });
+    req.flush({ token: 'jwt-123', user: ADA });
+
+    expect(auth.token()).toBe('jwt-123');
+    expect(localStorage.getItem('gpc_token')).toBe('jwt-123');
+    expect(auth.currentUser()).toEqual(ADA);
+  });
+
+  it('stores nothing when the credentials are refused', () => {
+    auth.login('ada@example.com', 'wrong').subscribe({ error: () => {} });
+
+    httpMock
+      .expectOne('/api/auth/login')
+      .flush({ message: 'Identifiants invalides' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(auth.token()).toBeNull();
+    expect(localStorage.getItem('gpc_token')).toBeNull();
+    expect(auth.currentUser()).toBeNull();
+  });
+});

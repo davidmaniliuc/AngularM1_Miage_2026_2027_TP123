@@ -30,12 +30,15 @@
   </div>
 
   <div class="scrub">
-    <span class="time">{{ formatTime(currentTime()) }}</span>
+    <span class="time">{{ formatTime(shownTime()) }}</span>
     <div class="wave" role="slider" tabindex="0" aria-label="Position dans le morceau"
+         [class.dragging]="dragTime() !== null"
          [attr.aria-valuemin]="0" [attr.aria-valuemax]="Math.round(duration())"
-         [attr.aria-valuenow]="Math.round(currentTime())"
-         [attr.aria-valuetext]="formatTime(currentTime()) + ' sur ' + formatTime(duration())"
-         (click)="seekFromPointer($event)" (keydown)="seekFromKeyboard($event)">
+         [attr.aria-valuenow]="Math.round(shownTime())"
+         [attr.aria-valuetext]="formatTime(shownTime()) + ' sur ' + formatTime(duration())"
+         (pointerdown)="startScrub($event)" (pointermove)="moveScrub($event)"
+         (pointerup)="endScrub($event)" (pointercancel)="cancelScrub()" (lostpointercapture)="cancelScrub()"
+         (keydown)="seekFromKeyboard($event)">
       @for (bar of bars(); track $index) {
         <i [class.played]="bar.played" [style.height.%]="bar.height"></i>
       }

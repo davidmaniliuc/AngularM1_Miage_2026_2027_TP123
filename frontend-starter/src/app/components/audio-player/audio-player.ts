@@ -35,12 +35,16 @@ export class AudioPlayerComponent {
   readonly duration = signal(0);
   readonly muted = signal(false);
   readonly peaks = signal<number[]>(FLAT);
+  /** Position under the pointer while scrubbing; null when not dragging. */
+  readonly dragTime = signal<number | null>(null);
+  /** While dragging, the bar and the clock follow the pointer, not the audio. */
+  readonly shownTime = computed(() => this.dragTime() ?? this.currentTime());
 
   protected readonly Math = Math;
 
   readonly format = computed(() => formatFormat(this.track().mimeType));
   readonly subtitle = computed(() => trackSubtitle(this.track()));
-  readonly progress = computed(() => (this.duration() ? this.currentTime() / this.duration() : 0));
+  readonly progress = computed(() => (this.duration() ? this.shownTime() / this.duration() : 0));
   readonly bars = computed(() => {
     const played = this.progress() * this.peaks().length;
     return this.peaks().map((peak, index) => ({ height: Math.max(8, Math.round(peak * 100)), played: index < played }));
@@ -71,10 +75,33 @@ export class AudioPlayerComponent {
     this.seekTo(this.currentTime() + seconds);
   }
 
-  seekFromPointer(event: MouseEvent): void {
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    if (!rect.width) return;
-    this.seekTo(((event.clientX - rect.left) / rect.width) * this.duration());
+  /**
+   * Click or drag, like Apple Music: the audio keeps playing while the
+   * pointer moves, and only jumps once it is released. Pointer capture keeps
+   * the drag going even when the pointer leaves the waveform.
+   */
+  startScrub(event: PointerEvent): void {
+    if (!this.duration() || event.button !== 0) return;
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+    this.dragTime.set(this.timeAt(event));
+  }
+
+  moveScrub(event: PointerEvent): void {
+    if (this.dragTime() === null) return;
+    this.dragTime.set(this.timeAt(event));
+  }
+
+  endScrub(event: PointerEvent): void {
+    const time = this.dragTime();
+    if (time === null) return;
+    this.dragTime.set(null);
+    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+    this.seekTo(time);
+  }
+
+  cancelScrub(): void {
+    this.dragTime.set(null);
   }
 
   seekFromKeyboard(event: KeyboardEvent): void {
@@ -114,6 +141,13 @@ export class AudioPlayerComponent {
   formatTime(seconds: number): string {
     const total = Math.max(0, Math.floor(seconds));
     return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  }
+
+  private timeAt(event: PointerEvent): number {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    if (!rect.width) return this.currentTime();
+    const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    return ratio * this.duration();
   }
 
   private seekTo(seconds: number): void {

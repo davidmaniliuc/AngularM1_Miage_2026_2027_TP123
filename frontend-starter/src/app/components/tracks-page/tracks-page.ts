@@ -68,6 +68,8 @@ export class TracksPageComponent {
   readonly playing = signal(false);
   readonly audioLoadingId = signal('');
   readonly audioError = signal('');
+  /** Track whose DELETE is pending: its card is disabled against double clicks. */
+  readonly deletingId = signal('');
 
   constructor() {
     this.load();
@@ -195,6 +197,7 @@ export class TracksPageComponent {
   }
 
   confirmRemove(track: Track): void {
+    if (this.deletingId()) return;
     this.dialog
       .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
         data: {
@@ -210,15 +213,32 @@ export class TracksPageComponent {
   }
 
   remove(track: Track): void {
+    if (this.deletingId()) return;
+    this.deletingId.set(track.id);
+
     this.service.remove(track.id).subscribe({
       next: () => {
         console.debug('[TracksPage] Piste supprimée', track.id);
+        this.deletingId.set('');
         if (this.currentTrack()?.id === track.id) this.stopPlayback();
         this.snackBar.open(`« ${track.title} » supprimée.`, undefined, { duration: 4000 });
         this.load();
       },
       error: (error) => {
         console.error('[TracksPage] Suppression impossible', error);
+        this.deletingId.set('');
+        // The backend answers 404 both for a track already deleted (e.g. in
+        // another tab) and for someone else's track: the list is out of date.
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          if (this.currentTrack()?.id === track.id) this.stopPlayback();
+          this.snackBar.open(
+            `« ${track.title} » n'existe plus ou ne vous appartient pas. La liste a été actualisée.`,
+            'Fermer',
+            { duration: 6000 },
+          );
+          this.load();
+          return;
+        }
         this.snackBar.open(this.messageOf(error, `Impossible de supprimer « ${track.title} ».`), 'Fermer');
       },
     });

@@ -2,7 +2,7 @@ import { bootstrapApplication } from "@angular/platform-browser";
 import { LOCALE_ID, provideAppInitializer, inject } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import localeFr from "@angular/common/locales/fr";
-import { provideHttpClient, withInterceptors } from "@angular/common/http";
+import { provideHttpClient, withInterceptors, withXhr } from "@angular/common/http";
 import { provideRouter } from "@angular/router";
 import { MatIconRegistry } from "@angular/material/icon";
 import { MatPaginatorIntl } from "@angular/material/paginator";
@@ -17,7 +17,8 @@ registerLocaleData(localeFr);
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    // XHR rather than fetch (the default): fetch cannot report upload progress.
+    provideHttpClient(withXhr(), withInterceptors([authInterceptor])),
     provideAppInitializer(() => inject(AuthService).restoreSession()),
     // <mat-icon> uses the Material Symbols Rounded font loaded in index.html.
     provideAppInitializer(() => {

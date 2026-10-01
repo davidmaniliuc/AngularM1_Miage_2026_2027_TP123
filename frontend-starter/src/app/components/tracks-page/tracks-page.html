@@ -58,6 +58,7 @@
                           [playing]="playing()"
                           [loading]="audioLoadingId() === track.id"
                           [mine]="isMine(track)"
+                          [deleting]="deletingId() === track.id"
                           (play)="play(track)"
                           (toggleVisibility)="toggleVisibility(track)"
                           (remove)="confirmRemove(track)" />

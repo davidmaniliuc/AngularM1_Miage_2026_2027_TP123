@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -308,6 +309,61 @@ describe('TracksPageComponent', () => {
       expect(back.request.params.get('page')).toBe('1');
       back.flush(pageOf(1, 1));
       expect(fixture.componentInstance.page()).toBe(1);
+    });
+
+    it('sends a single DELETE and disables the card while it is pending', () => {
+      dialogOpen.mockReturnValue({ afterClosed: () => of(true) });
+      const fixture = create();
+
+      fixture.componentInstance.confirmRemove(track);
+      fixture.componentInstance.confirmRemove(track);
+      fixture.detectChanges();
+
+      // expectOne fails if a second DELETE was sent.
+      const req = httpMock.expectOne((r) => r.method === 'DELETE' && r.url === '/api/tracks/t1');
+      const actions = el(fixture).querySelector<HTMLButtonElement>('.track-card button[aria-label^="Suppression"]');
+      expect(actions?.disabled).toBe(true);
+
+      req.flush(null, { status: 204, statusText: 'No Content' });
+      expect(fixture.componentInstance.deletingId()).toBe('');
+      listRequest().flush(pageOf(1, 1, []));
+    });
+
+    it('explains and reloads the list when the track no longer exists or is not mine (404)', () => {
+      dialogOpen.mockReturnValue({ afterClosed: () => of(true) });
+      const snackOpen = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
+      const fixture = create();
+
+      fixture.componentInstance.confirmRemove(track);
+      httpMock
+        .expectOne((r) => r.method === 'DELETE' && r.url === '/api/tracks/t1')
+        .flush({ message: 'Piste inconnue' }, { status: 404, statusText: 'Not Found' });
+
+      expect(snackOpen).toHaveBeenCalledWith(
+        expect.stringContaining("n'existe plus ou ne vous appartient pas"),
+        'Fermer',
+        expect.anything(),
+      );
+      expect(fixture.componentInstance.deletingId()).toBe('');
+      // The stale card disappears with the reloaded list.
+      listRequest().flush(pageOf(1, 1, [other]));
+      fixture.detectChanges();
+      expect(el(fixture).textContent).not.toContain('Blues en La');
+    });
+
+    it('shows the backend message on another error and does not reload', () => {
+      dialogOpen.mockReturnValue({ afterClosed: () => of(true) });
+      const snackOpen = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
+      const fixture = create();
+
+      fixture.componentInstance.confirmRemove(track);
+      httpMock
+        .expectOne((r) => r.method === 'DELETE')
+        .flush({ message: 'Métadonnée supprimée, mais fichier audio non supprimé' }, { status: 500, statusText: 'Server Error' });
+
+      expect(snackOpen).toHaveBeenCalledWith('Métadonnée supprimée, mais fichier audio non supprimé', 'Fermer');
+      httpMock.expectNone((r) => r.url === '/api/tracks' && r.method === 'GET');
+      expect(fixture.componentInstance.deletingId()).toBe('');
     });
 
     it('does nothing when the confirmation is cancelled', () => {

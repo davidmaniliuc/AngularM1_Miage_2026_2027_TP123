@@ -11,9 +11,20 @@
   --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
 }
 
+.track-card {
+  /* Colors of the cover when it has one, the default orange otherwise. */
+  --live: var(--cover-accent, var(--gpc-live));
+  --live-2: var(--cover-accent-2, var(--live));
+}
 .track-card.live {
-  --mat-card-outlined-outline-color: color-mix(in srgb, var(--gpc-live) 45%, transparent);
-  background: linear-gradient(90deg, var(--gpc-live-soft), var(--mat-sys-surface-container-lowest) 55%);
+  --mat-card-outlined-outline-color: color-mix(in srgb, var(--live) 45%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--live) 18%, var(--mat-sys-surface-container-lowest)),
+    color-mix(in srgb, var(--live-2) 10%, var(--mat-sys-surface-container-lowest)) 30%,
+    var(--mat-sys-surface-container-lowest) 60%
+  );
+  transition: border-color 0.4s;
 }
 
 .cover {
@@ -89,7 +100,7 @@
 .size { text-align: right; }
 
 .eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
-.eq i { width: 3px; border-radius: 1px; background: var(--gpc-live); animation: eq 1s ease-in-out infinite; }
+.eq i { width: 3px; border-radius: 1px; background: var(--live); animation: eq 1s ease-in-out infinite; }
 .eq i:nth-child(2) { animation-delay: -0.3s; }
 .eq i:nth-child(3) { animation-delay: -0.6s; }
 @keyframes eq { 0%, 100% { height: 30%; } 50% { height: 100%; } }
@@ -104,4 +115,9 @@
   .track-card { grid-template-columns: 52px minmax(0, 1fr) 40px; gap: 12px; padding: 10px 8px 10px 12px; }
   .size, time { display: none; }
   .mobile-meta { display: block; }
+}
+
+.track-card.deleting {
+  opacity: 0.5;
+  pointer-events: none;
 }

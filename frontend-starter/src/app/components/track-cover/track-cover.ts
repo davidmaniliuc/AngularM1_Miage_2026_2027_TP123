@@ -1,6 +1,7 @@
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
+import { paletteOf } from '../../shared/utils/cover-palette';
 
 /**
  * Cover image of a track, fetched as a Blob because <img src> cannot send the
@@ -10,7 +11,7 @@ import { TrackService } from '../../shared/services/track.service';
  */
 @Component({
   selector: 'app-track-cover',
-  template: `@if (url(); as src) { <img [src]="src" alt="" (error)="url.set(null)" /> }`,
+  template: `@if (url(); as src) { <img [src]="src" alt="" (load)="onLoad($event)" (error)="onError()" /> }`,
   styles: `
     :host { position: absolute; inset: 0; pointer-events: none; }
     img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -21,11 +22,14 @@ export class TrackCoverComponent {
 
   readonly track = input.required<Track>();
   readonly url = signal<string | null>(null);
+  /** Accent colors of the loaded image; [] without a cover. */
+  readonly palette = output<string[]>();
 
   constructor() {
     effect((onCleanup) => {
       const track = this.track();
       this.url.set(null);
+      this.palette.emit([]);
       if (!track.hasCover) return;
 
       let objectUrl: string | undefined;
@@ -43,5 +47,15 @@ export class TrackCoverComponent {
         if (objectUrl) URL.revokeObjectURL(objectUrl);
       });
     });
+  }
+
+  /** The Blob URL is same-origin, so the canvas can read its pixels. */
+  onLoad(event: Event): void {
+    this.palette.emit(paletteOf(event.target as HTMLImageElement));
+  }
+
+  onError(): void {
+    this.url.set(null);
+    this.palette.emit([]);
   }
 }

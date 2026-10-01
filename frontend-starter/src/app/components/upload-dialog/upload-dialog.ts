@@ -94,6 +94,9 @@ export class UploadDialogComponent {
     const title = this.title.value.trim();
 
     const visibility = this.isPublic.value ? 'public' : 'private';
+    // Read before disabling: the form cannot change while the file is sent.
+    this.title.disable();
+    this.isPublic.disable();
 
     this.service.upload(file, title, visibility).subscribe({
       next: (event) => {
@@ -108,6 +111,8 @@ export class UploadDialogComponent {
         console.error('[UploadDialog] Envoi impossible', error);
         this.uploading.set(false);
         this.dialogRef.disableClose = false;
+        this.title.enable();
+        this.isPublic.enable();
         this.serverError.set(
           error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
             ? error.error.message

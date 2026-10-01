@@ -9,12 +9,7 @@
   @if (file(); as selected) {
     <div class="file" [class.bad]="fileError()">
       <span class="cover" [class]="'format-' + fileFormat().toLowerCase()" aria-hidden="true">
-        <mat-checkbox class="public" [formControl]="isPublic">
-    Rendre publique
-    <small>Les autres utilisateurs pourront l'écouter. Modifiable plus tard.</small>
-  </mat-checkbox>
-
-  @if (fileError()) {
+        @if (fileError()) {
           <mat-icon class="icon-fill">block</mat-icon>
         } @else {
           {{ fileFormat() }}
@@ -53,6 +48,11 @@
              aria-describedby="file-hint" (change)="choose($event)" />
     </label>
   }
+
+  <mat-checkbox class="public" [formControl]="isPublic">
+    Rendre publique
+    <small>Les autres utilisateurs pourront l'écouter. Modifiable plus tard.</small>
+  </mat-checkbox>
 
   @if (fileError()) {
     <p class="hint-error" role="alert"><mat-icon>error</mat-icon>{{ fileError() }}</p>

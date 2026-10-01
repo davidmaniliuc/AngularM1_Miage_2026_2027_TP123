@@ -75,8 +75,26 @@ audio { display: none; }
   border-radius: 4px;
   cursor: pointer;
 }
-.wave i { flex: 1; min-width: 1px; border-radius: 2px; background: var(--gpc-wave-rest); }
+.wave {
+  /* No scrolling or text selection while dragging on a touch screen. */
+  touch-action: none;
+  user-select: none;
+}
+.wave i {
+  flex: 1;
+  min-width: 1px;
+  border-radius: 2px;
+  background: var(--gpc-wave-rest);
+  transform-origin: center;
+  transition: transform 160ms ease;
+}
 .wave i.played { background: var(--mat-sys-primary); }
+/* Like Apple Music, the bar grows under the pointer and while scrubbing. */
+.wave:hover i, .wave.dragging i { transform: scaleY(1.15); }
+.wave.dragging { cursor: grabbing; }
+@media (prefers-reduced-motion: reduce) {
+  .wave i { transition: none; }
+}
 
 .volume { color: var(--mat-sys-on-surface-variant); }
 

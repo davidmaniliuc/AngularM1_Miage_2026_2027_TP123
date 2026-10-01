@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,10 +35,17 @@ export class TrackCardComponent {
   readonly loading = input(false);
   /** The current user owns this track: only then can it be shared or deleted. */
   readonly mine = input(true);
+  /** The DELETE of this track is pending. */
+  readonly deleting = input(false);
 
   readonly play = output<void>();
   readonly remove = output<void>();
   readonly toggleVisibility = output<void>();
+
+  /** Colors of the cover, used by the "now playing" gradient. */
+  readonly palette = signal<string[]>([]);
+  readonly accent = computed(() => this.palette()[0] ?? null);
+  readonly accent2 = computed(() => this.palette()[1] ?? this.palette()[0] ?? null);
 
   readonly format = computed(() => formatFormat(this.track().mimeType));
   readonly size = computed(() => formatSize(this.track().size));
