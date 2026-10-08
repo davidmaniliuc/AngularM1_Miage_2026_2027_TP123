@@ -6,7 +6,11 @@
  * quelques couleurs pour coller exactement à la maquette.
  */
 html {
-  color-scheme: light;
+  /* Suit le système par défaut ; data-theme (bouton de la barre du haut) force un mode. */
+  color-scheme: light dark;
+  &[data-theme='light'] { color-scheme: light; }
+  &[data-theme='dark'] { color-scheme: dark; }
+
   @include mat.theme((
     color: (primary: mat.$green-palette, tertiary: mat.$orange-palette),
     typography: 'Instrument Sans',
@@ -20,34 +24,46 @@ html {
     form-field-container-vertical-padding: 6px,
   ));
 
-  --mat-sys-primary: #17664f;
-  --mat-sys-on-primary: #fff;
-  --mat-sys-primary-container: #dcefe6;
-  --mat-sys-on-primary-container: #0c3b2d;
-  --mat-sys-surface: #f4f6f5;
-  --mat-sys-surface-container-lowest: #fff;
-  --mat-sys-on-surface: #14201b;
-  --mat-sys-on-surface-variant: #5d6b65;
-  --mat-sys-outline: #8e9c96;
-  --mat-sys-outline-variant: #e1e7e4;
-  --mat-sys-error: #b3261e;
-  --mat-sys-error-container: #fbe9e7;
+  /* light-dark(clair, sombre) : la valeur suit color-scheme. */
+  --mat-sys-primary: light-dark(#17664f, #5fd3a8);
+  --mat-sys-on-primary: light-dark(#fff, #04382a);
+  --mat-sys-primary-container: light-dark(#dcefe6, #18392e);
+  --mat-sys-on-primary-container: light-dark(#0c3b2d, #bfeedd);
+  --mat-sys-surface: light-dark(#f4f6f5, #0c1210);
+  --mat-sys-surface-container-lowest: light-dark(#fff, #131b18);
+  --mat-sys-surface-container-low: light-dark(#f0f3f1, #161f1c);
+  --mat-sys-surface-container: light-dark(#eaefec, #1a2420);
+  --mat-sys-surface-container-high: light-dark(#e4eae7, #1f2a26);
+  --mat-sys-surface-container-highest: light-dark(#dee5e1, #25312c);
+  --mat-sys-on-surface: light-dark(#14201b, #e2eae6);
+  --mat-sys-on-surface-variant: light-dark(#5d6b65, #95a59e);
+  --mat-sys-outline: light-dark(#8e9c96, #5f6e68);
+  --mat-sys-outline-variant: light-dark(#e1e7e4, #233029);
+  --mat-sys-error: light-dark(#b3261e, #f2b8b5);
+  --mat-sys-on-error: light-dark(#fff, #601410);
+  --mat-sys-error-container: light-dark(#fbe9e7, #3d1512);
+  --mat-sys-on-error-container: light-dark(#5c1410, #ffdad6);
 
   /* Tokens propres à l'application */
-  --gpc-live: #d9822b;
-  --gpc-live-soft: #fbeedd;
-  --gpc-format-mp3: #17664f;
-  --gpc-format-m4a: #3d55b8;
-  --gpc-format-wav: #a8671c;
-  --gpc-format-ogg: #8a3d86;
-  --gpc-format-flac: #2f6f8f;
-  --gpc-wave-rest: #cfd9d4;
+  --gpc-on-accent: #fff;
+  --gpc-live: light-dark(#d9822b, #eb9a4c);
+  --gpc-live-soft: light-dark(#fbeedd, #3a2915);
+  --gpc-format-mp3: light-dark(#17664f, #2b8f6e);
+  --gpc-format-m4a: light-dark(#3d55b8, #566fd0);
+  --gpc-format-wav: light-dark(#a8671c, #b97a2c);
+  --gpc-format-ogg: light-dark(#8a3d86, #a2549e);
+  --gpc-format-flac: light-dark(#2f6f8f, #3c86ab);
+  --gpc-wave-rest: light-dark(#cfd9d4, #2c3934);
+  --gpc-dashed: light-dark(#a9b6b0, #46554f);
+  --gpc-shadow: light-dark(#0f1f1a40, #000000a0);
+  --gpc-topbar: color-mix(in srgb, var(--mat-sys-surface-container-lowest) 78%, transparent);
 }
 
 * { box-sizing: border-box; }
 html { -webkit-font-smoothing: antialiased; }
 body {
   margin: 0;
+  transition: background-color 0.2s;
   font-family: 'Instrument Sans', system-ui, sans-serif;
   color: var(--mat-sys-on-surface);
   background: var(--mat-sys-surface);
@@ -64,12 +80,12 @@ main { max-width: 1080px; margin: 0 auto; padding: 32px 16px; }
  * Pages de formulaire du TP1 (connexion, inscription, profil) : leurs styles
  * sont limités à .card pour ne pas écraser les composants Material.
  */
-.card { max-width: 480px; margin: 0 auto; padding: 1.5rem; background: #fff; border: 1px solid var(--mat-sys-outline-variant); border-radius: 16px; }
+.card { max-width: 480px; margin: 0 auto; padding: 1.5rem; background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline-variant); border-radius: 16px; }
 .card h1 { margin-top: 0; font-size: 1.75rem; letter-spacing: -0.02em; }
 .card form { display: grid; gap: 0.4rem; }
 .card label { display: grid; gap: 0.4rem; margin: 0.6rem 0; font-size: 0.9rem; }
-.card input { font: inherit; padding: 0.75rem; border: 1px solid var(--mat-sys-outline); border-radius: 8px; }
-.card button { justify-self: start; margin-top: 0.6rem; padding: 0.7rem 1.2rem; font: inherit; font-weight: 600; color: #fff; background: var(--mat-sys-primary); border: 0; border-radius: 10px; cursor: pointer; }
+.card input { font: inherit; color: inherit; background: transparent; padding: 0.75rem; border: 1px solid var(--mat-sys-outline); border-radius: 8px; }
+.card button { justify-self: start; margin-top: 0.6rem; padding: 0.7rem 1.2rem; font: inherit; font-weight: 600; color: var(--mat-sys-on-primary); background: var(--mat-sys-primary); border: 0; border-radius: 10px; cursor: pointer; }
 .card button:disabled { opacity: 0.45; }
 
 :focus-visible { outline: 3px solid color-mix(in srgb, var(--mat-sys-primary) 60%, transparent); outline-offset: 2px; }

@@ -1,6 +1,5 @@
 /**
- * Paginated response of GET /api/tracks (see API_CONTRACT.md).
- * The backend computes it with mongoose-aggregate-paginate-v2.
+ * Shared paginated response of the tracks and games APIs (see API_CONTRACT.md).
  */
 export interface Page<T> {
   items: T[];

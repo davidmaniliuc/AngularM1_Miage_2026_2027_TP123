@@ -1,0 +1,10 @@
+:host { display: block; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+label { display: block; font-weight: 600; margin: 16px 0 8px; }
+label span { font-weight: 400; color: var(--mat-sys-on-surface-variant); }
+input, textarea { display: block; width: 100%; padding: 12px; font: inherit; color: inherit; background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline); border-radius: 8px; }
+textarea { resize: vertical; }
+.metadata { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.actions { display: flex; gap: 8px; margin-top: 24px; }
+.error { margin: 8px 0 0; font-size: 0.9rem; }
+@media (max-width: 540px) { .metadata { grid-template-columns: 1fr; gap: 0; } }

@@ -78,6 +78,48 @@ Une page au-delà de la dernière renvoie `items: []` avec les métadonnées cor
 
 Erreurs courantes : `400` validation, `401` authentification, `404` ressource, `409` email déjà utilisé.
 
+## Jeux PS1 — fiches privées
+
+Ces routes exigent toutes un JWT. Elles manipulent uniquement des métadonnées,
+sans fichier de jeu, BIOS ni publication. Le propriétaire est toujours issu du
+jeton ; aucun accès aux fiches d’un autre utilisateur n’est autorisé.
+
+Un `Game` contient `id`, `ownerId`, `title`, `createdAt`, `updatedAt` (dates ISO)
+et, si renseignés, `description`, `region`, `releaseYear`. Aucun champ MongoDB
+interne n’est exposé. Plusieurs fiches peuvent avoir le même titre.
+
+| Méthode | Route | Corps / paramètres | Réponse |
+|---|---|---|---|
+| GET | `/games` | `page`, `limit`, `q` facultatifs | `200 Page<Game>` |
+| POST | `/games` | JSON `{title, description?, region?, releaseYear?}` | `201 Game` |
+| GET | `/games/:id` | Identifiant de la fiche | `200 Game` |
+| PATCH | `/games/:id` | JSON avec au moins un champ modifiable | `200 Game` |
+| DELETE | `/games/:id` | Identifiant de la fiche | `204`, sans corps |
+
+**Validation des écritures :** titre obligatoire à la création, texte non vide
+après trim, 200 caractères maximum. Description : texte de 5 000 caractères
+maximum ; région : texte libre de 80 caractères maximum ; année : entier entre
+1900 et 2100. Les textes sont nettoyés des espaces en début/fin. Pour effacer une
+valeur facultative, envoyer `null` (ou une chaîne vide pour les champs texte).
+Un champ absent dans PATCH est conservé. Les champs inconnus, y compris
+`ownerId` et `visibility`, sont refusés, ainsi que les corps vides ou malformés.
+
+**Liste :** uniquement les fiches du propriétaire, triées par `createdAt` puis
+identifiant décroissants. `q` effectue une recherche littérale de sous-chaîne
+sur le titre, insensible à la casse ; trim, 200 caractères maximum. `page` vaut
+1 par défaut et `limit` vaut 5, borné entre 1 et 20. Les paramètres non entiers,
+non finis ou nuls reprennent leur valeur par défaut ; les négatifs sont ramenés
+à 1. `page` est plafonné à `floor(Number.MAX_SAFE_INTEGER / 20)` pour garantir
+un décalage entier sûr. La réponse réutilise tous les champs de `Page<Track>`
+décrits ci-dessus. `pages` vaut au moins 1 ; une page hors limites renvoie une
+liste vide avec le total réel.
+
+**Erreurs :** `400 {message}` pour une entrée invalide ; `401 {message}` pour
+un JWT absent, invalide ou expiré ; `404 {message: "Jeu inconnu"}` pour un
+identifiant invalide, inexistant ou appartenant à un autre compte ;
+`500 {message}` en cas d’erreur serveur. Les erreurs de validation du corps
+PATCH sont traitées avant la recherche de la fiche.
+
 ## `GET /tracks/:id/cover` — pochette
 
 Pochette extraite du fichier audio (tag ID3 `APIC`, atome MP4 `covr` ou bloc

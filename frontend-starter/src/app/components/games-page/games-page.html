@@ -1,0 +1,49 @@
+<section aria-labelledby="library-title">
+  <header class="library-header">
+    <div><h1 id="library-title">Mes jeux PS1</h1><p>Votre collection, à votre façon. Ces fiches restent privées.</p></div>
+    <button mat-flat-button type="button" (click)="openCreate()" [disabled]="creating()"><mat-icon>add</mat-icon>Ajouter un jeu</button>
+  </header>
+
+  @if (creating()) {
+    <section class="editor" aria-labelledby="create-title">
+      <h2 id="create-title">Ajouter un jeu</h2>
+      <p>Renseignez sa fiche. Aucun fichier de jeu n’est nécessaire.</p>
+      @if (saveError()) { <p class="error" role="alert">{{ saveError() }}</p> }
+      <app-game-form [pending]="saving()" (saved)="create($event)" (cancelled)="creating.set(false)" />
+    </section>
+  }
+
+  <form class="search" (ngSubmit)="searchGames()" role="search">
+    <label for="game-search">Rechercher par titre</label>
+    <div><input id="game-search" type="search" [formControl]="search" maxlength="200" placeholder="Le titre d’un jeu…" />
+      <button mat-stroked-button type="submit">Rechercher</button></div>
+  </form>
+
+  @if (loading()) {
+    <p class="status" role="status">Chargement des jeux…</p>
+  } @else if (error()) {
+    <div class="status"><p class="error" role="alert">{{ error() }}</p><button mat-button (click)="load()">Réessayer</button></div>
+  } @else if (result(); as page) {
+    @if (page.items.length) {
+      <ul class="games">
+        @for (game of page.items; track game.id) {
+          <li><a [routerLink]="['/games', game.id]">
+            <span class="disc" aria-hidden="true"><mat-icon>album</mat-icon></span>
+            <span class="game-info"><strong>{{ game.title }}</strong><span>{{ game.region || 'Région non renseignée' }} @if (game.releaseYear) { • {{ game.releaseYear }} }</span></span>
+            <mat-icon class="open" aria-hidden="true">chevron_right</mat-icon>
+          </a></li>
+        }
+      </ul>
+    } @else {
+      <div class="empty">
+        <mat-icon aria-hidden="true">sports_esports</mat-icon>
+        <h2>{{ query() ? 'Aucun jeu trouvé' : 'Ajoutez votre premier jeu' }}</h2>
+        <p>{{ query() ? 'Essayez un autre titre ou effacez votre recherche.' : 'Gardez les titres et les éditions de vos jeux au même endroit.' }}</p>
+        @if (!query()) { <button mat-stroked-button (click)="openCreate()" [disabled]="creating()">Ajouter un jeu</button> }
+      </div>
+    }
+    @if (page.total) {
+      <mat-paginator [length]="page.total" [pageSize]="page.limit" [pageIndex]="page.page - 1" [pageSizeOptions]="[5, 10, 20]" (page)="changePage($event)" aria-label="Pagination des jeux" />
+    }
+  }
+</section>

@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../shared/services/auth.service';
+import { ThemeService } from '../../shared/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +14,7 @@ import { AuthService } from '../../shared/services/auth.service';
 export class AppComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  readonly theme = inject(ThemeService);
 
   readonly currentUser = this.auth.currentUser;
 

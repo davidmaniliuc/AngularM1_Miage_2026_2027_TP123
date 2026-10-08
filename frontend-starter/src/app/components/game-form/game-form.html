@@ -1,0 +1,29 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <fieldset [disabled]="pending()">
+    <legend class="sr-only">Informations du jeu</legend>
+    <label for="game-title">Titre <span>(obligatoire)</span></label>
+    <input id="game-title" formControlName="title" maxlength="200" required aria-describedby="title-error" />
+    <div id="title-error">
+      @if (form.controls.title.touched && form.controls.title.invalid) {
+        <p class="error">Saisissez un titre de 1 à 200 caractères.</p>
+      }
+    </div>
+    <label for="game-description">Description <span>(facultatif)</span></label>
+    <textarea id="game-description" formControlName="description" maxlength="5000" rows="4"></textarea>
+    <div class="metadata">
+      <div><label for="game-region">Région <span>(facultatif)</span></label>
+        <input id="game-region" formControlName="region" maxlength="80" placeholder="Ex. Europe, Japon" /></div>
+      <div><label for="game-year">Année de sortie <span>(facultatif)</span></label>
+        <input id="game-year" formControlName="releaseYear" type="number" min="1900" max="2100" step="1" aria-describedby="year-error" /></div>
+    </div>
+    <div id="year-error">
+      @if (form.controls.releaseYear.touched && form.controls.releaseYear.invalid) {
+        <p class="error">Saisissez une année entière entre 1900 et 2100.</p>
+      }
+    </div>
+  </fieldset>
+  <div class="actions">
+    <button mat-flat-button type="submit" [disabled]="pending()">{{ pending() ? 'Enregistrement…' : 'Enregistrer' }}</button>
+    <button mat-button type="button" [disabled]="pending()" (click)="cancelled.emit()">Annuler</button>
+  </div>
+</form>

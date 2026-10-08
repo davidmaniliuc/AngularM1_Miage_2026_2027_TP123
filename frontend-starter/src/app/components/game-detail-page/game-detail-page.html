@@ -1,0 +1,28 @@
+<a mat-button routerLink="/games"><mat-icon>arrow_back</mat-icon>Mes jeux</a>
+@if (loading()) {
+  <p class="status" role="status">Chargement du jeu…</p>
+} @else if (error()) {
+  <div class="status"><p class="error" role="alert">{{ error() }}</p><button mat-button (click)="load()">Réessayer</button></div>
+} @else if (game(); as current) {
+  <article>
+    <header>
+      <div class="disc" aria-hidden="true"><mat-icon>album</mat-icon></div>
+      <div><h1>{{ current.title }}</h1><p class="private"><mat-icon aria-hidden="true">lock</mat-icon>Fiche privée</p></div>
+    </header>
+    @if (actionError()) { <p class="error" role="alert">{{ actionError() }}</p> }
+    @if (editing()) {
+      <h2>Modifier la fiche</h2>
+      <app-game-form [game]="current" [pending]="pending()" (saved)="save($event)" (cancelled)="editing.set(false)" />
+    } @else {
+      <dl><div><dt>Région</dt><dd>{{ current.region || 'Non renseignée' }}</dd></div>
+        <div><dt>Année de sortie</dt><dd>{{ current.releaseYear || 'Non renseignée' }}</dd></div>
+        <div><dt>Ajouté le</dt><dd>{{ current.createdAt | date:'dd/MM/yyyy' }}</dd></div></dl>
+      <h2>Description</h2>
+      <p class="description">{{ current.description || 'Aucune description pour le moment.' }}</p>
+      <div class="actions">
+        <button mat-flat-button type="button" [disabled]="pending()" (click)="startEdit()">Modifier la fiche</button>
+        <button mat-button class="delete" type="button" [disabled]="pending()" (click)="confirmDelete()">{{ pending() ? 'Suppression…' : 'Supprimer' }}</button>
+      </div>
+    }
+  </article>
+}

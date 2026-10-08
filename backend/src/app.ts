@@ -7,6 +7,7 @@ import { healthRoutes } from "./routes/health";
 import { authRoutes } from "./routes/auth";
 import { usersRoutes } from "./routes/users";
 import { tracksRoutes } from "./routes/tracks";
+import { gamesRoutes } from "./routes/games";
 import type { AppEnv } from "./types";
 
 /**
@@ -35,6 +36,7 @@ export function createApp(): Hono<AppEnv> {
   app.route("/api/auth", authRoutes);
   app.route("/api/users", usersRoutes);
   app.route("/api/tracks", tracksRoutes);
+  app.route("/api/games", gamesRoutes);
 
   /** Route inconnue : réponse JSON, jamais une page HTML. */
   app.notFound((c) => c.json({ message: "Ressource inconnue" }, 404));

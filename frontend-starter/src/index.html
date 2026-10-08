@@ -2,8 +2,12 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <title>Guitar Practice Cloud</title>
+    <title>PS1 Library</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script>
+      // Applique le thème choisi avant le rendu, sinon la page clignote en clair.
+      try { var t = localStorage.getItem('gpc-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+    </script>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

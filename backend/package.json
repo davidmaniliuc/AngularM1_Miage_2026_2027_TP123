@@ -7,7 +7,8 @@
         "dev": "bun --watch run src/server.ts",
         "test": "bun test",
         "typecheck": "tsc --noEmit",
-        "migrate:media": "bun run scripts/migrate-media.ts"
+        "migrate:media": "bun run scripts/migrate-media.ts",
+        "seed": "bun run scripts/seed.ts"
     },
     "dependencies": {
         "bcryptjs": "^3.0.3",

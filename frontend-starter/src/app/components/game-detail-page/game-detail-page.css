@@ -1,0 +1,18 @@
+:host { display: block; max-width: 800px; margin: 0 auto; }
+article { margin-top: 24px; padding: 32px; background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; }
+header { display: flex; align-items: center; gap: 24px; margin-bottom: 32px; }
+header > div:last-child { min-width: 0; }
+h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); letter-spacing: -0.035em; line-height: 1.15; margin: 0 0 12px; overflow-wrap: anywhere; }
+h2 { font-size: 1.2rem; margin-top: 32px; }
+.disc { flex-shrink: 0; display: grid; place-items: center; width: 96px; height: 96px; background: var(--mat-sys-surface-container-high); border-left: 8px solid var(--mat-sys-outline); border-radius: 8px; }
+.disc mat-icon { width: 64px; height: 64px; font-size: 64px; color: var(--mat-sys-primary); }
+.private { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; margin: 0; color: var(--mat-sys-on-surface-variant); }
+.private mat-icon { width: 18px; height: 18px; font-size: 18px; }
+dl { display: flex; flex-wrap: wrap; gap: 24px 48px; padding: 24px 0; border-block: 1px solid var(--mat-sys-outline-variant); }
+dt { color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; margin-bottom: 8px; }
+dd { margin: 0; overflow-wrap: anywhere; }
+.description { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.delete { --mat-button-text-label-text-color: var(--mat-sys-error); }
+.status { padding: 48px 24px; text-align: center; }
+@media (max-width: 540px) { article { padding: 20px; } header { gap: 16px; } .disc { width: 64px; height: 64px; } .disc mat-icon { width: 40px; height: 40px; font-size: 40px; } }

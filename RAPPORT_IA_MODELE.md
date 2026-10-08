@@ -238,3 +238,35 @@ Avant on pouvait seulement cliquer sur la forme d'onde. Maintenant on peut gliss
 "je veux que ce dégradé repenne la palette de la cover" (capture de la card en lecture avec le dégradé orange)
 
 L'agent réduit la pochette à 32×32 dans un `<canvas>` une fois l'image chargée, compte les couleurs (les couleurs vives comptent plus que le gris, sinon un grand fond gris gagnerait toujours) et garde les 2 principales. Le dégradé, la bordure et les petites barres d'égaliseur prennent ces couleurs. La luminosité est bornée pour que ça reste lisible, et sans pochette on garde l'orange. Le canvas peut lire l'image parce que c'est une URL `blob:` du même site. 10 tests en plus (7 sur le calcul des couleurs, 3 sur la card).
+
+## En plus - thème sombre
+
+"t'as des idées pour avoir une meilleur ui ici ? que ça soit plus pro et joliavec un theme sombre" (capture de la bibliothèque)
+
+L'agent propose d'abord des idées avant de coder : passer le thème Material en clair/sombre avec `light-dark()`, retirer les couleurs écrites en dur, un bouton pour changer de thème, et quelques retouches (en-tête flouté, lignes de liste moins encadrées, lecteur plus « verre »).
+
+"go" → l'agent fait le thème sombre. Toutes les couleurs du thème dans `styles.scss` passent en `light-dark(clair, sombre)` et on met `color-scheme: light dark`, comme ça Material génère aussi ses couleurs sombres (menus, dialogues, paginator). Il a enlevé les couleurs écrites en dur (`#fff` des cartes de connexion, texte rouge de la bannière d'erreur, bordure pointillée de l'import, bouton play du lecteur qui serait devenu blanc sur blanc). Un `ThemeService` gère le bouton soleil/lune dans la barre du haut : il met `data-theme` sur `<html>` et retient le choix dans `localStorage`, sinon on suit le système. Un petit script dans `index.html` applique le thème avant qu'Angular démarre pour éviter le flash blanc. La barre du haut est un peu transparente et floutée. 3 tests en plus sur le service (84 au total), build ok, vérifié en capture clair et sombre.
+
+# Suite du projet - bibliothèque de jeux PS1
+
+"PROJECT_CONCEPT.md can we start the first step for this? in parallel i'm publishing the wasm on nmp"
+
+L'idée c'est de faire évoluer l'appli musique vers une plateforme autour de mon émulateur PS1. Le concept est dans `PROJECT_CONCEPT.md`. De mon côté je préparais la publication du WASM sur npm, donc on pouvait commencer le site sans attendre que le package soit prêt.
+
+L'agent m'a proposé plusieurs débuts possibles : la bibliothèque de jeux, juste changer l'interface, ou préparer le lecteur. J'ai choisi la bibliothèque, puis les fiches privées et les jeux comme page d'accueil. On garde quand même la musique dans un lien à part. Pour l'instant le nom c'est « PS1 Library ».
+
+"Implement the plan."
+
+Il a réutilisé les comptes et le JWT, mais créé un modèle `Game` séparé de `Track` pour ne pas transformer ou perdre les pistes existantes. On peut ajouter un jeu avec son titre, une description, une région et une année (seul le titre est obligatoire), ouvrir sa fiche, la modifier ou la supprimer avec confirmation. Il y a aussi la recherche par titre et la pagination. Là c'est seulement des fiches, pas encore les fichiers des jeux ni le bouton pour jouer. Le partage public et le WASM viendront après.
+
+Côté back ça passe par `/api/games` : GET pour la liste, POST pour créer, puis GET / PATCH / DELETE avec l'id pour une fiche. Le propriétaire vient du token, pas d'un champ envoyé par le front. Toutes les recherches sont filtrées avec son id, donc une fiche d'un autre compte répond 404. Même principe que pour les pistes privées.
+
+Fichiers ajoutés : `Game.ts`, `games.ts`, `game-input.ts` dans le back ; `GameService`, le modèle de jeu et les composants `games-page`, `game-detail-page`, `game-form` dans Angular, avec leurs tests. Il a aussi changé les routes, les redirections après connexion/inscription, le titre et la navigation. `API_CONTRACT.md` et le README sont mis à jour. Le thème clair/sombre reste celui qu'on avait déjà.
+
+Il a fait les tests avant le code. Une erreur venait du test de suppression : il vérifiait trop tôt, avant la fermeture du dialogue Material. Il a corrigé l'attente. La relecture a aussi trouvé un petit bug : après une recherche sans résultat, effacer le texte sans relancer la recherche affichait « Ajoutez votre premier jeu ». Maintenant le message dépend de la recherche vraiment envoyée, avec un test pour ce cas.
+
+"no dont use safari"
+
+L'agent avait essayé de passer par Safari pour vérifier l'interface, mais les permissions ne permettaient pas de le contrôler. Je lui ai dit de ne pas l'utiliser et il a arrêté les essais navigateur.
+
+"ok what have you done" → il m'a résumé ce qui était fait : 122 tests back et 96 tests front passent, vérification des types et build ok. Il a aussi testé les vraies requêtes via le proxy Angular avec le compte de démo : création d'une fiche temporaire, relecture, recherche, modification puis suppression. La fiche de test a été nettoyée et l'API musique répond toujours. Ces vérifications ont été faites par l'agent ; il reste à vérifier l'interface moi-même et à ajouter les captures Network si besoin.

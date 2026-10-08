@@ -37,7 +37,7 @@
   border: 0;
   border-radius: 10px;
   overflow: hidden;
-  color: #fff;
+  color: var(--gpc-on-accent);
   background: var(--cover, var(--gpc-format-mp3));
   font: 700 11px/1 inherit;
   letter-spacing: 0.04em;
