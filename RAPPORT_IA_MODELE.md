@@ -238,3 +238,7 @@ Avant on pouvait seulement cliquer sur la forme d'onde. Maintenant on peut gliss
 "je veux que ce dégradé repenne la palette de la cover" (capture de la card en lecture avec le dégradé orange)
 
 L'agent réduit la pochette à 32×32 dans un `<canvas>` une fois l'image chargée, compte les couleurs (les couleurs vives comptent plus que le gris, sinon un grand fond gris gagnerait toujours) et garde les 2 principales. Le dégradé, la bordure et les petites barres d'égaliseur prennent ces couleurs. La luminosité est bornée pour que ça reste lisible, et sans pochette on garde l'orange. Le canvas peut lire l'image parce que c'est une URL `blob:` du même site. 10 tests en plus (7 sur le calcul des couleurs, 3 sur la card).
+
+## En plus - label "Titre" coupé dans le formulaire jeu
+
+"y'a un pb ici" (capture du champ Titre avec le label coupé en haut) → le contenu du dialog n'a pas de marge en haut quand il est juste sous le titre, et comme il défile (`overflow: auto`) le label flottant du premier champ est coupé. L'agent a mis `margin-top: 6px` sur le premier champ, comme dans le dialog d'import.

@@ -86,6 +86,7 @@ const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   `,
   styles: `
     form { display: grid; gap: 4px; min-width: min(420px, 80vw); }
+    mat-form-field:first-child { margin-top: 6px; }
     .cover { display: grid; gap: 6px; margin: 4px 0 8px; font-size: 14px; color: var(--mat-sys-on-surface-variant); }
     .chosen { margin: 0; font-size: 13px; }
     .error { margin: 8px 0 0; color: var(--mat-sys-error); font-size: 13px; }
