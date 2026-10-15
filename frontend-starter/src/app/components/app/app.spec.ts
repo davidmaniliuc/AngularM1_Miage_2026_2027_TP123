@@ -37,6 +37,17 @@ describe('AppComponent', () => {
     expect(nativeElement.querySelector('button[data-testid="logout"]')).toBeNull();
   });
 
+  it('shows the Jeux and Musique sections when logged in', () => {
+    auth.currentUser.set(user);
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const nativeElement: HTMLElement = fixture.nativeElement;
+
+    expect(nativeElement.querySelector('nav a[routerLink="/games"]')?.textContent).toContain('Jeux');
+    expect(nativeElement.querySelector('nav a[routerLink="/tracks"]')?.textContent).toContain('Musique');
+    expect(nativeElement.querySelector('nav a[routerLink="/bios"]')).toBeNull();
+  });
+
   it('shows the user name and a working logout button when logged in', () => {
     auth.currentUser.set(user);
     const fixture = TestBed.createComponent(AppComponent);

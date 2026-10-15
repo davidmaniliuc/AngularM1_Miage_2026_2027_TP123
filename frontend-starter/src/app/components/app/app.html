@@ -1,12 +1,13 @@
 <header class="topbar">
-  <a class="logo" routerLink="/tracks" aria-label="Guitar Practice Cloud, accueil">
+  <a class="logo" routerLink="/games" aria-label="Guitar Practice Cloud, accueil">
     <span class="mark" aria-hidden="true"><mat-icon class="icon-fill">graphic_eq</mat-icon></span>
     <span class="brand">Guitar Practice Cloud</span>
   </a>
 
   <nav aria-label="Navigation principale">
     @if (currentUser(); as user) {
-      <a routerLink="/tracks" routerLinkActive="active" ariaCurrentWhenActive="page">Bibliothèque</a>
+      <a routerLink="/games" routerLinkActive="active" ariaCurrentWhenActive="page">Jeux</a>
+      <a routerLink="/tracks" routerLinkActive="active" ariaCurrentWhenActive="page">Musique</a>
       <a routerLink="/profile" routerLinkActive="active" ariaCurrentWhenActive="page">Profil</a>
       <span class="user">
         <span class="name">{{ user.name }}</span>
