@@ -17,6 +17,12 @@ Le contrat HTTP ne dépend pas du choix de persistance : le backend fourni utili
 | GET | `/tracks/:id/cover` | JWT | image (JPEG, PNG ou WebP) |
 | PATCH | `/tracks/:id` | `{visibility}` + JWT | `200 Track` |
 | DELETE | `/tracks/:id` | JWT | `204` (bonus) |
+| GET | `/games` | JWT | `200 Game[]` |
+| POST | `/games` | multipart : `title`, `serial`, `genre`, `cover` | `201 Game` |
+| GET | `/games/:id` | JWT | `200 Game` |
+| PATCH | `/games/:id` | multipart : `title`, `serial`, `genre`, `cover`, `removeCover` | `200 Game` |
+| GET | `/games/:id/cover` | JWT | image (JPEG, PNG ou WebP) |
+| DELETE | `/games/:id` | JWT | `204` |
 
 Formats acceptés : MP3, WAV, OGG, M4A (AAC ou ALAC) et FLAC, 100 Mo maximum.
 Le format est déterminé par le contenu du fichier, pas par le type MIME envoyé.
@@ -103,3 +109,21 @@ Rend une piste publique ou privée.
 - `400 { "message": "visibility doit valoir private ou public" }` : corps absent, JSON invalide ou valeur inconnue.
 - `404 { "message": "Piste inconnue" }` : identifiant invalide, piste inexistante ou appartenant à un autre utilisateur (même publique).
 - `401` sans jeton.
+
+## Jeux (`/games`)
+
+Un jeu appartient à son créateur : les autres utilisateurs ne le voient pas (`404` sur toutes les routes). Tous les accès exigent un JWT (`401` sinon).
+
+`Game` : `id`, `ownerId`, `title`, `hasCover` (booléen), `createdAt` et, s'ils existent, `serial` et `genre`.
+
+- `serial` : numéro de série PS1, quatre lettres, un tiret, cinq chiffres (`SCUS-94163`). Les minuscules sont mises en majuscules.
+- `genre` : `rpg`, `course`, `plateforme`, `action`, `aventure`, `combat`, `sport`, `puzzle`, `strategie` ou `autre`.
+- `cover` : image JPEG, PNG ou WebP de 5 Mo maximum, identifiée par son contenu.
+
+`POST /games` et `PATCH /games/:id` reçoivent un formulaire multipart. `title` est obligatoire à la création. Au `PATCH`, un champ absent ne change pas ; `serial` ou `genre` vide l'efface ; `cover` remplace la pochette et `removeCover=true` la retire.
+
+`GET /games` renvoie mes jeux, du plus récent au plus ancien.
+
+`GET /games/:id/cover` renvoie l'image avec `Content-Type`, `Cache-Control: private, max-age=86400` et `X-Content-Type-Options: nosniff`. `404 { "message": "Pochette inconnue" }` si le jeu n'a pas de pochette.
+
+Erreurs : `400 { "message": "Le titre est obligatoire" }`, `"Numéro de série invalide (ex. SCUS-94163)"`, `"Genre inconnu"` ou `"Pochette invalide (JPEG, PNG ou WebP, 5 Mo maximum)"` ; `404 { "message": "Jeu inconnu" }` (identifiant invalide, inexistant ou d'un autre utilisateur).

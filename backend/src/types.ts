@@ -48,6 +48,19 @@ export interface PublicTrack {
   createdAt: Date;
 }
 
+/** Champs d'un jeu qu'une réponse HTTP peut exposer (jamais coverStoredName). */
+export interface PublicGame {
+  id: string;
+  ownerId: string;
+  title: string;
+  /** Numéro de série, ex. SCUS-94163. */
+  serial?: string;
+  genre?: string;
+  /** Une pochette est disponible sur GET /games/:id/cover. */
+  hasCover: boolean;
+  createdAt: Date;
+}
+
 /**
  * Enveloppe de pagination attendue par le frontend Angular.
  * Les cinq premiers champs existaient déjà ; les suivants sont calculés par

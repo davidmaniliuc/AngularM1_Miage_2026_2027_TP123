@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Pas de pochette">
+  <rect width="200" height="200" fill="#dcefe6"/>
+  <circle cx="100" cy="100" r="62" fill="#17664f"/>
+  <circle cx="100" cy="100" r="22" fill="#dcefe6"/>
+  <circle cx="100" cy="100" r="8" fill="#17664f"/>
+</svg>
