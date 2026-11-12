@@ -4,6 +4,7 @@ import fsPromises from "node:fs/promises";
 import path from "node:path";
 import {
   ALLOWED_MIME,
+  BIOS_DIR,
   COVERS_DIR,
   GAMES_DIR,
   MAX_FILE_SIZE,
@@ -17,7 +18,7 @@ import {
 export function ensureUploadsDir(): void {
   try {
     // recursive crée UPLOADS_DIR en même temps que ses sous-dossiers.
-    for (const dir of [COVERS_DIR, GAMES_DIR]) {
+    for (const dir of [COVERS_DIR, GAMES_DIR, BIOS_DIR]) {
       fs.mkdirSync(dir, { recursive: true });
     }
     console.log(`[startup] Dossier des uploads prêt : ${UPLOADS_DIR}`);

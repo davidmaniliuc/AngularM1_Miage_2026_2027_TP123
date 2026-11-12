@@ -164,3 +164,33 @@ Erreurs `400` :
 JWT obligatoire, propriétaire seulement. `200` avec le fichier (`application/octet-stream`, `Content-Length`, `Content-Disposition: attachment`, `Cache-Control: private, no-store`). `404 { "message": "Fichier du jeu inconnu" }` si le jeu n'a pas d'image, n'existe pas ou appartient à un autre compte.
 
 `DELETE /games/:id` supprime aussi l'image disque.
+
+## BIOS (`/bios`)
+
+Un BIOS est **toujours privé** : seul son propriétaire le liste, le télécharge, le modifie ou le supprime (`404` pour les autres). JWT obligatoire partout (`401` sinon).
+
+`Bios` : `id`, `ownerId`, `originalName`, `size`, `known` (booléen), `isDefault` (booléen), `createdAt` et, si le BIOS est reconnu, `region` (`america`, `europe` ou `japan`), `version` (ex. `"2.2"`) et `description` (modèles de console).
+
+`known: false` : le fichier fait bien 512 Ko mais n'est pas dans la table de l'émulateur. Il est gardé, non identifié.
+
+### `GET /bios`
+
+`200` : tableau de mes BIOS, le BIOS par défaut en premier puis du plus récent au plus ancien.
+
+### `POST /bios`
+
+Formulaire multipart, champ fichier `bios`. Le serveur le vérifie avec `loadBios`. Le premier BIOS envoyé devient celui par défaut. `201` : le `Bios` créé.
+
+Erreurs `400` : `{ "message": "Fichier BIOS requis" }` ; `{ "message": "Ce fichier n'est pas un BIOS PS1 (il doit faire exactement 512 Ko)", "code": "BAD_BIOS_SIZE" }`.
+
+### `GET /bios/:id/file`
+
+`200` avec le fichier (`application/octet-stream`, `Cache-Control: private, no-store`). `404 { "message": "BIOS inconnu" }`.
+
+### `PATCH /bios/:id`
+
+Corps JSON `{ "isDefault": true }`. Le BIOS devient celui par défaut et l'ancien ne l'est plus. `200` : le `Bios`. Erreurs : `400 { "message": "isDefault doit valoir true" }`, `404 { "message": "BIOS inconnu" }`.
+
+### `DELETE /bios/:id`
+
+`204`. Si c'était le BIOS par défaut, le plus récent qui reste le devient. `404 { "message": "BIOS inconnu" }`.

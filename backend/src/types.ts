@@ -77,6 +77,25 @@ export interface PublicDisc {
   cue?: string;
 }
 
+/** Champs d'un BIOS qu'une réponse HTTP peut exposer (jamais storedName). */
+export interface PublicBios {
+  id: string;
+  ownerId: string;
+  originalName: string;
+  size: number;
+  /** Faux : image absente de la table du cœur, utilisable mais non identifiée. */
+  known: boolean;
+  /** "america", "europe" ou "japan", si le BIOS est reconnu. */
+  region?: string;
+  /** Version du BIOS, ex. "2.2". */
+  version?: string;
+  /** Modèles de console concernés, ex. "SCPH-1001, 5003…". */
+  description?: string;
+  /** Le BIOS utilisé par défaut pour lancer un jeu. */
+  isDefault: boolean;
+  createdAt: Date;
+}
+
 /**
  * Enveloppe de pagination attendue par le frontend Angular.
  * Les cinq premiers champs existaient déjà ; les suivants sont calculés par
