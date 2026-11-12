@@ -29,10 +29,9 @@
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  color: #fff;
-  background: var(--mat-sys-primary);
+  background: #2a2b31; /* fond sombre fixe : les couleurs des boutons y restent lisibles en clair comme en sombre */
 }
-.mark mat-icon { font-size: 19px; width: 19px; height: 19px; }
+.mark svg { width: 24px; height: 24px; }
 
 nav { display: flex; flex: 1; align-items: center; gap: 4px; }
 nav > a {
