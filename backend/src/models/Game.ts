@@ -34,6 +34,10 @@ export const MAX_YEAR = 2100;
 /** Numéro de série PS1 : quatre lettres, un tiret, cinq chiffres (SCUS-94163). */
 export const SERIAL_PATTERN = /^[A-Z]{4}-\d{5}$/;
 
+/** Formats d'image disque acceptés : un .bin passe éventuellement avec son .cue. */
+export const DISC_FORMATS = ["chd", "bin"] as const;
+export type DiscFormat = (typeof DISC_FORMATS)[number];
+
 /*
  * Un jeu appartient à son créateur. La pochette reste sur le disque (comme
  * celles des pistes) ; coverStoredName n'est jamais exposé par toPublic().
@@ -48,6 +52,11 @@ export interface GameDoc {
   favorite: boolean;
   coverStoredName?: string;
   coverMimeType?: string;
+  discStoredName?: string;
+  discName?: string;
+  discSize?: number;
+  discFormat?: DiscFormat;
+  discCue?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,6 +78,12 @@ const schema = new Schema<GameDoc, GameModel, GameMethods>(
     favorite: { type: Boolean, default: false },
     coverStoredName: { type: String, select: false },
     coverMimeType: { type: String },
+    // Comme la pochette, le fichier du jeu reste sur le disque, jamais exposé.
+    discStoredName: { type: String, select: false },
+    discName: { type: String },
+    discSize: { type: Number },
+    discFormat: { type: String, enum: DISC_FORMATS },
+    discCue: { type: String },
   },
   { timestamps: true },
 );
@@ -87,6 +102,10 @@ schema.method("toPublic", function toPublic(): PublicGame {
     favorite: Boolean(this.favorite),
     // coverStoredName n'est présent que si la requête l'a sélectionné.
     hasCover: Boolean(this.coverStoredName),
+    disc:
+      this.discName && this.discFormat
+        ? { name: this.discName, size: this.discSize ?? 0, format: this.discFormat, cue: this.discCue }
+        : undefined,
     createdAt: this.createdAt,
   };
 });

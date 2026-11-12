@@ -22,6 +22,7 @@ import {
 import { GameService } from '../../shared/services/game.service';
 import { GameCoverComponent } from '../game-cover/game-cover';
 import { GameFormDialogComponent } from '../game-form-dialog/game-form-dialog';
+import { GameImportDialogComponent } from '../game-import-dialog/game-import-dialog';
 
 const DEFAULT_LIMIT = 24;
 const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'desc' }[] = [
@@ -99,7 +100,10 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
       >
         <mat-icon [class.icon-fill]="query().favorite">favorite</mat-icon>Favoris
       </button>
-      <button mat-flat-button type="button" class="add" data-testid="add-game" (click)="add()">
+      <button mat-stroked-button type="button" class="add" data-testid="import-game" (click)="importDisc()">
+        <mat-icon>album</mat-icon>Importer un jeu
+      </button>
+      <button mat-flat-button type="button" data-testid="add-game" (click)="add()">
         <mat-icon>add</mat-icon>Ajouter un jeu
       </button>
     </div>
@@ -282,6 +286,16 @@ export class GamesLibraryComponent {
         // Page 1 shows it first by default; otherwise changing the URL reloads.
         if (this.page() > 1) this.navigate({ page: null });
         else this.reload();
+      });
+  }
+
+  /** A game created from its disc opens on its sheet, filled by the backend. */
+  importDisc(): void {
+    this.dialog
+      .open<GameImportDialogComponent, void, Game>(GameImportDialogComponent)
+      .afterClosed()
+      .subscribe((created) => {
+        if (created) void this.router.navigate(['/games', created.id]);
       });
   }
 

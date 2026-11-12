@@ -8,6 +8,7 @@ import { GameService } from '../../shared/services/game.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../confirm-dialog/confirm-dialog';
 import { GameCoverComponent } from '../game-cover/game-cover';
 import { GameFormDialogComponent } from '../game-form-dialog/game-form-dialog';
+import { formatSize } from '../../shared/utils/audio-file';
 
 /** Game sheet: cover, serial, genre, region, year, favorite, with edit and delete. */
 @Component({
@@ -32,6 +33,8 @@ import { GameFormDialogComponent } from '../game-form-dialog/game-form-dialog';
             <dd data-testid="region">{{ region(game) || '—' }}</dd>
             <dt>Année</dt>
             <dd data-testid="year">{{ game.year || '—' }}</dd>
+            <dt>Fichier du jeu</dt>
+            <dd data-testid="disc">{{ game.disc ? game.disc.name + ' (' + formatSize(game.disc.size) + ')' : 'Aucun' }}</dd>
           </dl>
           <div class="actions">
             <button mat-button type="button" data-testid="favorite" [attr.aria-pressed]="game.favorite" (click)="toggleFavorite(game)">
@@ -65,6 +68,7 @@ export class GameDetailComponent {
   readonly error = signal('');
   readonly genre = (game: Game) => genreLabel(game.genre);
   readonly region = (game: Game) => regionLabel(game.region);
+  readonly formatSize = formatSize;
 
   constructor() {
     const id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';

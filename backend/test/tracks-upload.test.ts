@@ -64,7 +64,8 @@ function audio(name = "song.mp3"): Promise<File> {
 /** Fichiers présents dans UPLOADS_DIR et COVERS_DIR (hors sous-dossier). */
 function filesOnDisk(): string[] {
   return [
-    ...fs.readdirSync(UPLOADS_DIR).filter((name) => name !== "covers"),
+    // Les sous-dossiers (pochettes, jeux) ne sont pas des fichiers audio.
+    ...fs.readdirSync(UPLOADS_DIR).filter((name) => !["covers", "games"].includes(name)),
     ...fs.readdirSync(COVERS_DIR),
   ];
 }

@@ -2,7 +2,13 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
-import { ALLOWED_MIME, COVERS_DIR, MAX_FILE_SIZE, UPLOADS_DIR } from "../config";
+import {
+  ALLOWED_MIME,
+  COVERS_DIR,
+  GAMES_DIR,
+  MAX_FILE_SIZE,
+  UPLOADS_DIR,
+} from "../config";
 
 /**
  * Crée le dossier des uploads et celui des pochettes au démarrage :
@@ -10,8 +16,10 @@ import { ALLOWED_MIME, COVERS_DIR, MAX_FILE_SIZE, UPLOADS_DIR } from "../config"
  */
 export function ensureUploadsDir(): void {
   try {
-    // recursive crée UPLOADS_DIR en même temps que son sous-dossier.
-    fs.mkdirSync(COVERS_DIR, { recursive: true });
+    // recursive crée UPLOADS_DIR en même temps que ses sous-dossiers.
+    for (const dir of [COVERS_DIR, GAMES_DIR]) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
     console.log(`[startup] Dossier des uploads prêt : ${UPLOADS_DIR}`);
   } catch (error) {
     console.error("[startup] Impossible de créer le dossier des uploads", error);
@@ -89,5 +97,40 @@ export async function discardFiles(paths: string[]): Promise<void> {
     } catch (error) {
       console.error(`[upload] Fichier orphelin non supprimé : ${filePath}`, error);
     }
+  }
+}
+
+/** Levée par writeStream quand le corps dépasse la taille permise. */
+export class TooLargeError extends Error {}
+
+/**
+ * Écrit un corps de requête sur le disque morceau par morceau : un jeu de
+ * 700 Mo n'est jamais entier en mémoire, contrairement à parseBody(). La
+ * taille est comptée au fil de l'eau, car Content-Length peut mentir ou
+ * manquer. En cas d'échec, le fichier partiel est supprimé.
+ * Renvoie le nombre d'octets écrits.
+ */
+export async function writeStream(
+  body: ReadableStream<Uint8Array>,
+  filePath: string,
+  maxBytes: number,
+): Promise<number> {
+  const sink = Bun.file(filePath).writer();
+  let size = 0;
+
+  try {
+    for await (const chunk of body) {
+      size += chunk.byteLength;
+      if (size > maxBytes) throw new TooLargeError();
+      sink.write(chunk);
+      // flush() vide le tampon : la mémoire utilisée reste bornée.
+      await sink.flush();
+    }
+    await sink.end();
+    return size;
+  } catch (error) {
+    await sink.end();
+    await discardFiles([filePath]);
+    throw error;
   }
 }

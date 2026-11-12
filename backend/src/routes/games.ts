@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import crypto from "node:crypto";
+import path from "node:path";
 import mongoose from "mongoose";
 import { requireAuth } from "../middleware/auth";
 import {
@@ -12,6 +14,9 @@ import {
   type GameDoc,
 } from "../models/Game";
 import { coverPath, removeCover, saveCover } from "../lib/covers";
+import { TooLargeError, discardFiles, writeStream } from "../lib/uploads";
+import { Ps1Error, checkCue, identifyDiscFile, ps1Message } from "../lib/ps1";
+import { GAMES_DIR, MAX_GAME_SIZE } from "../config";
 import type { AppEnv, Page } from "../types";
 
 export const gamesRoutes = new Hono<AppEnv>();
@@ -210,6 +215,113 @@ gamesRoutes.post("/", async (c) => {
   }
 });
 
+/** Chemin absolu de l'image disque d'un jeu. */
+const discPath = (storedName: string) => path.join(GAMES_DIR, storedName);
+
+// Un .cue tient en quelques centaines d'octets ; au-delà, ce n'en est pas un.
+const MAX_CUE_LENGTH = 64 * 1024;
+
+/** Lit le .cue envoyé dans l'en-tête X-Cue (texte UTF-8 encodé en base64). */
+function readCue(header: string | undefined): string | undefined {
+  if (!header) return undefined;
+  try {
+    const cue = new TextDecoder("utf-8", { fatal: true }).decode(Buffer.from(header, "base64"));
+    if (cue.length > 0 && cue.length <= MAX_CUE_LENGTH) return cue;
+  } catch (error) {
+    console.warn("[games] En-tête X-Cue illisible", error);
+  }
+  throw new HTTPException(400, { message: "Fichier .cue illisible" });
+}
+
+/** Les huit premiers octets d'un CHD : "MComprHD". */
+async function isChd(filePath: string): Promise<boolean> {
+  const head = await Bun.file(filePath).slice(0, 8).text();
+  return head === "MComprHD";
+}
+
+/**
+ * Crée un jeu à partir de son image disque. Le corps de la requête est le
+ * fichier lui-même (pas de multipart) : il est écrit sur le disque au fil de
+ * l'eau, sans être chargé en mémoire. ?name= donne le nom du fichier (.chd
+ * ou .bin) ; l'en-tête X-Cue porte le .cue éventuel d'un .bin, en base64.
+ * Le titre, la région et le numéro de série viennent de identifyDisc.
+ */
+gamesRoutes.post("/disc", async (c) => {
+  const { sub } = c.get("auth");
+  const name = path.basename(c.req.query("name")?.trim() ?? "");
+  const extension = path.extname(name).toLowerCase();
+  if (extension !== ".chd" && extension !== ".bin") {
+    throw new HTTPException(400, { message: "Envoyez un .chd, un .bin seul ou un .cue avec son .bin" });
+  }
+  const format = extension === ".chd" ? "chd" : "bin";
+
+  const cue = format === "bin" ? readCue(c.req.header("X-Cue")) : undefined;
+  if (cue) {
+    try {
+      checkCue(cue);
+    } catch (error) {
+      if (!(error instanceof Ps1Error)) throw error;
+      console.warn(`[games] .cue refusé : ${error.code}`);
+      return c.json({ message: ps1Message(error), code: error.code }, 400);
+    }
+  }
+
+  const declaredSize = Number(c.req.header("Content-Length"));
+  if (Number.isFinite(declaredSize) && declaredSize > MAX_GAME_SIZE) {
+    console.warn(`[games] Image refusée avant lecture : ${declaredSize} octets`);
+    throw new HTTPException(400, { message: "Fichier trop volumineux (1 Go maximum)" });
+  }
+
+  const body = c.req.raw.body;
+  if (!body) throw new HTTPException(400, { message: "Fichier du jeu requis" });
+
+  const storedName = crypto.randomUUID() + extension;
+  const filePath = discPath(storedName);
+  let size: number;
+  try {
+    size = await writeStream(body, filePath, MAX_GAME_SIZE);
+  } catch (error) {
+    if (error instanceof TooLargeError) {
+      console.warn("[games] Image trop volumineuse, envoi interrompu");
+      throw new HTTPException(400, { message: "Fichier trop volumineux (1 Go maximum)" });
+    }
+    throw error;
+  }
+  console.log(`[games] Image écrite : ${storedName} (${size} octets)`);
+
+  let identity;
+  try {
+    if (size === 0) throw new HTTPException(400, { message: "Fichier du jeu requis" });
+    if (format === "chd" && !(await isChd(filePath))) throw new Ps1Error("BAD_CHD");
+    identity = await identifyDiscFile(filePath);
+  } catch (error) {
+    await discardFiles([filePath]);
+    if (!(error instanceof Ps1Error)) throw error;
+    console.warn(`[games] Image refusée par identifyDisc : ${error.code}`);
+    return c.json({ message: ps1Message(error), code: error.code }, 400);
+  }
+
+  try {
+    const game = await Game.create({
+      ownerId: new mongoose.Types.ObjectId(sub),
+      title: identity.title ?? path.basename(name, path.extname(name)),
+      region: identity.region,
+      // Un disque non PS1 peut annoncer un numéro d'un autre format : on l'ignore.
+      serial: identity.serial && SERIAL_PATTERN.test(identity.serial) ? identity.serial : undefined,
+      discStoredName: storedName,
+      discName: name,
+      discSize: size,
+      discFormat: format,
+      discCue: cue,
+    });
+    console.log(`[games] Jeu créé depuis son image : ${game.id} (${identity.serial ?? "sans numéro"})`);
+    return c.json(game.toPublic(), 201);
+  } catch (error) {
+    await discardFiles([filePath]);
+    throw error;
+  }
+});
+
 /** Fiche d'un de mes jeux. */
 gamesRoutes.get("/:id", async (c) => {
   const { sub } = c.get("auth");
@@ -292,15 +404,40 @@ gamesRoutes.get("/:id/cover", async (c) => {
   return c.body(file.stream());
 });
 
-/** Supprime un de mes jeux et sa pochette. */
+/** Envoie l'image disque d'un de mes jeux. */
+gamesRoutes.get("/:id/disc", async (c) => {
+  const { sub } = c.get("auth");
+  const id = c.req.param("id");
+  const missing = () => new HTTPException(404, { message: "Fichier du jeu inconnu" });
+  if (!mongoose.isValidObjectId(id)) throw missing();
+
+  const game = await Game.findOne({ _id: id, ownerId: sub }).select("+discStoredName");
+  if (!game?.discStoredName) throw missing();
+
+  const file = Bun.file(discPath(game.discStoredName));
+  if (!(await file.exists())) {
+    console.error(`[games] Image absente du disque pour le jeu ${game.id}`);
+    throw missing();
+  }
+
+  console.log(`[games] Image envoyée : ${game.id}`);
+  c.header("Content-Type", "application/octet-stream");
+  c.header("Content-Length", String(file.size));
+  c.header("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(game.discName ?? "disc")}`);
+  c.header("Cache-Control", "private, no-store");
+  return c.body(file.stream());
+});
+
+/** Supprime un de mes jeux, sa pochette et son image disque. */
 gamesRoutes.delete("/:id", async (c) => {
   const { sub } = c.get("auth");
   const id = c.req.param("id");
   if (!mongoose.isValidObjectId(id)) throw notFound();
 
-  const game = await Game.findOneAndDelete({ _id: id, ownerId: sub }).select("+coverStoredName");
+  const game = await Game.findOneAndDelete({ _id: id, ownerId: sub }).select("+coverStoredName +discStoredName");
   if (!game) throw notFound();
 
   await discardCover(game.coverStoredName);
+  if (game.discStoredName) await discardFiles([discPath(game.discStoredName)]);
   return c.body(null, 204);
 });
