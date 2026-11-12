@@ -21,7 +21,7 @@ export interface ConfirmDialogData {
     </div>
   `,
   styles: `
-    .danger { --mat-button-filled-container-color: var(--mat-sys-error); --mat-button-filled-label-text-color: #fff; }
+    .danger { --mat-button-filled-container-color: var(--mat-sys-error); --mat-button-filled-label-text-color: var(--mat-sys-on-error); }
   `,
 })
 export class ConfirmDialogComponent {
