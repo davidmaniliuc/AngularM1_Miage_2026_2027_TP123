@@ -8,7 +8,7 @@ import {
   disconnectTestDb,
 } from "./helpers";
 import { ensureUploadsDir } from "../src/lib/uploads";
-import type { PublicGame } from "../src/types";
+import type { Page, PublicGame } from "../src/types";
 
 beforeAll(async () => {
   ensureUploadsDir();
@@ -117,7 +117,7 @@ test("un utilisateur ne voit ni ne modifie les jeux d'un autre", async () => {
   const game = await create(alice.token, { title: "Privé", cover: png() });
 
   const list = await send("GET", "/api/games", bob.token);
-  expect(await list.json()).toEqual([]);
+  expect(await list.json()).toMatchObject({ items: [], total: 0 });
   expect((await send("GET", `/api/games/${game.id}`, bob.token)).status).toBe(404);
   expect((await send("PATCH", `/api/games/${game.id}`, bob.token, form({ title: "X" }))).status).toBe(404);
   expect((await send("GET", `/api/games/${game.id}/cover`, bob.token)).status).toBe(404);
@@ -132,4 +132,95 @@ test("supprime un jeu ; sans jeton : 401 ; identifiant invalide : 404", async ()
   expect((await send("GET", `/api/games/${game.id}`, token)).status).toBe(404);
   expect((await request("/api/games")).status).toBe(401);
   expect((await send("GET", "/api/games/pas-un-id", token)).status).toBe(404);
+});
+
+async function list(token: string, query = ""): Promise<Page<PublicGame>> {
+  const response = await send("GET", `/api/games${query}`, token);
+  expect(response.status).toBe(200);
+  return (await response.json()) as Page<PublicGame>;
+}
+
+const titles = (page: Page<PublicGame>) => page.items.map((game) => game.title);
+
+test("crée et modifie région, année et favori", async () => {
+  const { token } = await registerUser();
+  const game = await create(token, { title: "A", region: "pal", year: "1998", favorite: "true" });
+  expect(game).toMatchObject({ region: "pal", year: 1998, favorite: true });
+
+  const patched = await send("PATCH", `/api/games/${game.id}`, token, form({ favorite: "false", year: "", region: "ntsc-j" }));
+  const body = (await patched.json()) as PublicGame;
+  expect(body).toMatchObject({ region: "ntsc-j", favorite: false });
+  expect(body.year).toBeUndefined();
+
+  expect((await send("POST", "/api/games", token, form({ title: "B", region: "mars" }))).status).toBe(400);
+  expect((await send("POST", "/api/games", token, form({ title: "B", year: "1850" }))).status).toBe(400);
+  expect((await send("POST", "/api/games", token, form({ title: "B", year: "1998.5" }))).status).toBe(400);
+  expect((await send("POST", "/api/games", token, form({ title: "B", favorite: "peut-être" }))).status).toBe(400);
+});
+
+test("filtre par région", async () => {
+  const { token } = await registerUser();
+  await create(token, { title: "US", region: "ntsc-u" });
+  await create(token, { title: "EU", region: "pal" });
+  await create(token, { title: "Sans" });
+
+  expect(titles(await list(token, "?region=pal"))).toEqual(["EU"]);
+  expect((await send("GET", "/api/games?region=mars", token)).status).toBe(400);
+});
+
+test("filtre par genre", async () => {
+  const { token } = await registerUser();
+  await create(token, { title: "Course 1", genre: "course" });
+  await create(token, { title: "RPG 1", genre: "rpg" });
+
+  const page = await list(token, "?genre=rpg");
+  expect(titles(page)).toEqual(["RPG 1"]);
+  expect(page.total).toBe(1);
+  expect((await send("GET", "/api/games?genre=nimporte", token)).status).toBe(400);
+});
+
+test("filtre par favoris", async () => {
+  const { token } = await registerUser();
+  await create(token, { title: "Aimé", favorite: "true" });
+  await create(token, { title: "Normal" });
+
+  expect(titles(await list(token, "?favorite=true"))).toEqual(["Aimé"]);
+  expect((await list(token, "?favorite=false")).total).toBe(2);
+});
+
+test("recherche par titre ou série, caractères spéciaux littéraux", async () => {
+  const { token } = await registerUser();
+  await create(token, { title: "Final Fantasy VII", serial: "SCUS-94163" });
+  await create(token, { title: "Crash (Bandicoot)" });
+
+  expect(titles(await list(token, "?q=fantasy"))).toEqual(["Final Fantasy VII"]);
+  expect(titles(await list(token, "?q=94163"))).toEqual(["Final Fantasy VII"]);
+  expect(titles(await list(token, `?q=${encodeURIComponent("(Bandi")}`))).toEqual(["Crash (Bandicoot)"]);
+  expect((await list(token, "?q=.*")).total).toBe(0);
+});
+
+test("trie par titre, année et date d'ajout", async () => {
+  const { token } = await registerUser();
+  await create(token, { title: "banane", year: "1999" });
+  await create(token, { title: "Avion", year: "1996" });
+  await create(token, { title: "Citron" });
+
+  // Défaut : le plus récent d'abord.
+  expect(titles(await list(token))).toEqual(["Citron", "Avion", "banane"]);
+  expect(titles(await list(token, "?sort=added&order=asc"))).toEqual(["banane", "Avion", "Citron"]);
+  // Titre : insensible à la casse, croissant par défaut.
+  expect(titles(await list(token, "?sort=title"))).toEqual(["Avion", "banane", "Citron"]);
+  expect(titles(await list(token, "?sort=title&order=desc"))).toEqual(["Citron", "banane", "Avion"]);
+  expect(titles(await list(token, "?sort=year&order=asc")).slice(0, 2)).toEqual(["Citron", "Avion"]);
+  expect(titles(await list(token, "?sort=year&order=desc")).slice(0, 2)).toEqual(["banane", "Avion"]);
+});
+
+test("pagine et combine filtres et pagination", async () => {
+  const { token } = await registerUser();
+  for (let i = 1; i <= 5; i += 1) await create(token, { title: `Jeu ${i}`, genre: "rpg" });
+  await create(token, { title: "Autre", genre: "course" });
+
+  const second = await list(token, "?genre=rpg&sort=title&limit=2&page=2");
+  expect(titles(second)).toEqual(["Jeu 3", "Jeu 4"]);
+  expect(second).toMatchObject({ page: 2, limit: 2, total: 5, pages: 3, hasNextPage: true, hasPrevPage: true });
 });

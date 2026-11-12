@@ -56,6 +56,10 @@ export interface PublicGame {
   /** Numéro de série, ex. SCUS-94163. */
   serial?: string;
   genre?: string;
+  /** "ntsc-u", "ntsc-j" ou "pal". */
+  region?: string;
+  year?: number;
+  favorite: boolean;
   /** Une pochette est disponible sur GET /games/:id/cover. */
   hasCover: boolean;
   createdAt: Date;

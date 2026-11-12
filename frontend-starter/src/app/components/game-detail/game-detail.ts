@@ -3,13 +3,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { Game, genreLabel } from '../../shared/models/game.model';
+import { Game, genreLabel, regionLabel } from '../../shared/models/game.model';
 import { GameService } from '../../shared/services/game.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../confirm-dialog/confirm-dialog';
 import { GameCoverComponent } from '../game-cover/game-cover';
 import { GameFormDialogComponent } from '../game-form-dialog/game-form-dialog';
 
-/** Game sheet: cover, serial, genre, with edit and delete. */
+/** Game sheet: cover, serial, genre, region, year, favorite, with edit and delete. */
 @Component({
   selector: 'app-game-detail',
   imports: [RouterLink, MatButtonModule, MatIconModule, GameCoverComponent],
@@ -28,8 +28,15 @@ import { GameFormDialogComponent } from '../game-form-dialog/game-form-dialog';
             <dd data-testid="serial">{{ game.serial || '—' }}</dd>
             <dt>Genre</dt>
             <dd data-testid="genre">{{ genre(game) || '—' }}</dd>
+            <dt>Région</dt>
+            <dd data-testid="region">{{ region(game) || '—' }}</dd>
+            <dt>Année</dt>
+            <dd data-testid="year">{{ game.year || '—' }}</dd>
           </dl>
           <div class="actions">
+            <button mat-button type="button" data-testid="favorite" [attr.aria-pressed]="game.favorite" (click)="toggleFavorite(game)">
+              <mat-icon [class.icon-fill]="game.favorite">favorite</mat-icon>{{ game.favorite ? 'Favori' : 'Ajouter aux favoris' }}
+            </button>
             <button mat-flat-button type="button" data-testid="edit" (click)="edit(game)">Modifier</button>
             <button mat-button type="button" data-testid="delete" (click)="confirmRemove(game)">Supprimer</button>
           </div>
@@ -57,6 +64,7 @@ export class GameDetailComponent {
   readonly game = signal<Game | undefined>(undefined);
   readonly error = signal('');
   readonly genre = (game: Game) => genreLabel(game.genre);
+  readonly region = (game: Game) => regionLabel(game.region);
 
   constructor() {
     const id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
@@ -65,6 +73,16 @@ export class GameDetailComponent {
       error: (error) => {
         console.error('[GameDetail] Chargement impossible', error);
         this.error.set('Jeu introuvable.');
+      },
+    });
+  }
+
+  toggleFavorite(game: Game): void {
+    this.service.setFavorite(game.id, !game.favorite).subscribe({
+      next: (updated) => this.game.set(updated),
+      error: (error) => {
+        console.error('[GameDetail] Favori impossible', error);
+        this.error.set('Impossible de modifier ce favori.');
       },
     });
   }

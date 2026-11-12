@@ -16,6 +16,9 @@ describe('GameFormDialogComponent', () => {
     title: 'FF7',
     serial: 'SCUS-94163',
     genre: 'rpg',
+    region: 'pal',
+    year: 1997,
+    favorite: false,
     hasCover: true,
     createdAt: '2026-10-15T08:00:00.000Z',
   };
@@ -75,6 +78,8 @@ describe('GameFormDialogComponent', () => {
       title: 'FF7',
       serial: 'SCUS-94163',
       genre: 'rpg',
+      region: 'pal',
+      year: '1997',
     });
 
     fixture.componentInstance.form.patchValue({ genre: 'course' });

@@ -2,9 +2,17 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import mongoose from "mongoose";
 import { requireAuth } from "../middleware/auth";
-import { Game, SERIAL_PATTERN, isGenre, type GameDoc } from "../models/Game";
+import {
+  Game,
+  MAX_YEAR,
+  MIN_YEAR,
+  SERIAL_PATTERN,
+  isGenre,
+  isRegion,
+  type GameDoc,
+} from "../models/Game";
 import { coverPath, removeCover, saveCover } from "../lib/covers";
-import type { AppEnv } from "../types";
+import type { AppEnv, Page } from "../types";
 
 export const gamesRoutes = new Hono<AppEnv>();
 
@@ -26,8 +34,8 @@ function text(body: Body, key: string): string | undefined {
  * (PATCH) ; sinon le titre est obligatoire (POST).
  */
 function parseFields(body: Body, partial: boolean) {
-  const fields: Partial<Pick<GameDoc, "title" | "serial" | "genre">> & {
-    unset: ("serial" | "genre")[];
+  const fields: Partial<Pick<GameDoc, "title" | "serial" | "genre" | "region" | "year" | "favorite">> & {
+    unset: ("serial" | "genre" | "region" | "year")[];
   } = { unset: [] };
 
   const title = text(body, "title");
@@ -56,6 +64,33 @@ function parseFields(body: Body, partial: boolean) {
     fields.genre = genre;
   }
 
+  const region = text(body, "region");
+  if (region === "") {
+    fields.unset.push("region");
+  } else if (region !== undefined) {
+    if (!isRegion(region)) throw new HTTPException(400, { message: "Région inconnue" });
+    fields.region = region;
+  }
+
+  const year = text(body, "year");
+  if (year === "") {
+    fields.unset.push("year");
+  } else if (year !== undefined) {
+    const value = Number(year);
+    if (!Number.isInteger(value) || value < MIN_YEAR || value > MAX_YEAR) {
+      throw new HTTPException(400, { message: `Année invalide (${MIN_YEAR} à ${MAX_YEAR})` });
+    }
+    fields.year = value;
+  }
+
+  const favorite = text(body, "favorite");
+  if (favorite !== undefined) {
+    if (favorite !== "true" && favorite !== "false") {
+      throw new HTTPException(400, { message: "favorite doit valoir true ou false" });
+    }
+    fields.favorite = favorite === "true";
+  }
+
   return fields;
 }
 
@@ -81,12 +116,71 @@ async function discardCover(storedName: string | undefined): Promise<void> {
   }
 }
 
-/** Liste mes jeux, du plus récent au plus ancien. */
+/** Champs de tri acceptés par GET /games, associés au champ MongoDB. */
+const SORT_FIELDS = { title: "title", year: "year", added: "createdAt" } as const;
+
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Liste mes jeux, paginés. Filtres : q (titre ou série), region, genre,
+ * favorite=true. Tri : sort=title|year|added, order=asc|desc (défaut : added,
+ * du plus récent au plus ancien). Une valeur de filtre inconnue est une 400 ;
+ * page, limit, sort et order inconnus retombent sur leur défaut.
+ */
 gamesRoutes.get("/", async (c) => {
   const { sub } = c.get("auth");
-  const games = await Game.find({ ownerId: sub }).select("+coverStoredName").sort({ createdAt: -1 });
-  console.log(`[games] ${games.length} jeu(x) envoyé(s) à ${sub}`);
-  return c.json(games.map((game) => game.toPublic()));
+  const page = Math.max(1, Math.floor(Number(c.req.query("page"))) || 1);
+  const limit = Math.min(60, Math.max(1, Math.floor(Number(c.req.query("limit"))) || 24));
+
+  const filter: mongoose.QueryFilter<GameDoc> = { ownerId: sub };
+
+  const q = c.req.query("q")?.trim();
+  if (q) {
+    const pattern = new RegExp(escapeRegex(q), "i");
+    filter.$or = [{ title: pattern }, { serial: pattern }];
+  }
+
+  const region = c.req.query("region");
+  if (region) {
+    if (!isRegion(region)) throw new HTTPException(400, { message: "Région inconnue" });
+    filter.region = region;
+  }
+
+  const genre = c.req.query("genre");
+  if (genre) {
+    if (!isGenre(genre)) throw new HTTPException(400, { message: "Genre inconnu" });
+    filter.genre = genre;
+  }
+
+  if (c.req.query("favorite") === "true") filter.favorite = true;
+
+  const sortKey = c.req.query("sort") as keyof typeof SORT_FIELDS;
+  const sortField = SORT_FIELDS[sortKey] ?? "createdAt";
+  const direction = c.req.query("order") === "asc" ? 1 : c.req.query("order") === "desc" ? -1 : sortField === "title" ? 1 : -1;
+
+  const total = await Game.countDocuments(filter);
+  const games = await Game.find(filter)
+    .select("+coverStoredName")
+    .collation({ locale: "fr", strength: 2 })
+    .sort({ [sortField]: direction, _id: direction })
+    .skip((page - 1) * limit)
+    .limit(limit);
+
+  const pages = Math.max(1, Math.ceil(total / limit));
+  const body: Page<ReturnType<(typeof games)[number]["toPublic"]>> = {
+    items: games.map((game) => game.toPublic()),
+    page,
+    limit,
+    total,
+    pages,
+    pagingCounter: (page - 1) * limit + 1,
+    hasPrevPage: page > 1,
+    hasNextPage: page < pages,
+    prevPage: page > 1 ? page - 1 : null,
+    nextPage: page < pages ? page + 1 : null,
+  };
+  console.log(`[games] ${body.items.length} jeu(x) envoyé(s) sur ${total} à ${sub}`);
+  return c.json(body);
 });
 
 /** Crée un jeu. Multipart : title, serial, genre, cover (tous facultatifs sauf title). */
@@ -102,6 +196,9 @@ gamesRoutes.post("/", async (c) => {
       title: fields.title,
       serial: fields.serial,
       genre: fields.genre,
+      region: fields.region,
+      year: fields.year,
+      favorite: fields.favorite ?? false,
       coverStoredName: cover?.storedName,
       coverMimeType: cover?.mimeType,
     });

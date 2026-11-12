@@ -17,10 +17,10 @@ Le contrat HTTP ne dépend pas du choix de persistance : le backend fourni utili
 | GET | `/tracks/:id/cover` | JWT | image (JPEG, PNG ou WebP) |
 | PATCH | `/tracks/:id` | `{visibility}` + JWT | `200 Track` |
 | DELETE | `/tracks/:id` | JWT | `204` (bonus) |
-| GET | `/games` | JWT | `200 Game[]` |
-| POST | `/games` | multipart : `title`, `serial`, `genre`, `cover` | `201 Game` |
+| GET | `/games` | JWT ; query : `q`, `region`, `genre`, `favorite`, `sort`, `order`, `page`, `limit` | `200 Page<Game>` |
+| POST | `/games` | multipart : `title`, `serial`, `genre`, `region`, `year`, `favorite`, `cover` | `201 Game` |
 | GET | `/games/:id` | JWT | `200 Game` |
-| PATCH | `/games/:id` | multipart : `title`, `serial`, `genre`, `cover`, `removeCover` | `200 Game` |
+| PATCH | `/games/:id` | multipart : `title`, `serial`, `genre`, `region`, `year`, `favorite`, `cover`, `removeCover` | `200 Game` |
 | GET | `/games/:id/cover` | JWT | image (JPEG, PNG ou WebP) |
 | DELETE | `/games/:id` | JWT | `204` |
 
@@ -114,16 +114,27 @@ Rend une piste publique ou privée.
 
 Un jeu appartient à son créateur : les autres utilisateurs ne le voient pas (`404` sur toutes les routes). Tous les accès exigent un JWT (`401` sinon).
 
-`Game` : `id`, `ownerId`, `title`, `hasCover` (booléen), `createdAt` et, s'ils existent, `serial` et `genre`.
+`Game` : `id`, `ownerId`, `title`, `favorite` (booléen), `hasCover` (booléen), `createdAt` et, s'ils existent, `serial`, `genre`, `region` et `year`.
 
 - `serial` : numéro de série PS1, quatre lettres, un tiret, cinq chiffres (`SCUS-94163`). Les minuscules sont mises en majuscules.
 - `genre` : `rpg`, `course`, `plateforme`, `action`, `aventure`, `combat`, `sport`, `puzzle`, `strategie` ou `autre`.
+- `region` : `ntsc-u`, `ntsc-j` ou `pal`.
+- `year` : entier de 1994 à 2100.
+- `favorite` : `true` ou `false` (faux par défaut).
 - `cover` : image JPEG, PNG ou WebP de 5 Mo maximum, identifiée par son contenu.
 
-`POST /games` et `PATCH /games/:id` reçoivent un formulaire multipart. `title` est obligatoire à la création. Au `PATCH`, un champ absent ne change pas ; `serial` ou `genre` vide l'efface ; `cover` remplace la pochette et `removeCover=true` la retire.
+`POST /games` et `PATCH /games/:id` reçoivent un formulaire multipart. `title` est obligatoire à la création. Au `PATCH`, un champ absent ne change pas ; `serial`, `genre`, `region` ou `year` vide l'efface ; `cover` remplace la pochette et `removeCover=true` la retire.
 
-`GET /games` renvoie mes jeux, du plus récent au plus ancien.
+`GET /games` renvoie une page de mes jeux (même enveloppe que `GET /tracks`). Paramètres, tous facultatifs :
+
+- `q` : recherche, sans casse, dans le titre ou le numéro de série ;
+- `region`, `genre` : filtre exact (`400` si la valeur est inconnue) ;
+- `favorite=true` : seulement les favoris ;
+- `sort` : `title` (insensible à la casse), `year` ou `added` (date d'ajout, défaut) ; `order` : `asc` ou `desc` (défaut : `asc` pour `title`, `desc` sinon). Les jeux sans année passent en premier en tri croissant et en dernier en tri décroissant ;
+- `page` (défaut 1) et `limit` (défaut 24, maximum 60).
+
+Les filtres se combinent entre eux et avec la pagination ; `total` compte les jeux filtrés.
 
 `GET /games/:id/cover` renvoie l'image avec `Content-Type`, `Cache-Control: private, max-age=86400` et `X-Content-Type-Options: nosniff`. `404 { "message": "Pochette inconnue" }` si le jeu n'a pas de pochette.
 
-Erreurs : `400 { "message": "Le titre est obligatoire" }`, `"Numéro de série invalide (ex. SCUS-94163)"`, `"Genre inconnu"` ou `"Pochette invalide (JPEG, PNG ou WebP, 5 Mo maximum)"` ; `404 { "message": "Jeu inconnu" }` (identifiant invalide, inexistant ou d'un autre utilisateur).
+Erreurs : `400 { "message": "Le titre est obligatoire" }`, `"Numéro de série invalide (ex. SCUS-94163)"`, `"Genre inconnu"`, `"Région inconnue"`, `"Année invalide (1994 à 2100)"` ou `"Pochette invalide (JPEG, PNG ou WebP, 5 Mo maximum)"` ; `404 { "message": "Jeu inconnu" }` (identifiant invalide, inexistant ou d'un autre utilisateur).

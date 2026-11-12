@@ -7,7 +7,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { GENRES, Game, GameFields, SERIAL_PATTERN } from '../../shared/models/game.model';
+import { GENRES, Game, GameFields, REGIONS, SERIAL_PATTERN } from '../../shared/models/game.model';
 import { GameService } from '../../shared/services/game.service';
 
 const MAX_COVER_SIZE = 5 * 1024 * 1024;
@@ -58,6 +58,24 @@ const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
         </mat-select>
       </mat-form-field>
 
+      <mat-form-field appearance="outline">
+        <mat-label>Région</mat-label>
+        <mat-select formControlName="region">
+          <mat-option value="">Aucune</mat-option>
+          @for (region of regions; track region.value) {
+            <mat-option [value]="region.value">{{ region.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Année</mat-label>
+        <input matInput formControlName="year" inputmode="numeric" placeholder="1998" />
+        @if (form.controls.year.hasError('pattern')) {
+          <mat-error>Année à quatre chiffres (1994 ou plus)</mat-error>
+        }
+      </mat-form-field>
+
       <label class="cover">
         Pochette (JPEG, PNG ou WebP, 5 Mo maximum)
         <input type="file" accept="image/jpeg,image/png,image/webp" data-testid="cover-input" (change)="chooseCover($event)" />
@@ -99,6 +117,7 @@ export class GameFormDialogComponent {
   readonly game = inject<Game | null>(MAT_DIALOG_DATA, { optional: true }) ?? undefined;
 
   readonly genres = GENRES;
+  readonly regions = REGIONS;
   readonly form = new FormGroup({
     title: new FormControl(this.game?.title ?? '', {
       nonNullable: true,
@@ -109,6 +128,11 @@ export class GameFormDialogComponent {
       validators: [Validators.pattern(SERIAL_PATTERN)],
     }),
     genre: new FormControl<string>(this.game?.genre ?? '', { nonNullable: true }),
+    region: new FormControl<string>(this.game?.region ?? '', { nonNullable: true }),
+    year: new FormControl(this.game?.year ? String(this.game.year) : '', {
+      nonNullable: true,
+      validators: [Validators.pattern(/^(19(9[4-9])|20\d\d|2100)$|^$/)],
+    }),
   });
   readonly removeCover = new FormControl(false, { nonNullable: true });
   readonly cover = signal<File | undefined>(undefined);
@@ -144,6 +168,8 @@ export class GameFormDialogComponent {
       title: value.title.trim(),
       serial: value.serial.trim().toUpperCase(),
       genre: value.genre as GameFields['genre'],
+      region: value.region as GameFields['region'],
+      year: value.year.trim(),
       cover: this.cover(),
       removeCover: this.removeCover.value,
     };

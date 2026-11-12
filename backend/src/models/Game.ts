@@ -20,6 +20,17 @@ export function isGenre(value: unknown): value is Genre {
   return GENRES.includes(value as Genre);
 }
 
+/** Régions d'un jeu PS1 (norme de couleur / zone de commercialisation). */
+export const REGIONS = ["ntsc-u", "ntsc-j", "pal"] as const;
+export type Region = (typeof REGIONS)[number];
+
+export function isRegion(value: unknown): value is Region {
+  return REGIONS.includes(value as Region);
+}
+
+export const MIN_YEAR = 1994;
+export const MAX_YEAR = 2100;
+
 /** Numéro de série PS1 : quatre lettres, un tiret, cinq chiffres (SCUS-94163). */
 export const SERIAL_PATTERN = /^[A-Z]{4}-\d{5}$/;
 
@@ -32,6 +43,9 @@ export interface GameDoc {
   title: string;
   serial?: string;
   genre?: Genre;
+  region?: Region;
+  year?: number;
+  favorite: boolean;
   coverStoredName?: string;
   coverMimeType?: string;
   createdAt: Date;
@@ -50,6 +64,9 @@ const schema = new Schema<GameDoc, GameModel, GameMethods>(
     title: { type: String, required: true, trim: true },
     serial: { type: String, trim: true, uppercase: true, match: SERIAL_PATTERN },
     genre: { type: String, enum: GENRES },
+    region: { type: String, enum: REGIONS },
+    year: { type: Number, min: MIN_YEAR, max: MAX_YEAR, validate: Number.isInteger },
+    favorite: { type: Boolean, default: false },
     coverStoredName: { type: String, select: false },
     coverMimeType: { type: String },
   },
@@ -65,6 +82,9 @@ schema.method("toPublic", function toPublic(): PublicGame {
     title: this.title,
     serial: this.serial,
     genre: this.genre,
+    region: this.region,
+    year: this.year,
+    favorite: Boolean(this.favorite),
     // coverStoredName n'est présent que si la requête l'a sélectionné.
     hasCover: Boolean(this.coverStoredName),
     createdAt: this.createdAt,

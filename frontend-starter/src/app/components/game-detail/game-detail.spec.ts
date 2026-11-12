@@ -15,6 +15,7 @@ describe('GameDetailComponent', () => {
     title: 'Final Fantasy VII',
     serial: 'SCUS-94163',
     genre: 'rpg',
+    favorite: false,
     hasCover: false,
     createdAt: '2026-10-15T08:00:00.000Z',
   };
