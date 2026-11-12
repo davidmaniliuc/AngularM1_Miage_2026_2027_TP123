@@ -107,9 +107,11 @@ describe('GamesLibraryComponent', () => {
     httpMock.expectOne((r) => r.url === '/api/games').flush(page([game], 80));
     harness.detectChanges();
 
-    const select = (harness.routeNativeElement as HTMLElement).querySelector<HTMLSelectElement>('[data-testid="genre"]')!;
-    select.value = 'rpg';
-    select.dispatchEvent(new Event('change'));
+    const root = harness.routeNativeElement as HTMLElement;
+    root.querySelector<HTMLElement>('[data-testid="genre"] .mat-mdc-select-trigger')!.click();
+    harness.detectChanges();
+    const option = Array.from(document.querySelectorAll<HTMLElement>('mat-option')).find((o) => o.textContent?.includes('RPG'))!;
+    option.click();
     await harness.fixture.whenStable();
 
     expect(TestBed.inject(Router).url).toBe('/games?genre=rpg');

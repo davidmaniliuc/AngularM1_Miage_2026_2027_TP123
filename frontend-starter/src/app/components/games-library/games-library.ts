@@ -3,8 +3,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
 import { switchMap, tap } from 'rxjs';
 import {
   GENRES,
@@ -37,37 +40,58 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
  */
 @Component({
   selector: 'app-games-library',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatPaginatorModule, GameCoverComponent],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatPaginatorModule,
+    MatSelectModule,
+    GameCoverComponent,
+  ],
   template: `
     <div class="bar">
-      <input
-        type="search"
-        class="search"
-        placeholder="Rechercher un titre ou un numéro"
-        aria-label="Rechercher un jeu"
-        data-testid="search"
-        [value]="query().q ?? ''"
-        (input)="onSearch($any($event.target).value)"
-      />
-      <select aria-label="Région" data-testid="region" [value]="query().region ?? ''" (change)="setFilter('region', $any($event.target).value)">
-        <option value="">Toutes les régions</option>
-        @for (region of regions; track region.value) {
-          <option [value]="region.value" [selected]="query().region === region.value">{{ region.label }}</option>
-        }
-      </select>
-      <select aria-label="Genre" data-testid="genre" [value]="query().genre ?? ''" (change)="setFilter('genre', $any($event.target).value)">
-        <option value="">Tous les genres</option>
-        @for (genre of genres; track genre.value) {
-          <option [value]="genre.value" [selected]="query().genre === genre.value">{{ genre.label }}</option>
-        }
-      </select>
-      <select aria-label="Trier par" data-testid="sort" (change)="setSort($any($event.target).value)">
-        @for (option of sorts; track option.value) {
-          <option [value]="option.value" [selected]="option.value === sortValue()">{{ option.label }}</option>
-        }
-      </select>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search">
+        <mat-label>Rechercher</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          type="search"
+          placeholder="Titre ou numéro de série"
+          data-testid="search"
+          [value]="query().q ?? ''"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Région</mat-label>
+        <mat-select data-testid="region" [value]="query().region ?? ''" (selectionChange)="setFilter('region', $event.value)">
+          <mat-option value="">Toutes</mat-option>
+          @for (region of regions; track region.value) {
+            <mat-option [value]="region.value">{{ region.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Genre</mat-label>
+        <mat-select data-testid="genre" [value]="query().genre ?? ''" (selectionChange)="setFilter('genre', $event.value)">
+          <mat-option value="">Tous</mat-option>
+          @for (genre of genres; track genre.value) {
+            <mat-option [value]="genre.value">{{ genre.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Trier par</mat-label>
+        <mat-select data-testid="sort" [value]="sortValue()" (selectionChange)="setSort($event.value)">
+          @for (option of sorts; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
       <button
-        mat-button
+        mat-stroked-button
         type="button"
         data-testid="favorites-filter"
         [attr.aria-pressed]="!!query().favorite"
@@ -75,7 +99,7 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
       >
         <mat-icon [class.icon-fill]="query().favorite">favorite</mat-icon>Favoris
       </button>
-      <button mat-flat-button type="button" data-testid="add-game" (click)="add()">
+      <button mat-flat-button type="button" class="add" data-testid="add-game" (click)="add()">
         <mat-icon>add</mat-icon>Ajouter un jeu
       </button>
     </div>
@@ -120,9 +144,10 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
     }
   `,
   styles: `
-    .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .search { flex: 1 1 200px; min-width: 0; }
-    .bar input, .bar select { height: 40px; padding: 0 10px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface); color: var(--mat-sys-on-surface); font: inherit; }
+    .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 20px; }
+    .bar mat-form-field { width: 160px; }
+    .bar .search { flex: 1 1 220px; }
+    .bar .add { margin-left: auto; }
     .games { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 0; padding: 0; list-style: none; }
     @media (min-width: 600px) { .games { grid-template-columns: repeat(3, 1fr); } }
     @media (min-width: 760px) { .games { grid-template-columns: repeat(4, 1fr); } }

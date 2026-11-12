@@ -28,6 +28,10 @@ ALAC (Apple Lossless) en FLAC : `brew install ffmpeg` sur macOS,
 `sudo apt install ffmpeg` sur Debian/Ubuntu. Dans Docker, l'image du backend
 l'installe déjà.
 
+À la première création du compte de démonstration, le backend lui ajoute 9 jeux
+homebrew fictifs avec leurs pochettes. Sur une base existante, `npm run seed:demo`
+les ajoute (sans doublon).
+
 Après une mise à jour, les pistes importées avant l'ajout des pochettes se
 migrent avec `npm run migrate:media`.
 

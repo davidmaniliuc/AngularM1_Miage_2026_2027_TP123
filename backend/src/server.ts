@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { createApp } from "./app";
 import { User } from "./models/User";
 import { ensureUploadsDir } from "./lib/uploads";
+import { seedDemoLibrary } from "./lib/demo-library";
 import { MONGODB_URI, PORT } from "./config";
 
 // Le port et l'URI viennent de l'environnement du backend, jamais d'Angular.
@@ -39,6 +40,8 @@ try {
       password: "Demo1234!",
     });
     console.log(`[startup] Compte de démonstration créé : ${demoUser.id}`);
+    // Une installation neuve montre tout de suite une bibliothèque remplie.
+    await seedDemoLibrary(demoUser.id);
   }
 } catch (error) {
   console.error(
