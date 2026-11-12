@@ -62,7 +62,19 @@ export interface PublicGame {
   favorite: boolean;
   /** Une pochette est disponible sur GET /games/:id/cover. */
   hasCover: boolean;
+  /** L'image disque, téléchargeable sur GET /games/:id/disc. */
+  disc?: PublicDisc;
   createdAt: Date;
+}
+
+/** Image disque d'un jeu (jamais discStoredName). */
+export interface PublicDisc {
+  /** Nom du fichier envoyé. */
+  name: string;
+  size: number;
+  format: "chd" | "bin";
+  /** Le .cue envoyé avec un .bin, à repasser à loadDisc. */
+  cue?: string;
 }
 
 /**

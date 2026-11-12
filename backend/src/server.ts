@@ -3,7 +3,7 @@ import { createApp } from "./app";
 import { User } from "./models/User";
 import { ensureUploadsDir } from "./lib/uploads";
 import { seedDemoLibrary } from "./lib/demo-library";
-import { MONGODB_URI, PORT } from "./config";
+import { MAX_GAME_SIZE, MONGODB_URI, PORT } from "./config";
 
 // Le port et l'URI viennent de l'environnement du backend, jamais d'Angular.
 if (!MONGODB_URI) {
@@ -61,4 +61,7 @@ console.log(`Guitar Practice Cloud API: http://localhost:${PORT}/api/health`);
 export default {
   port: PORT,
   fetch: createApp().fetch,
+  // Bun refuse par défaut tout corps de plus de 128 Mo (413) : une image de
+  // jeu va jusqu'à 1 Go. La route vérifie elle-même la taille de chaque envoi.
+  maxRequestBodySize: MAX_GAME_SIZE + 1024 * 1024,
 };

@@ -114,7 +114,7 @@ Rend une piste publique ou privée.
 
 Un jeu appartient à son créateur : les autres utilisateurs ne le voient pas (`404` sur toutes les routes). Tous les accès exigent un JWT (`401` sinon).
 
-`Game` : `id`, `ownerId`, `title`, `favorite` (booléen), `hasCover` (booléen), `createdAt` et, s'ils existent, `serial`, `genre`, `region` et `year`.
+`Game` : `id`, `ownerId`, `title`, `favorite` (booléen), `hasCover` (booléen), `createdAt` et, s'ils existent, `serial`, `genre`, `region`, `year` et `disc`.
 
 - `serial` : numéro de série PS1, quatre lettres, un tiret, cinq chiffres (`SCUS-94163`). Les minuscules sont mises en majuscules.
 - `genre` : `rpg`, `course`, `plateforme`, `action`, `aventure`, `combat`, `sport`, `puzzle`, `strategie` ou `autre`.
@@ -122,6 +122,7 @@ Un jeu appartient à son créateur : les autres utilisateurs ne le voient pas (`
 - `year` : entier de 1994 à 2100.
 - `favorite` : `true` ou `false` (faux par défaut).
 - `cover` : image JPEG, PNG ou WebP de 5 Mo maximum, identifiée par son contenu.
+- `disc` : l'image disque envoyée par `POST /games/disc`, `{ "name": "suikoden.chd", "size": 329653141, "format": "chd" | "bin", "cue"?: "FILE ..." }`. `cue` n'existe que pour un `.bin` envoyé avec son `.cue`.
 
 `POST /games` et `PATCH /games/:id` reçoivent un formulaire multipart. `title` est obligatoire à la création. Au `PATCH`, un champ absent ne change pas ; `serial`, `genre`, `region` ou `year` vide l'efface ; `cover` remplace la pochette et `removeCover=true` la retire.
 
@@ -138,3 +139,28 @@ Les filtres se combinent entre eux et avec la pagination ; `total` compte les je
 `GET /games/:id/cover` renvoie l'image avec `Content-Type`, `Cache-Control: private, max-age=86400` et `X-Content-Type-Options: nosniff`. `404 { "message": "Pochette inconnue" }` si le jeu n'a pas de pochette.
 
 Erreurs : `400 { "message": "Le titre est obligatoire" }`, `"Numéro de série invalide (ex. SCUS-94163)"`, `"Genre inconnu"`, `"Région inconnue"`, `"Année invalide (1994 à 2100)"` ou `"Pochette invalide (JPEG, PNG ou WebP, 5 Mo maximum)"` ; `404 { "message": "Jeu inconnu" }` (identifiant invalide, inexistant ou d'un autre utilisateur).
+
+### `POST /games/disc` — créer un jeu depuis son image disque
+
+JWT obligatoire. Le corps est **le fichier lui-même** (`Content-Type: application/octet-stream`), pas un formulaire multipart : le serveur l'écrit sur le disque au fil de l'eau, sans le charger en mémoire.
+
+- `?name=` (obligatoire) : nom du fichier, qui finit par `.chd` ou `.bin`. Le `.chd` est conseillé (deux à trois fois plus petit).
+- En-tête `X-Cue` (facultatif, `.bin` seulement) : le texte du `.cue`, en UTF-8 encodé en base64. Il est gardé avec le jeu pour l'émulateur.
+- Taille maximale : 1 Go (la limite de 100 Mo des pistes audio ne change pas).
+
+Le serveur lit l'image avec `identifyDisc` (`@davidmaniliuc/substation`) et remplit `title` (titre catalogué, sinon volume du disque, sinon nom du fichier), `region` et `serial`. Réponse `201` : le `Game` créé.
+
+Erreurs `400` :
+
+- `{ "message": "Envoyez un .chd, un .bin seul ou un .cue avec son .bin" }` : `name` absent ou autre extension ;
+- `{ "message": "Fichier du jeu requis" }` : corps absent ou vide ;
+- `{ "message": "Fichier trop volumineux (1 Go maximum)" }` ;
+- `{ "message": "Fichier .cue illisible" }` : `X-Cue` n'est pas du base64 UTF-8 ou dépasse 64 Ko ;
+- `{ "message": "...", "code": "MULTI_FILE_CUE" }` : le `.cue` référence plusieurs fichiers `.bin` ; le message conseille de convertir en `.chd` ;
+- `{ "message": "...", "code": "BAD_CHD" | "BAD_CUE" | ... }` : image refusée par `identifyDisc`.
+
+### `GET /games/:id/disc` — télécharger l'image
+
+JWT obligatoire, propriétaire seulement. `200` avec le fichier (`application/octet-stream`, `Content-Length`, `Content-Disposition: attachment`, `Cache-Control: private, no-store`). `404 { "message": "Fichier du jeu inconnu" }` si le jeu n'a pas d'image, n'existe pas ou appartient à un autre compte.
+
+`DELETE /games/:id` supprime aussi l'image disque.
