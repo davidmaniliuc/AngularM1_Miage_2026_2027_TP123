@@ -1,15 +1,16 @@
 @use '@angular/material' as mat;
 
 /*
- * Thème Angular Material 3 — direction « Studio » (docs/maquettes/tp2-bibliotheque.html).
- * mat.theme() génère toutes les variables --mat-sys-* ; on ajuste ensuite
- * quelques couleurs pour coller exactement à la maquette.
+ * Thème Angular Material 3 — identité PS1 : gris console, bleu de la croix,
+ * et les quatre couleurs des boutons (--gpc-ps-*). mat.theme() génère les
+ * variables --mat-sys-* pour les deux modes ; on en ajuste ensuite quelques-unes.
  */
 html {
-  color-scheme: light;
+  /* Clair ou sombre selon le système ; light-dark(clair, sombre) choisit la valeur. */
+  color-scheme: light dark;
   @include mat.theme((
-    color: (primary: mat.$green-palette, tertiary: mat.$orange-palette),
-    typography: 'Instrument Sans',
+    color: (primary: mat.$azure-palette, tertiary: mat.$rose-palette, theme-type: color-scheme),
+    typography: 'Outfit',
     density: 0,
   ));
 
@@ -20,35 +21,42 @@ html {
     form-field-container-vertical-padding: 6px,
   ));
 
-  --mat-sys-primary: #17664f;
-  --mat-sys-on-primary: #fff;
-  --mat-sys-primary-container: #dcefe6;
-  --mat-sys-on-primary-container: #0c3b2d;
-  --mat-sys-surface: #f4f6f5;
-  --mat-sys-surface-container-lowest: #fff;
-  --mat-sys-on-surface: #14201b;
-  --mat-sys-on-surface-variant: #5d6b65;
-  --mat-sys-outline: #8e9c96;
-  --mat-sys-outline-variant: #e1e7e4;
-  --mat-sys-error: #b3261e;
-  --mat-sys-error-container: #fbe9e7;
+  --mat-sys-primary: light-dark(#2c4a9e, #9fb4f5);
+  --mat-sys-on-primary: light-dark(#fff, #0f1b45);
+  --mat-sys-primary-container: light-dark(#dde3f5, #27346a);
+  --mat-sys-on-primary-container: light-dark(#14214f, #dde3f5);
+  --mat-sys-surface: light-dark(#e4e4e8, #131418);
+  --mat-sys-surface-container-lowest: light-dark(#f6f6f8, #1c1d23);
+  --mat-sys-on-surface: light-dark(#17181c, #e8e8ee);
+  --mat-sys-on-surface-variant: light-dark(#50525c, #aeb0bb);
+  --mat-sys-outline: #7d808c;
+  --mat-sys-outline-variant: light-dark(#c9cad2, #33353e);
+  --mat-sys-error: light-dark(#b3261e, #ff8a80);
+  --mat-sys-on-error-container: light-dark(#5c1410, #ffdad6);
+  --mat-sys-error-container: light-dark(#fbe9e7, #5a1d19);
+
+  /* Les quatre boutons de la manette */
+  --gpc-ps-triangle: #3eb489;
+  --gpc-ps-circle: #e0463f;
+  --gpc-ps-cross: #4a7bd6;
+  --gpc-ps-square: #e27bb4;
 
   /* Tokens propres à l'application */
-  --gpc-live: #d9822b;
-  --gpc-live-soft: #fbeedd;
+  --gpc-live: light-dark(#b8651a, #f0a45d);
+  --gpc-live-soft: light-dark(#fbeedd, #3a2a18);
   --gpc-format-mp3: #17664f;
   --gpc-format-m4a: #3d55b8;
   --gpc-format-wav: #a8671c;
   --gpc-format-ogg: #8a3d86;
   --gpc-format-flac: #2f6f8f;
-  --gpc-wave-rest: #cfd9d4;
+  --gpc-wave-rest: light-dark(#c4c6d0, #3a3c46);
 }
 
 * { box-sizing: border-box; }
 html { -webkit-font-smoothing: antialiased; }
 body {
   margin: 0;
-  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-family: 'Outfit', system-ui, sans-serif;
   color: var(--mat-sys-on-surface);
   background: var(--mat-sys-surface);
 }
@@ -64,7 +72,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 32px 16px; }
  * Pages de formulaire du TP1 (connexion, inscription, profil) : leurs styles
  * sont limités à .card pour ne pas écraser les composants Material.
  */
-.card { max-width: 480px; margin: 0 auto; padding: 1.5rem; background: #fff; border: 1px solid var(--mat-sys-outline-variant); border-radius: 16px; }
+.card { max-width: 480px; margin: 0 auto; padding: 1.5rem; background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline-variant); border-radius: 16px; }
 .card h1 { margin-top: 0; font-size: 1.75rem; letter-spacing: -0.02em; }
 .card form { display: grid; gap: 0.4rem; }
 .card label { display: grid; gap: 0.4rem; margin: 0.6rem 0; font-size: 0.9rem; }
