@@ -67,4 +67,26 @@ describe('GameService', () => {
     expect(body.has('title')).toBe(false);
     req.flush({});
   });
+
+  it('sends a disc as the raw body, with its name and its .cue in base64', () => {
+    const file = new File(['disc'], 'Crash Bandicoot.bin');
+    const cue = 'FILE "Crash Bandicoot.bin" BINARY\n  TRACK 01 MODE2/2352 — é\n';
+    service.importDisc(file, cue).subscribe();
+
+    const req = httpMock.expectOne((r) => r.method === 'POST' && r.url === '/api/games/disc');
+    expect(req.request.body).toBe(file);
+    expect(req.request.params.get('name')).toBe('Crash Bandicoot.bin');
+    expect(req.request.reportProgress).toBe(true);
+    const encoded = req.request.headers.get('X-Cue') ?? '';
+    expect(new TextDecoder().decode(Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0)))).toBe(cue);
+    req.flush({});
+  });
+
+  it('sends a .chd without X-Cue', () => {
+    service.importDisc(new File(['MComprHD'], 'game.chd')).subscribe();
+
+    const req = httpMock.expectOne('/api/games/disc?name=game.chd');
+    expect(req.request.headers.has('X-Cue')).toBe(false);
+    req.flush({});
+  });
 });

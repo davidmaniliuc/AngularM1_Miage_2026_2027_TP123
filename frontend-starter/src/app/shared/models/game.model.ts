@@ -46,7 +46,18 @@ export interface Game {
   favorite: boolean;
   /** A cover is available at GET /api/games/:id/cover. */
   hasCover: boolean;
+  /** The disc image, downloadable at GET /api/games/:id/disc. */
+  disc?: GameDisc;
   createdAt: string;
+}
+
+/** Disc image of a game, sent with POST /api/games/disc. */
+export interface GameDisc {
+  name: string;
+  size: number;
+  format: 'chd' | 'bin';
+  /** The .cue sent with a .bin, for loadDisc. */
+  cue?: string;
 }
 
 /** Editable fields of the game form. */
