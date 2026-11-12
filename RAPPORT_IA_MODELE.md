@@ -242,3 +242,16 @@ L'agent réduit la pochette à 32×32 dans un `<canvas>` une fois l'image charg�
 ## En plus - label "Titre" coupé dans le formulaire jeu
 
 "y'a un pb ici" (capture du champ Titre avec le label coupé en haut) → le contenu du dialog n'a pas de marge en haut quand il est juste sous le titre, et comme il défile (`overflow: auto`) le label flottant du premier champ est coupé. L'agent a mis `margin-top: 6px` sur le premier champ, comme dans le dialog d'import.
+
+## Étape 1 (fin) et étape 2 - issues #4, #5, #6, #7
+
+"do the next issues" → l'agent a repris les issues GitHub ouvertes. #1 à #3 étaient faites, et le commit de Charles avait déjà fait la collection de démo de #4. Il a donc fait la fin de #4 puis toute l'étape 2.
+
+- **#4 Identité PS1** : logo SVG avec les quatre symboles des boutons (triangle vert, rond rouge, croix bleue, carré rose), aussi en favicon, gris console, bleu de la croix en couleur principale, police Outfit. Il n'y avait pas de thème sombre : il suit maintenant le système (`light-dark()` et `theme-type: color-scheme` de Material).
+- **#5 substation** : `@davidmaniliuc/substation` ajouté au back et au front. Angular ne copie pas le `.wasm` d'une dépendance, donc `angular.json` le copie dans `/ps1/ps1.wasm`. `EmulatorService` le compile une seule fois. Vérifié en dev (servi en `application/wasm`) et en build de prod.
+- **#6 Upload d'un jeu** : `POST /api/games/disc`. Le corps est le fichier brut (pas de multipart) pour l'écrire sur le disque au fil de l'eau, 1 Go max. `identifyDisc` remplit titre, région et numéro de série. Un `.cue` à plusieurs fichiers est refusé (`MULTI_FILE_CUE`) avec un message qui conseille le `.chd`. Le téléchargement est réservé au propriétaire (404 pour les autres). Bouton « Importer un jeu » avec barre de progression.
+- **#7 BIOS** : routes `/api/bios`, vérification avec `loadBios`, refus `BAD_BIOS_SIZE`, région et version affichées, BIOS par défaut, toujours privé.
+
+Problème rencontré : un vrai `.chd` de 315 Mo était refusé en 413. Bun limite les corps de requête à 128 Mo par défaut, d'où `maxRequestBodySize` dans `server.ts`. Testé avec de vrais jeux : Suikoden → `SLUS-00292`, Gran Turismo → `SCUS-94194`. La mémoire du backend reste vers 70 Mo.
+
+Tests : back 155 (dont 2 qui demandent un vrai BIOS via `PS1_BIOS`), front 119. Le disque de test est fabriqué en mémoire, aucun jeu ni BIOS dans le dépôt.
