@@ -1,6 +1,5 @@
 :host { display: block; container-type: inline-size; }
 
-.library.with-player { padding-bottom: 96px; }
 
 .toolbar {
   display: flex;
@@ -8,24 +7,25 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
-h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
-.count { margin: 4px 0 0; font-size: 14px; color: var(--mat-sys-on-surface-variant); }
+.count { margin: 8px 0 0; }
 
-.actions { display: flex; gap: 10px; }
+.actions { display: flex; gap: 8px; }
 .search {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 42px;
-  padding: 0 14px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 10px;
-  background: var(--mat-sys-surface-container-lowest);
-  color: var(--mat-sys-on-surface-variant);
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--gpc-edge-control);
+  border-radius: 3px;
+  background: var(--gpc-inlay);
+  color: var(--gpc-ink-soft);
 }
-.search:focus-within { border-color: var(--mat-sys-primary); }
+.search:hover { border-color: var(--gpc-ink-soft); }
+.search:focus-within { border-color: var(--gpc-ink); box-shadow: 0 0 0 1px var(--gpc-ink); }
+.search mat-icon { font-size: 20px; width: 20px; height: 20px; }
 .search input {
   width: 210px;
   border: 0;
@@ -33,39 +33,36 @@ h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
   background: none;
   font: inherit;
   font-size: 14px;
-  color: var(--mat-sys-on-surface);
+  color: var(--gpc-ink);
 }
-.import { height: 42px; --mat-button-filled-container-shape: 10px; }
+.search input::placeholder { color: var(--gpc-ink-soft); }
+.import { height: 40px; }
 
-/* Same height, border and radius as the search field next to it. */
+/* Trois choix collés, comme les onglets d'un classeur. */
 .scope {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  height: 42px;
-  padding: 3px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 10px;
-  background: var(--mat-sys-surface-container-lowest);
+  height: 40px;
+  border: 1px solid var(--gpc-edge-control);
+  border-radius: 3px;
+  background: var(--gpc-inlay);
+  overflow: hidden;
 }
 .scope button {
   padding: 0 14px;
   border: 0;
-  border-radius: 7px;
   background: none;
   font: inherit;
   font-size: 14px;
+  font-weight: 600;
   white-space: nowrap;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--gpc-ink-soft);
   cursor: pointer;
 }
-.scope button:hover { background: var(--mat-sys-surface-container); }
-.scope button.selected {
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-  font-weight: 600;
-}
-.scope button:focus-visible { outline: 2px solid var(--mat-sys-primary); outline-offset: 1px; }
+.scope button + button { border-left: 1px solid var(--gpc-edge-soft); }
+.scope button:hover { color: var(--gpc-ink); background: var(--mat-sys-surface-container-high); }
+.scope button.selected { background: var(--gpc-ink); color: var(--mat-sys-on-primary); }
+.scope button:focus-visible { outline-offset: -3px; }
 
 .banner {
   display: grid;
@@ -73,8 +70,9 @@ h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
   gap: 10px;
   align-items: center;
   margin-bottom: 16px;
-  padding: 8px 8px 8px 16px;
-  border-radius: 12px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+  border-radius: 3px;
   background: var(--mat-sys-error-container);
   color: var(--mat-sys-on-error-container);
   font-size: 14px;
@@ -83,56 +81,59 @@ h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
 .banner > mat-icon { color: var(--mat-sys-error); }
 
 .list-area { position: relative; }
-.loading { position: absolute; inset: -12px 0 auto; }
+.loading { position: absolute; inset: -6px 0 auto; }
 
 .cols {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 96px 120px 40px;
+  grid-template-columns: 68px minmax(0, 1fr) 96px 120px 40px;
   gap: 16px;
-  padding: 0 12px 8px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--mat-sys-on-surface-variant);
+  padding: 0 8px 8px 12px;
+  border-bottom: 1px solid var(--gpc-edge);
+  font: 500 11px/1 var(--gpc-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gpc-ink-soft);
 }
 .cols span:nth-child(3) { text-align: right; }
 
-.list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.list { display: grid; margin: 0; padding: 0; list-style: none; }
+.list > li:not(.empty) { border-bottom: 1px solid var(--gpc-edge-soft); }
 
 .empty {
   display: grid;
   justify-items: center;
   gap: 8px;
-  padding: 40px 20px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 16px;
-  background: var(--mat-sys-surface-container-lowest);
+  margin-top: 16px;
+  padding: 48px 20px;
+  border: 1.5px dashed var(--gpc-edge);
+  border-radius: 3px;
   text-align: center;
 }
-.empty h2 { margin: 8px 0 0; font-size: 17px; }
-.empty p { max-width: 34ch; margin: 0 0 8px; font-size: 14px; color: var(--mat-sys-on-surface-variant); }
-.empty > mat-icon { font-size: 32px; width: 32px; height: 32px; color: var(--mat-sys-on-surface-variant); }
+.empty h2 { margin: 8px 0 0; font-size: 18px; font-weight: 700; }
+.empty p { max-width: 38ch; margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: var(--gpc-ink-soft); }
+.empty > mat-icon { font-size: 32px; width: 32px; height: 32px; color: var(--gpc-ink-soft); }
 .ring {
   display: grid;
   place-items: center;
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-primary);
+  background: var(--gpc-spine);
+  color: var(--gpc-spine-ink);
+  box-shadow: inset 0 0 0 22px var(--gpc-spine), inset 0 0 0 24px #44464d;
 }
-.ring mat-icon { font-size: 30px; width: 30px; height: 30px; }
+.ring mat-icon { font-size: 26px; width: 26px; height: 26px; }
 
-mat-paginator { margin-top: 8px; background: transparent; }
+mat-paginator { margin-top: 12px; background: transparent; }
 
-@container (max-width: 640px) {
-  h1 { font-size: 26px; }
+@container (max-width: 680px) {
+  h1 { font-size: 28px; }
   .actions { width: 100%; flex-wrap: wrap; }
   .scope { flex: 1 0 100%; }
   .search { flex: 1; min-width: 0; }
   .search input { width: 100%; }
-  .import { min-width: 42px; padding: 0 12px; }
+  .import { min-width: 40px; padding: 0 12px; }
   .import mat-icon { margin: 0; }
   .import-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .cols { display: none; }
-  .library.with-player { padding-bottom: 120px; }
 }

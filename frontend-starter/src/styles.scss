@@ -1,91 +1,208 @@
 @use '@angular/material' as mat;
 
 /*
- * Thème Angular Material 3 — direction « Studio » (docs/maquettes/tp2-bibliotheque.html).
- * mat.theme() génère toutes les variables --mat-sys-* ; on ajuste ensuite
- * quelques couleurs pour coller exactement à la maquette.
+ * Thème « Le Boîtier » : l'étagère de boîtiers PS1. Le dos noir du boîtier sert
+ * de barre latérale, le reste a le gris du plastique transparent, chaque jeu et
+ * chaque album est un boîtier. mat.theme() génère les --mat-sys-* pour les deux
+ * modes ; on les remplace ensuite par nos couleurs (light-dark(clair, sombre)).
  */
 html {
-  /* Suit le système par défaut ; data-theme (bouton de la barre du haut) force un mode. */
   color-scheme: light dark;
-  &[data-theme='light'] { color-scheme: light; }
-  &[data-theme='dark'] { color-scheme: dark; }
-
   @include mat.theme((
-    color: (primary: mat.$green-palette, tertiary: mat.$orange-palette),
-    typography: 'Instrument Sans',
+    color: (primary: mat.$azure-palette, tertiary: mat.$rose-palette, theme-type: color-scheme),
+    typography: 'Archivo',
     density: 0,
   ));
 
+  /* Angles de boîtier : 3px partout, pas de pilule Material. */
+  @include mat.button-overrides((
+    filled-container-shape: 3px,
+    outlined-container-shape: 3px,
+    outlined-outline-color: var(--gpc-edge-control),
+    protected-container-shape: 3px,
+    tonal-container-shape: 3px,
+    text-container-shape: 3px,
+    filled-label-text-weight: 600,
+    outlined-label-text-weight: 600,
+    text-label-text-weight: 600,
+  ));
+  @include mat.form-field-overrides((
+    outlined-container-shape: 3px,
+    outlined-outline-color: var(--gpc-edge-control),
+    outlined-hover-outline-color: var(--mat-sys-on-surface),
+    outlined-focus-outline-color: var(--mat-sys-on-surface),
+  ));
+  @include mat.dialog-overrides((
+    container-shape: 4px,
+    container-color: var(--gpc-inlay),
+  ));
+  @include mat.menu-overrides((
+    container-shape: 3px,
+    container-color: var(--gpc-inlay),
+  ));
+  @include mat.select-overrides((
+    panel-background-color: var(--gpc-inlay),
+  ));
   @include mat.paginator-overrides((
     container-background-color: transparent,
     container-text-color: var(--mat-sys-on-surface-variant),
     form-field-container-height: 36px,
     form-field-container-vertical-padding: 6px,
   ));
+  @include mat.progress-bar-overrides((
+    active-indicator-color: var(--mat-sys-on-surface),
+    track-color: var(--gpc-edge-soft),
+  ));
+  @include mat.progress-spinner-overrides((
+    active-indicator-color: var(--mat-sys-on-surface),
+  ));
 
-  /* light-dark(clair, sombre) : la valeur suit color-scheme. */
-  --mat-sys-primary: light-dark(#17664f, #5fd3a8);
-  --mat-sys-on-primary: light-dark(#fff, #04382a);
-  --mat-sys-primary-container: light-dark(#dcefe6, #18392e);
-  --mat-sys-on-primary-container: light-dark(#0c3b2d, #bfeedd);
-  --mat-sys-surface: light-dark(#f4f6f5, #0c1210);
-  --mat-sys-surface-container-lowest: light-dark(#fff, #131b18);
-  --mat-sys-surface-container-low: light-dark(#f0f3f1, #161f1c);
-  --mat-sys-surface-container: light-dark(#eaefec, #1a2420);
-  --mat-sys-surface-container-high: light-dark(#e4eae7, #1f2a26);
-  --mat-sys-surface-container-highest: light-dark(#dee5e1, #25312c);
-  --mat-sys-on-surface: light-dark(#14201b, #e2eae6);
-  --mat-sys-on-surface-variant: light-dark(#5d6b65, #95a59e);
-  --mat-sys-outline: light-dark(#8e9c96, #5f6e68);
-  --mat-sys-outline-variant: light-dark(#e1e7e4, #233029);
-  --mat-sys-error: light-dark(#b3261e, #f2b8b5);
-  --mat-sys-on-error: light-dark(#fff, #601410);
-  --mat-sys-error-container: light-dark(#fbe9e7, #3d1512);
+  /* Le plastique : sol gris, jaquette claire (inlay), encre. */
+  --gpc-case: light-dark(#e2e4e8, #141518);
+  --gpc-inlay: light-dark(#f6f7f9, #1e1f23);
+  --gpc-ink: light-dark(#121316, #ececef);
+  --gpc-ink-soft: light-dark(#4f525a, #a6a9b1);
+  --gpc-edge: light-dark(#a9adb5, #4a4d55);
+  --gpc-edge-soft: light-dark(#cbced4, #2d2f34);
+  /* Bord des champs et boutons : 3:1 minimum contre le sol et la jaquette (WCAG 1.4.11). */
+  --gpc-edge-control: light-dark(#7a7e87, #6a6d76);
+
+  /* Le dos noir : identique en clair et en sombre. */
+  --gpc-spine: #0b0b0c;
+  --gpc-spine-raised: #1b1b1e;
+  --gpc-spine-ink: #ececee;
+  --gpc-spine-ink-soft: #8e9199;
+  /* Section ouverte : la jaquette claire tirée du dos, dans les deux modes. */
+  --gpc-spine-active: #f6f7f9;
+  --gpc-spine-active-ink: #121316;
+
+  /* Les quatre boutons de la manette. Croix = Jeux, Rond = Musique. */
+  --gpc-ps-triangle: #3eb489;
+  --gpc-ps-circle: #e0463f;
+  --gpc-ps-cross: #4a7bd6;
+  --gpc-ps-square: #e27bb4;
+
+  /* Couleur de lecture quand la pochette n'en donne pas. */
+  --gpc-live: light-dark(#c4352e, #f06a62);
+  /* Sur le tiroir noir : rouge clair de lecture, barres non lues à 3:1. */
+  --gpc-live-spine: #f06a62;
+  --gpc-wave-rest: #63656c;
+
+  /* Couleur des tuiles sans pochette, par format. */
+  --gpc-format-mp3: #17664f;
+  --gpc-format-m4a: #3d55b8;
+  --gpc-format-wav: #a8671c;
+  --gpc-format-ogg: #8a3d86;
+  --gpc-format-flac: #2f6f8f;
+
+  --gpc-mono: 'Spline Sans Mono', ui-monospace, monospace;
+  --gpc-rail: 216px;
+  --gpc-dock: 76px;
+
+  /* L'action principale est en encre pleine, pas en bleu Material. */
+  --mat-sys-primary: var(--gpc-ink);
+  --mat-sys-on-primary: light-dark(#ffffff, #121316);
+  --mat-sys-primary-container: light-dark(#d4d7dc, #2e3036);
+  --mat-sys-on-primary-container: var(--gpc-ink);
+  --mat-sys-surface: var(--gpc-case);
+  --mat-sys-surface-container-lowest: var(--gpc-inlay);
+  --mat-sys-surface-container-low: var(--gpc-inlay);
+  --mat-sys-surface-container: light-dark(#eceef1, #232428);
+  --mat-sys-surface-container-high: light-dark(#e6e8ec, #28292e);
+  --mat-sys-surface-container-highest: light-dark(#dfe1e5, #2e3035);
+  --mat-sys-on-surface: var(--gpc-ink);
+  --mat-sys-on-surface-variant: var(--gpc-ink-soft);
+  --mat-sys-outline: var(--gpc-edge);
+  --mat-sys-outline-variant: var(--gpc-edge-soft);
+  --mat-sys-error: light-dark(#b3261e, #ff8a80);
   --mat-sys-on-error-container: light-dark(#5c1410, #ffdad6);
-
-  /* Tokens propres à l'application */
-  --gpc-on-accent: #fff;
-  --gpc-live: light-dark(#d9822b, #eb9a4c);
-  --gpc-live-soft: light-dark(#fbeedd, #3a2915);
-  --gpc-format-mp3: light-dark(#17664f, #2b8f6e);
-  --gpc-format-m4a: light-dark(#3d55b8, #566fd0);
-  --gpc-format-wav: light-dark(#a8671c, #b97a2c);
-  --gpc-format-ogg: light-dark(#8a3d86, #a2549e);
-  --gpc-format-flac: light-dark(#2f6f8f, #3c86ab);
-  --gpc-wave-rest: light-dark(#cfd9d4, #2c3934);
-  --gpc-dashed: light-dark(#a9b6b0, #46554f);
-  --gpc-shadow: light-dark(#0f1f1a40, #000000a0);
-  --gpc-topbar: color-mix(in srgb, var(--mat-sys-surface-container-lowest) 78%, transparent);
+  --mat-sys-error-container: light-dark(#fbe9e7, #4a1a17);
 }
 
 * { box-sizing: border-box; }
-html { -webkit-font-smoothing: antialiased; }
+html { -webkit-font-smoothing: antialiased; scrollbar-color: var(--gpc-edge) transparent; }
 body {
   margin: 0;
-  transition: background-color 0.2s;
-  font-family: 'Instrument Sans', system-ui, sans-serif;
-  color: var(--mat-sys-on-surface);
-  background: var(--mat-sys-surface);
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--gpc-ink);
+  background: var(--gpc-case);
+  caret-color: var(--gpc-ink);
 }
-a { color: var(--mat-sys-primary); }
-main { max-width: 1080px; margin: 0 auto; padding: 32px 16px; }
+::selection { color: #fff; background: var(--gpc-ps-cross); }
+a { color: var(--gpc-ink); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+/* Titre de page, le même pour Jeux, Musique et Profil. */
+h1 { margin: 0; font-size: 34px; font-weight: 800; line-height: 1.1; letter-spacing: -0.025em; text-wrap: balance; }
+/* Résumé en chiffres à côté d'un titre (« 9 titres », « 27 pistes »). */
+.mono, .summary { font-family: var(--gpc-mono); font-variant-numeric: tabular-nums; }
+.summary { font-size: 13px; font-weight: 400; letter-spacing: 0; color: var(--gpc-ink-soft); }
 
 .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 450, 'opsz' 24; }
 .icon-fill { font-variation-settings: 'FILL' 1, 'wght' 450, 'opsz' 24; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .error { color: var(--mat-sys-error); }
 
-/*
- * Pages de formulaire du TP1 (connexion, inscription, profil) : leurs styles
- * sont limités à .card pour ne pas écraser les composants Material.
- */
-.card { max-width: 480px; margin: 0 auto; padding: 1.5rem; background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline-variant); border-radius: 16px; }
-.card h1 { margin-top: 0; font-size: 1.75rem; letter-spacing: -0.02em; }
-.card form { display: grid; gap: 0.4rem; }
-.card label { display: grid; gap: 0.4rem; margin: 0.6rem 0; font-size: 0.9rem; }
-.card input { font: inherit; color: inherit; background: transparent; padding: 0.75rem; border: 1px solid var(--mat-sys-outline); border-radius: 8px; }
-.card button { justify-self: start; margin-top: 0.6rem; padding: 0.7rem 1.2rem; font: inherit; font-weight: 600; color: var(--mat-sys-on-primary); background: var(--mat-sys-primary); border: 0; border-radius: 10px; cursor: pointer; }
-.card button:disabled { opacity: 0.45; }
+/* Les boutons Material gardent leurs 3px même quand une page les agrandit. */
+.mat-mdc-button-base { letter-spacing: 0; }
 
-:focus-visible { outline: 3px solid color-mix(in srgb, var(--mat-sys-primary) 60%, transparent); outline-offset: 2px; }
+/*
+ * Pages de formulaire du TP1 (connexion, inscription, profil) : une jaquette
+ * posée contre un dos noir. Les styles sont limités à .card.
+ */
+.card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  max-width: 520px;
+  margin: 8vh auto 0;
+  background: var(--gpc-inlay);
+  border: 1px solid var(--gpc-edge);
+  border-radius: 3px;
+  box-shadow: 0 18px 40px -24px #0007;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  background:
+    linear-gradient(var(--gpc-ps-triangle), var(--gpc-ps-triangle)) 50% 24px / 4px 14px no-repeat,
+    linear-gradient(var(--gpc-ps-circle), var(--gpc-ps-circle)) 50% 42px / 4px 14px no-repeat,
+    linear-gradient(var(--gpc-ps-cross), var(--gpc-ps-cross)) 50% 60px / 4px 14px no-repeat,
+    linear-gradient(var(--gpc-ps-square), var(--gpc-ps-square)) 50% 78px / 4px 14px no-repeat,
+    var(--gpc-spine);
+}
+.card > .body { padding: 32px 32px 28px; }
+.card h1 { margin: 0 0 20px; font-size: 30px; }
+.card form { display: grid; gap: 14px; }
+.card label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+.card input {
+  height: 42px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--gpc-ink);
+  background: var(--gpc-case);
+  border: 1px solid var(--gpc-edge-control);
+  border-radius: 3px;
+}
+.card input:hover { border-color: var(--gpc-ink-soft); }
+.card input:focus { outline: none; border-color: var(--gpc-ink); box-shadow: 0 0 0 1px var(--gpc-ink); }
+.card button {
+  justify-self: start;
+  height: 42px;
+  margin-top: 6px;
+  padding: 0 20px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--mat-sys-on-primary);
+  background: var(--gpc-ink);
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.card button:hover { background: color-mix(in srgb, var(--gpc-ink) 86%, var(--gpc-case)); }
+.card button:disabled { opacity: 0.45; cursor: default; }
+.card .alt { margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--gpc-edge-soft); font-size: 14px; color: var(--gpc-ink-soft); }
+.card .error { margin: 14px 0 0; font-size: 14px; }
+
+:focus-visible { outline: 2px solid var(--gpc-ps-cross); outline-offset: 2px; }

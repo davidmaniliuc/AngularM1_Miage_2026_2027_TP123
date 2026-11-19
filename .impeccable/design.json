@@ -1,0 +1,636 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-19T08:04:50+00:00",
+  "title": "Design System: Guitar Practice Cloud (nom provisoire)",
+  "extensions": {
+    "colorMeta": {
+      "boitier": {
+        "role": "neutral",
+        "displayName": "Boîtier (clear-case ground)",
+        "canonical": "light-dark(#e2e4e8, #141518)",
+        "tonalRamp": [
+          "#2d2e2e",
+          "#5a5b5d",
+          "#88898b",
+          "#b5b6ba",
+          "#e9ebee",
+          "#f0f2f4",
+          "#f8f8f9",
+          "#fcfcfd"
+        ]
+      },
+      "jaquette": {
+        "role": "neutral",
+        "displayName": "Jaquette (inlay surface)",
+        "canonical": "light-dark(#f6f7f9, #1e1f23)",
+        "tonalRamp": [
+          "#313132",
+          "#626364",
+          "#949495",
+          "#c5c6c7",
+          "#f8f9fa",
+          "#fafbfc",
+          "#fdfdfe",
+          "#fefefe"
+        ]
+      },
+      "encre": {
+        "role": "primary",
+        "displayName": "Encre",
+        "canonical": "light-dark(#121316, #ececef)",
+        "tonalRamp": [
+          "#040404",
+          "#070809",
+          "#0b0b0d",
+          "#0e0f12",
+          "#4d4e50",
+          "#88898a",
+          "#c4c4c5",
+          "#e7e7e8"
+        ]
+      },
+      "encre-douce": {
+        "role": "neutral",
+        "displayName": "Encre douce",
+        "canonical": "light-dark(#4f525a, #a6a9b1)",
+        "tonalRamp": [
+          "#101012",
+          "#202124",
+          "#2f3136",
+          "#3f4248",
+          "#7b7d83",
+          "#a7a8ac",
+          "#d3d4d6",
+          "#edeeee"
+        ]
+      },
+      "arete": {
+        "role": "neutral",
+        "displayName": "Arête (case edge)",
+        "canonical": "light-dark(#a9adb5, #4a4d55)",
+        "tonalRamp": [
+          "#222324",
+          "#444548",
+          "#65686d",
+          "#878a91",
+          "#bec2c8",
+          "#d4d6da",
+          "#eaeaec",
+          "#f6f7f8"
+        ]
+      },
+      "arete-douce": {
+        "role": "neutral",
+        "displayName": "Arête douce (hairline)",
+        "canonical": "light-dark(#cbced4, #2d2f34)",
+        "tonalRamp": [
+          "#29292a",
+          "#515255",
+          "#7a7c7f",
+          "#a2a5aa",
+          "#d8dadf",
+          "#e5e6ea",
+          "#f2f3f4",
+          "#fafafb"
+        ]
+      },
+      "on-encre": {
+        "role": "primary",
+        "displayName": "On-encre",
+        "canonical": "light-dark(#ffffff, #121316)",
+        "tonalRamp": [
+          "#333333",
+          "#666666",
+          "#999999",
+          "#cccccc",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff"
+        ]
+      },
+      "dos": {
+        "role": "secondary",
+        "displayName": "Dos (black spine)",
+        "canonical": "#0b0b0c",
+        "tonalRamp": [
+          "#020202",
+          "#040405",
+          "#070707",
+          "#09090a",
+          "#484849",
+          "#858586",
+          "#c2c2c2",
+          "#e7e7e7"
+        ]
+      },
+      "dos-releve": {
+        "role": "secondary",
+        "displayName": "Dos relevé",
+        "canonical": "#1b1b1e",
+        "tonalRamp": [
+          "#050506",
+          "#0b0b0c",
+          "#101012",
+          "#161618",
+          "#545456",
+          "#8d8d8e",
+          "#c6c6c7",
+          "#e8e8e8"
+        ]
+      },
+      "dos-encre": {
+        "role": "secondary",
+        "displayName": "Dos encre",
+        "canonical": "#ececee",
+        "tonalRamp": [
+          "#2f2f30",
+          "#5e5e5f",
+          "#8e8e8f",
+          "#bdbdbe",
+          "#f1f1f2",
+          "#f6f6f6",
+          "#fafafb",
+          "#fdfdfd"
+        ]
+      },
+      "dos-encre-douce": {
+        "role": "secondary",
+        "displayName": "Dos encre douce",
+        "canonical": "#8e9199",
+        "tonalRamp": [
+          "#1c1d1f",
+          "#393a3d",
+          "#55575c",
+          "#72747a",
+          "#aaacb2",
+          "#c6c8cc",
+          "#e3e4e6",
+          "#f4f4f5"
+        ]
+      },
+      "ps-triangle": {
+        "role": "tertiary",
+        "displayName": "PS Triangle",
+        "canonical": "#3eb489",
+        "tonalRamp": [
+          "#0c241b",
+          "#194837",
+          "#256c52",
+          "#32906e",
+          "#6ec7a6",
+          "#9edac4",
+          "#cfece2",
+          "#ecf8f3"
+        ]
+      },
+      "ps-rond": {
+        "role": "tertiary",
+        "displayName": "PS Rond",
+        "canonical": "#e0463f",
+        "tonalRamp": [
+          "#2d0e0d",
+          "#5a1c19",
+          "#862a26",
+          "#b33832",
+          "#e8746f",
+          "#f0a29f",
+          "#f7d1cf",
+          "#fcecec"
+        ]
+      },
+      "ps-croix": {
+        "role": "tertiary",
+        "displayName": "PS Croix",
+        "canonical": "#4a7bd6",
+        "tonalRamp": [
+          "#0f192b",
+          "#1e3156",
+          "#2c4a80",
+          "#3b62ab",
+          "#779ce0",
+          "#a4bdea",
+          "#d2def5",
+          "#edf2fb"
+        ]
+      },
+      "ps-carre": {
+        "role": "tertiary",
+        "displayName": "PS Carré",
+        "canonical": "#e27bb4",
+        "tonalRamp": [
+          "#2d1924",
+          "#5a3148",
+          "#884a6c",
+          "#b56290",
+          "#e99cc7",
+          "#f0bdda",
+          "#f8deec",
+          "#fcf2f8"
+        ]
+      },
+      "lecture": {
+        "role": "tertiary",
+        "displayName": "Lecture (now-playing fallback)",
+        "canonical": "light-dark(#c4352e, #f06a62)",
+        "tonalRamp": [
+          "#270b09",
+          "#4e1512",
+          "#76201c",
+          "#9d2a25",
+          "#d36862",
+          "#e29a96",
+          "#f0cccb",
+          "#f9ebea"
+        ]
+      },
+      "onde-repos": {
+        "role": "secondary",
+        "displayName": "Onde repos",
+        "canonical": "#3a3b40",
+        "tonalRamp": [
+          "#0c0c0d",
+          "#17181a",
+          "#232326",
+          "#2e2f33",
+          "#6b6c70",
+          "#9c9da0",
+          "#cececf",
+          "#ebebec"
+        ]
+      },
+      "erreur": {
+        "role": "error",
+        "displayName": "Erreur",
+        "canonical": "light-dark(#b3261e, #ff8a80)",
+        "tonalRamp": [
+          "#240806",
+          "#480f0c",
+          "#6b1712",
+          "#8f1e18",
+          "#c65c56",
+          "#d9928e",
+          "#ecc9c7",
+          "#f7e9e8"
+        ]
+      },
+      "erreur-container": {
+        "role": "error",
+        "displayName": "Erreur container",
+        "canonical": "light-dark(#fbe9e7, #4a1a17)",
+        "tonalRamp": [
+          "#322f2e",
+          "#645d5c",
+          "#978c8b",
+          "#c9bab9",
+          "#fceeed",
+          "#fdf4f3",
+          "#fefaf9",
+          "#fffdfd"
+        ]
+      },
+      "on-erreur-container": {
+        "role": "error",
+        "displayName": "On-erreur container",
+        "canonical": "light-dark(#5c1410, #ffdad6)",
+        "tonalRamp": [
+          "#120403",
+          "#250806",
+          "#370c0a",
+          "#4a100d",
+          "#854f4c",
+          "#ae8a88",
+          "#d6c4c3",
+          "#efe8e7"
+        ]
+      },
+      "format-mp3": {
+        "role": "tertiary",
+        "displayName": "Format MP3",
+        "canonical": "#17664f",
+        "tonalRamp": [
+          "#051410",
+          "#092920",
+          "#0e3d2f",
+          "#12523f",
+          "#518c7b",
+          "#8bb2a7",
+          "#c5d9d3",
+          "#e8f0ed"
+        ]
+      },
+      "format-m4a": {
+        "role": "tertiary",
+        "displayName": "Format M4A",
+        "canonical": "#3d55b8",
+        "tonalRamp": [
+          "#0c1125",
+          "#18224a",
+          "#25336e",
+          "#314493",
+          "#6e80ca",
+          "#9eaadc",
+          "#ced4ed",
+          "#eceef8"
+        ]
+      },
+      "format-wav": {
+        "role": "tertiary",
+        "displayName": "Format WAV",
+        "canonical": "#a8671c",
+        "tonalRamp": [
+          "#221506",
+          "#43290b",
+          "#653e11",
+          "#865216",
+          "#be8d55",
+          "#d4b38e",
+          "#e9d9c6",
+          "#f6f0e8"
+        ]
+      },
+      "format-ogg": {
+        "role": "tertiary",
+        "displayName": "Format OGG",
+        "canonical": "#8a3d86",
+        "tonalRamp": [
+          "#1c0c1b",
+          "#371836",
+          "#532550",
+          "#6e316b",
+          "#a76ea4",
+          "#c49ec2",
+          "#e2cee1",
+          "#f3ecf3"
+        ]
+      },
+      "format-flac": {
+        "role": "tertiary",
+        "displayName": "Format FLAC",
+        "canonical": "#2f6f8f",
+        "tonalRamp": [
+          "#09161d",
+          "#132c39",
+          "#1c4356",
+          "#265972",
+          "#6393ab",
+          "#97b7c7",
+          "#cbdbe3",
+          "#eaf1f4"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page h1 (Jeux, Musique, Profil), followed by a mono summary."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Game sheet title and form-card h1."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Case captions, track titles, nav items, sub-tabs."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Base text, 14px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels, metadata terms."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Every number, serial, size, date, duration; tabular figures."
+      },
+      "mono-spine": {
+        "displayName": "Mono spine",
+        "purpose": "Vertical text printed on case spines and track-cover hinges."
+      }
+    },
+    "shadows": [
+      {
+        "name": "case-rest",
+        "value": "0 10px 18px -12px #000a",
+        "purpose": "Game cases in the grid."
+      },
+      {
+        "name": "case-lifted",
+        "value": "0 18px 24px -14px #000b",
+        "purpose": "Hovered or focused case, with translateY(-4px)."
+      },
+      {
+        "name": "case-large",
+        "value": "0 22px 36px -22px #000b",
+        "purpose": "The case on a game sheet."
+      },
+      {
+        "name": "track-cover",
+        "value": "0 6px 10px -8px #000a",
+        "purpose": "Small CD case in a track row."
+      },
+      {
+        "name": "form-card",
+        "value": "0 18px 40px -24px #0007",
+        "purpose": "Login, register, profile card."
+      },
+      {
+        "name": "tray",
+        "value": "inset 0 3px 0 #1b1b1e, 0 -12px 28px -20px #000c",
+        "purpose": "Player tray: inner lip plus upward drop."
+      },
+      {
+        "name": "spine-lip",
+        "value": "inset -3px 0 0 #1b1b1e",
+        "purpose": "Inner lip on the rail's right edge."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 2px solid #4a7bd6; outline-offset: 2px",
+        "purpose": "Global :focus-visible."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-case",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Case lift (0.25s) and disc slide-out (0.5s)."
+      },
+      {
+        "name": "state",
+        "value": "0.15s",
+        "purpose": "Colour, background, overlay and play-button scale transitions."
+      },
+      {
+        "name": "disc-spin",
+        "value": "2.4s linear infinite",
+        "purpose": "Disc rotation while audio plays; off under reduced motion."
+      },
+      {
+        "name": "equaliser",
+        "value": "1s ease-in-out infinite",
+        "purpose": "Three-bar equaliser on the playing track row; static under reduced motion."
+      },
+      {
+        "name": "wave-hover",
+        "value": "160ms ease",
+        "purpose": "Waveform bars scale 1.15 under the pointer and while dragging."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "shell-mobile",
+        "value": "760px",
+        "purpose": "Spine becomes a 56px top bar; player spans full width."
+      },
+      {
+        "name": "shell-narrow",
+        "value": "400px",
+        "purpose": "Tighter nav padding."
+      },
+      {
+        "name": "toolbar",
+        "value": "680px (container)",
+        "purpose": "Toolbar wraps, h1 28px, column header hidden."
+      },
+      {
+        "name": "player",
+        "value": "640px (container)",
+        "purpose": "Player stacks waveform above controls."
+      },
+      {
+        "name": "track-row",
+        "value": "560px (container)",
+        "purpose": "Track row drops size and date columns."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid-ink action, one per toolbar, at its right end.",
+      "html": "<button class=\"ds-btn-primary\">Importer un jeu</button>",
+      "css": ".ds-btn-primary{height:40px;padding:0 20px;font:600 14px/1 Archivo,system-ui,sans-serif;color:light-dark(#fff,#121316);background:var(--gpc-ink,light-dark(#121316,#ececef));border:0;border-radius:3px;cursor:pointer;transition:background-color .15s}.ds-btn-primary:hover{background:color-mix(in srgb,var(--gpc-ink,light-dark(#121316,#ececef)) 86%,var(--gpc-case,light-dark(#e2e4e8,#141518)))}.ds-btn-primary:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined ink for the other toolbar actions.",
+      "html": "<button class=\"ds-btn-secondary\">Saisir à la main</button>",
+      "css": ".ds-btn-secondary{height:40px;padding:0 18px;font:600 14px/1 Archivo,system-ui,sans-serif;color:light-dark(#121316,#ececef);background:transparent;border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:3px;cursor:pointer}.ds-btn-secondary:hover{border-color:light-dark(#121316,#ececef)}.ds-btn-secondary:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}"
+    },
+    {
+      "name": "Segmented Scope",
+      "kind": "chip",
+      "refersTo": "segmented-selected",
+      "description": "Three joined choices; the selected one is solid ink.",
+      "html": "<div class=\"ds-scope\"><button class=\"ds-on\">Tout</button><button>Les miens</button><button>Publics</button></div>",
+      "css": ".ds-scope{display:inline-grid;grid-template-columns:repeat(3,auto);height:40px;border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:3px;background:light-dark(#f6f7f9,#1e1f23);overflow:hidden}.ds-scope button{padding:0 14px;border:0;background:none;font:600 14px Archivo,system-ui,sans-serif;color:light-dark(#4f525a,#a6a9b1);cursor:pointer}.ds-scope button+button{border-left:1px solid light-dark(#cbced4,#2d2f34)}.ds-scope button:hover{color:light-dark(#121316,#ececef)}.ds-scope button.ds-on{background:light-dark(#121316,#ececef);color:light-dark(#fff,#121316)}.ds-scope button:focus-visible{outline:2px solid #4a7bd6;outline-offset:-3px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Inlay field with a 1px edge; focus is an ink ring, no glow.",
+      "html": "<label class=\"ds-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"6\"/><path d=\"M20 20l-4.5-4.5\"/></svg><input placeholder=\"Rechercher une piste\"></label>",
+      "css": ".ds-search{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:3px;background:light-dark(#f6f7f9,#1e1f23);color:light-dark(#4f525a,#a6a9b1)}.ds-search:hover{border-color:light-dark(#4f525a,#a6a9b1)}.ds-search:focus-within{border-color:light-dark(#121316,#ececef);box-shadow:0 0 0 1px light-dark(#121316,#ececef)}.ds-search input{width:210px;border:0;outline:0;background:none;font:14px Archivo,system-ui,sans-serif;color:light-dark(#121316,#ececef)}"
+    },
+    {
+      "name": "Spine Nav",
+      "kind": "nav",
+      "refersTo": "spine-rail",
+      "description": "Black rail with controller-symbol nav; the active item is the inlay pulled out of the spine.",
+      "html": "<nav class=\"ds-spine\"><a class=\"ds-on\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 3.5l9 9m0-9l-9 9\" stroke=\"#4a7bd6\"/></svg>Jeux</a><a><svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"4.8\" stroke=\"#e0463f\"/></svg>Musique</a><a><svg viewBox=\"0 0 16 16\"><path d=\"M8 3l5.2 9H2.8z\" stroke=\"#3eb489\"/></svg>Profil</a><span class=\"ds-strip\"><i></i><i></i><i></i><i></i></span></nav>",
+      "css": ".ds-spine{display:flex;flex-direction:column;gap:2px;width:216px;padding:22px 16px 18px;background:#0b0b0c;box-shadow:inset -3px 0 0 #1b1b1e}.ds-spine a{display:flex;align-items:center;gap:12px;height:42px;padding:0 10px;border-radius:3px;color:#8e9199;font:600 15px Archivo,system-ui,sans-serif;cursor:pointer;transition:color .15s,background-color .15s}.ds-spine a:hover{color:#ececee;background:#1b1b1e}.ds-spine a.ds-on{color:light-dark(#121316,#ececef);background:light-dark(#f6f7f9,#1e1f23)}.ds-spine a:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}.ds-spine svg{width:16px;height:16px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ds-strip{display:flex;height:4px;margin-top:24px}.ds-strip i{flex:1}.ds-strip i:nth-child(1){background:#3eb489}.ds-strip i:nth-child(2){background:#e0463f}.ds-strip i:nth-child(3){background:#4a7bd6}.ds-strip i:nth-child(4){background:#e27bb4}"
+    },
+    {
+      "name": "Jewel Case",
+      "kind": "card",
+      "refersTo": "jewel-case",
+      "description": "Signature: black spine strip printing the serial, square cover, plastic glare, lifts on hover.",
+      "html": "<a class=\"ds-case-item\"><span class=\"ds-case\"><span class=\"ds-case-spine\"><span>SCES-00344</span><span class=\"ds-r\">PAL</span></span><span class=\"ds-cover\"></span></span><b>Crash Bandicoot</b><small>SCES-00344 · Plateforme · 1996</small></a>",
+      "css": ".ds-case-item{display:grid;gap:3px;width:180px;color:light-dark(#121316,#ececef);text-decoration:none;font-family:Archivo,system-ui,sans-serif}.ds-case{position:relative;display:grid;grid-template-columns:22px 1fr;border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:2px;background:light-dark(#f6f7f9,#1e1f23);box-shadow:0 10px 18px -12px #000a;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}.ds-case::after{content:'';position:absolute;inset:0 0 0 22px;background:linear-gradient(115deg,#ffffff4d 0,#ffffff14 24%,transparent 36%);box-shadow:inset 0 1px 0 #ffffff59;pointer-events:none}.ds-case-item:hover .ds-case,.ds-case-item:focus-visible .ds-case{transform:translateY(-4px);box-shadow:0 18px 24px -14px #000b}.ds-case-spine{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0;background:#0b0b0c;color:#ececee;border-right:1px solid #2a2a2e}.ds-case-spine span{writing-mode:vertical-rl;transform:rotate(180deg);font:500 9.5px/1 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:.12em}.ds-case-spine .ds-r{color:#8e9199}.ds-cover{aspect-ratio:1;margin:3px;background:linear-gradient(135deg,#e27bb4,#4a7bd6)}.ds-case-item b{margin-top:10px;font-size:15px;font-weight:600;line-height:1.25}.ds-case-item small{font:12px/1.4 'Spline Sans Mono',ui-monospace,monospace;color:light-dark(#4f525a,#a6a9b1)}@media (prefers-reduced-motion:reduce){.ds-case{transition:none}.ds-case-item:hover .ds-case{transform:none}}"
+    },
+    {
+      "name": "Player Tray",
+      "kind": "custom",
+      "refersTo": "player-dock",
+      "description": "Signature: black tray with the cover, a disc that spins while playing, and a cover-tinted waveform.",
+      "html": "<div class=\"ds-tray\"><span class=\"ds-now\"><span class=\"ds-disc\"></span><span class=\"ds-tcover\">FLAC</span></span><button class=\"ds-play\" aria-label=\"Lecture\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M8 5v14l11-7z\"/></svg></button><span class=\"ds-wave\"><i class=\"p\" style=\"height:40%\"></i><i class=\"p\" style=\"height:80%\"></i><i class=\"p\" style=\"height:60%\"></i><i style=\"height:90%\"></i><i style=\"height:50%\"></i><i style=\"height:70%\"></i><i style=\"height:35%\"></i></span></div>",
+      "css": ".ds-tray{--live:#f06a62;display:flex;align-items:center;gap:24px;min-height:76px;padding:10px 24px;background:#0b0b0c;color:#ececee;box-shadow:inset 0 3px 0 #1b1b1e,0 -12px 28px -20px #000c}.ds-now{position:relative;display:flex;align-items:center}.ds-disc{position:absolute;left:34px;top:50%;width:48px;height:48px;margin-top:-24px;border-radius:50%;background:radial-gradient(circle,#0b0b0c 0 5px,#c9ccd2 5.5px 7px,transparent 7.5px),conic-gradient(from 20deg,#8d9098,#eef0f3,#b8bbc2,#eef0f3,#8d9098);animation:ds-spin 2.4s linear infinite}.ds-tcover{position:relative;z-index:1;display:grid;place-items:center;width:52px;height:52px;margin-right:24px;border-radius:2px;background:#2f6f8f;box-shadow:0 0 0 1px #2c2d31;font:600 10px/1 'Spline Sans Mono',monospace;letter-spacing:.08em}.ds-play{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;color:#0b0b0c;background:#ececee;cursor:pointer;transition:transform .15s}.ds-play:hover{transform:scale(1.06)}.ds-play:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}.ds-wave{display:flex;align-items:center;gap:2px;height:36px;flex:1}.ds-wave i{flex:1;background:#3a3b40}.ds-wave i.p{background:var(--live)}@keyframes ds-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.ds-disc{animation:none}.ds-play{transition:none}}"
+    },
+    {
+      "name": "Form Card",
+      "kind": "card",
+      "refersTo": "form-card",
+      "description": "Login, register, profile: an inlay card against a black spine with four controller bars.",
+      "html": "<div class=\"ds-fcard\"><div class=\"ds-fbody\"><h1>Connexion</h1><label>E-mail<input value=\"demo@example.com\"></label><button>Se connecter</button></div></div>",
+      "css": ".ds-fcard{display:grid;grid-template-columns:28px 1fr;max-width:520px;background:light-dark(#f6f7f9,#1e1f23);border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:3px;box-shadow:0 18px 40px -24px #0007;overflow:hidden;font-family:Archivo,system-ui,sans-serif;color:light-dark(#121316,#ececef)}.ds-fcard::before{content:'';background:linear-gradient(#3eb489,#3eb489) 50% 24px/4px 14px no-repeat,linear-gradient(#e0463f,#e0463f) 50% 42px/4px 14px no-repeat,linear-gradient(#4a7bd6,#4a7bd6) 50% 60px/4px 14px no-repeat,linear-gradient(#e27bb4,#e27bb4) 50% 78px/4px 14px no-repeat,#0b0b0c}.ds-fbody{display:grid;gap:14px;padding:32px 32px 28px}.ds-fbody h1{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.02em}.ds-fbody label{display:grid;gap:6px;font-size:13px;font-weight:600}.ds-fbody input{height:42px;padding:0 12px;font:400 15px Archivo,sans-serif;color:inherit;background:light-dark(#e2e4e8,#141518);border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:3px}.ds-fbody input:focus{outline:none;border-color:light-dark(#121316,#ececef);box-shadow:0 0 0 1px light-dark(#121316,#ececef)}.ds-fbody button{justify-self:start;height:42px;padding:0 20px;font:600 14px Archivo,sans-serif;color:light-dark(#fff,#121316);background:light-dark(#121316,#ececef);border:0;border-radius:3px;cursor:pointer}.ds-fbody button:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Le Boîtier",
+    "overview": "The app is a shelf of PS1 jewel cases. The black case spine is the shell: a 216px rail on the left that names the section you are on, and a black tray docked at the bottom that holds what is playing. Everything else is clear-case plastic: a grey ground, lighter inlay surfaces, thin case-edge borders, square corners. Every game and every album is a case, with a black strip down its left edge that carries the serial (games) or the format (tracks) in small mono capitals.\n\nThe tone is physical and quiet. Colour comes from the covers and from the four controller buttons, never from a UI accent: primary actions are solid ink, secondary actions are outlined ink, and the controller colours appear as a four-colour strip and as section marks (Jeux is the blue cross, Musique the red circle, Profil the green triangle). Light and dark follow the system through `light-dark()` pairs; the spine, the case strips and the player stay black in both modes. The world refuses the generic dark media dashboard: grey cards with one purple accent and a top bar of pills.\n\nDensity is a working library, not a showcase: 14px body, 40px controls, a cover grid with generous gutters, a tight track list with hairline rows.",
+    "keyCharacteristics": [
+      "Black spine rail (left) and black player tray (bottom), identical in light and dark.",
+      "Clear-case grey ground with lighter inlay surfaces and 1px case-edge borders.",
+      "Every item is a jewel case with a 22px black spine strip printing its serial or format vertically.",
+      "Ink, not colour, for actions; controller colours only as marks and the strip.",
+      "Archivo for UI, Spline Sans Mono for every number, serial, size, date and format.",
+      "Square 2-3px corners; soft physical drop shadows on cases only."
+    ],
+    "rules": [
+      {
+        "name": "The Ink Action Rule",
+        "body": "The primary action is solid ink, the secondary is outlined ink. No UI hue is ever the button colour; Material's azure seed is overridden to ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Four Buttons Rule",
+        "body": "The controller colours appear as the four-colour strip (spine foot, form-card spine, mobile top-bar edge, logo) and as one-symbol section marks. They never fill a surface or a button.",
+        "section": "colors"
+      },
+      {
+        "name": "The Cover Speaks Rule",
+        "body": "Playing state takes its colour from the track's cover (`--cover-accent`), falling back to Lecture red. Colour in the content area comes from artwork, not from the chrome.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Numbers Rule",
+        "body": "Every serial, size, count, date, time and format is in Spline Sans Mono with tabular figures. Words are Archivo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Printed Spine Rule",
+        "body": "Spine text runs vertically (`writing-mode: vertical-rl`, rotated 180deg) in mono capitals with wide tracking, light ink on black.",
+        "section": "typography"
+      },
+      {
+        "name": "The Only Cases Cast Rule",
+        "body": "Toolbars, fields, lists, banners and nav carry no shadow. If it is not a case or the tray, it is flat.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do put every new item (game, album, BIOS, track) in a case with a black spine strip printing its identifier in mono.",
+      "Do keep the spine rail, case strips and player tray black (#0b0b0c) in light and dark.",
+      "Do use solid ink for the one primary action per toolbar, placed at its right end, and outlined ink for the rest.",
+      "Do set every number, serial, size and date in Spline Sans Mono with tabular figures.",
+      "Do mark sections with their controller symbol and colour: Jeux cross blue, Musique circle red, Profil triangle green.",
+      "Do declare every themed colour as a `light-dark()` pair on `html` and let the system choose.",
+      "Do stop every spinning, lifting or bouncing motion under `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "Don't use a coloured accent for buttons, links or selection states; Material's azure stays overridden by ink.",
+      "Don't round corners past 4px or use pill shapes, except for disc-like circles.",
+      "Don't put shadows on toolbars, fields, lists or nav; only cases and the tray cast.",
+      "Don't add counts or badges to the spine nav.",
+      "Don't fill surfaces or buttons with the controller colours; they are marks and strips only."
+    ]
+  }
+}

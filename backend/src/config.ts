@@ -31,6 +31,13 @@ export const UPLOADS_DIR = path.resolve(
 // Les pochettes extraites des fichiers audio sont rangées à part.
 export const COVERS_DIR = path.join(UPLOADS_DIR, "covers");
 
+// Les images disque des jeux et les BIOS, privés, ont chacun leur dossier.
+export const GAMES_DIR = path.join(UPLOADS_DIR, "games");
+export const BIOS_DIR = path.join(UPLOADS_DIR, "bios");
+
+// Un jeu PS1 en .bin pèse jusqu'à 700 Mo (un .chd, la moitié environ).
+export const MAX_GAME_SIZE = 1024 * 1024 * 1024;
+
 // La taille maximale d'un fichier audio est de 100 Mo : un morceau sans
 // perte (FLAC, ALAC) de 5 minutes pèse souvent 30 à 50 Mo.
 export const MAX_FILE_SIZE = 100 * 1024 * 1024;

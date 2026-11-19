@@ -1,64 +1,59 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { Subscription } from 'rxjs';
-import { GameService } from '../../shared/services/game.service';
-import { Game, GameInput } from '../../shared/models/game.model';
-import { Page } from '../../shared/models/page.model';
-import { GameFormComponent } from '../game-form/game-form';
+import { Component, Signal, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, map, startWith } from 'rxjs';
+import { GamesLibraryComponent } from '../games-library/games-library';
 
 @Component({
-  imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatIconModule, MatPaginatorModule, GameFormComponent],
-  templateUrl: './games-page.html', styleUrl: './games-page.css',
+  selector: 'app-games-page',
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  template: `
+    <section class="games">
+      <h1>Jeux</h1>
+      <p class="summary">{{ count() }}</p>
+      <nav class="subnav" aria-label="Sections des jeux">
+        <a
+          routerLink="/games"
+          [class.active]="!onBios()"
+          [attr.aria-current]="onBios() ? null : 'page'"
+          >Bibliothèque</a
+        >
+        <a routerLink="/games/bios" routerLinkActive="active" ariaCurrentWhenActive="page">BIOS</a>
+      </nav>
+      <router-outlet (activate)="onActivate($event)" />
+    </section>
+  `,
+  styles: `
+    .summary { min-height: 1lh; margin: 8px 0 0; }
+    .subnav { display: flex; gap: 28px; margin: 14px 0 24px; border-bottom: 1px solid var(--gpc-edge); }
+    .subnav a { margin-bottom: -1px; padding: 10px 0; color: var(--gpc-ink-soft); font-size: 15px; font-weight: 600; text-decoration: none; border-bottom: 3px solid transparent; }
+    .subnav a:hover { color: var(--gpc-ink); }
+    .subnav a.active { color: var(--gpc-ink); border-bottom-color: var(--gpc-ink); }
+  `,
 })
 export class GamesPageComponent {
-  private readonly service = inject(GameService);
-  private readonly destroyRef = inject(DestroyRef);
-  private listRequest?: Subscription;
-  readonly query = signal('');
-  readonly search = new FormControl('', { nonNullable: true });
-  readonly result = signal<Page<Game> | null>(null);
-  readonly loading = signal(false);
-  readonly error = signal('');
-  readonly saveError = signal('');
-  readonly creating = signal(false);
-  readonly saving = signal(false);
-  private page = 1;
-  private limit = 5;
+  private readonly router = inject(Router);
+  /** The library's total, shown under the title like « 27 pistes » on Musique. */
+  private readonly library = signal<{ total: Signal<number>; loaded: Signal<boolean> } | null>(null);
+  readonly count = computed(() => {
+    const library = this.library();
+    if (!library?.loaded()) return '';
+    const total = library.total();
+    return total + (total > 1 ? ' jeux' : ' jeu');
+  });
 
-  constructor() { this.load(); }
+  onActivate(component: unknown): void {
+    // The BIOS tab and a game's sheet have no total: keep the last one known.
+    if (component instanceof GamesLibraryComponent) this.library.set(component);
+  }
 
-  load(): void {
-    this.listRequest?.unsubscribe();
-    this.loading.set(true);
-    this.error.set('');
-    this.listRequest = this.service.list(this.page, this.limit, this.query()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: result => { this.result.set(result); this.loading.set(false); },
-      error: (error: { status?: number }) => {
-        console.error('[GamesPage] Chargement impossible', error.status);
-        this.error.set('Impossible de charger les jeux. Réessayez.'); this.loading.set(false);
-      },
-    });
-  }
-  searchGames(): void { this.query.set(this.search.value.trim().slice(0, 200)); this.page = 1; this.load(); }
-  changePage(event: PageEvent): void { this.page = event.pageIndex + 1; this.limit = event.pageSize; this.load(); }
-  openCreate(): void { this.saveError.set(''); this.creating.set(true); }
-  create(input: GameInput): void {
-    if (this.saving()) return;
-    this.saving.set(true); this.saveError.set('');
-    this.service.create(input).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        console.debug('[GamesPage] Jeu créé');
-        this.saving.set(false); this.creating.set(false); this.search.setValue(''); this.query.set(''); this.page = 1; this.load();
-      },
-      error: (error: { status?: number; error?: { message?: string } }) => {
-        console.error('[GamesPage] Enregistrement impossible', error.status);
-        this.saveError.set(error.error?.message ?? 'Impossible d’enregistrer le jeu. Réessayez.'); this.saving.set(false);
-      },
-    });
-  }
+  /** Bibliothèque stays the active tab on a game's sheet; only /games/bios switches it. */
+  readonly onBios = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      startWith(null),
+      map(() => this.router.url.startsWith('/games/bios')),
+    ),
+    { initialValue: false },
+  );
 }

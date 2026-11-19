@@ -8,9 +8,10 @@
         "test": "bun test",
         "typecheck": "tsc --noEmit",
         "migrate:media": "bun run scripts/migrate-media.ts",
-        "seed": "bun run scripts/seed.ts"
+        "seed:demo": "bun run scripts/seed-demo.ts"
     },
     "dependencies": {
+        "@davidmaniliuc/substation": "^0.1.0",
         "bcryptjs": "^3.0.3",
         "hono": "^4.13.8",
         "mongoose": "^9.10.1",

@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 import { createApp } from "./app";
 import { User } from "./models/User";
 import { ensureUploadsDir } from "./lib/uploads";
-import { MONGODB_URI, PORT } from "./config";
+import { seedDemoLibrary } from "./lib/demo-library";
+import { MAX_GAME_SIZE, MONGODB_URI, PORT } from "./config";
 
 // Le port et l'URI viennent de l'environnement du backend, jamais d'Angular.
 if (!MONGODB_URI) {
@@ -39,6 +40,8 @@ try {
       password: "Demo1234!",
     });
     console.log(`[startup] Compte de démonstration créé : ${demoUser.id}`);
+    // Une installation neuve montre tout de suite une bibliothèque remplie.
+    await seedDemoLibrary(demoUser.id);
   }
 } catch (error) {
   console.error(
@@ -58,4 +61,7 @@ console.log(`Guitar Practice Cloud API: http://localhost:${PORT}/api/health`);
 export default {
   port: PORT,
   fetch: createApp().fetch,
+  // Bun refuse par défaut tout corps de plus de 128 Mo (413) : une image de
+  // jeu va jusqu'à 1 Go. La route vérifie elle-même la taille de chaque envoi.
+  maxRequestBodySize: MAX_GAME_SIZE + 1024 * 1024,
 };

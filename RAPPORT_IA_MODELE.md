@@ -270,3 +270,110 @@ Il a fait les tests avant le code. Une erreur venait du test de suppression : il
 L'agent avait essayé de passer par Safari pour vérifier l'interface, mais les permissions ne permettaient pas de le contrôler. Je lui ai dit de ne pas l'utiliser et il a arrêté les essais navigateur.
 
 "ok what have you done" → il m'a résumé ce qui était fait : 122 tests back et 96 tests front passent, vérification des types et build ok. Il a aussi testé les vraies requêtes via le proxy Angular avec le compte de démo : création d'une fiche temporaire, relecture, recherche, modification puis suppression. La fiche de test a été nettoyée et l'API musique répond toujours. Ces vérifications ont été faites par l'agent ; il reste à vérifier l'interface moi-même et à ajouter les captures Network si besoin.
+
+## En plus - label "Titre" coupé dans le formulaire jeu
+
+"y'a un pb ici" (capture du champ Titre avec le label coupé en haut) → le contenu du dialog n'a pas de marge en haut quand il est juste sous le titre, et comme il défile (`overflow: auto`) le label flottant du premier champ est coupé. L'agent a mis `margin-top: 6px` sur le premier champ, comme dans le dialog d'import.
+
+## Étape 1 (fin) et étape 2 - issues #4, #5, #6, #7
+
+"do the next issues" → l'agent a repris les issues GitHub ouvertes. #1 à #3 étaient faites, et le commit de Charles avait déjà fait la collection de démo de #4. Il a donc fait la fin de #4 puis toute l'étape 2.
+
+- **#4 Identité PS1** : logo SVG avec les quatre symboles des boutons (triangle vert, rond rouge, croix bleue, carré rose), aussi en favicon, gris console, bleu de la croix en couleur principale, police Outfit. Il n'y avait pas de thème sombre : il suit maintenant le système (`light-dark()` et `theme-type: color-scheme` de Material).
+- **#5 substation** : `@davidmaniliuc/substation` ajouté au back et au front. Angular ne copie pas le `.wasm` d'une dépendance, donc `angular.json` le copie dans `/ps1/ps1.wasm`. `EmulatorService` le compile une seule fois. Vérifié en dev (servi en `application/wasm`) et en build de prod.
+- **#6 Upload d'un jeu** : `POST /api/games/disc`. Le corps est le fichier brut (pas de multipart) pour l'écrire sur le disque au fil de l'eau, 1 Go max. `identifyDisc` remplit titre, région et numéro de série. Un `.cue` à plusieurs fichiers est refusé (`MULTI_FILE_CUE`) avec un message qui conseille le `.chd`. Le téléchargement est réservé au propriétaire (404 pour les autres). Bouton « Importer un jeu » avec barre de progression.
+- **#7 BIOS** : routes `/api/bios`, vérification avec `loadBios`, refus `BAD_BIOS_SIZE`, région et version affichées, BIOS par défaut, toujours privé.
+
+Problème rencontré : un vrai `.chd` de 315 Mo était refusé en 413. Bun limite les corps de requête à 128 Mo par défaut, d'où `maxRequestBodySize` dans `server.ts`. Testé avec de vrais jeux : Suikoden → `SLUS-00292`, Gran Turismo → `SCUS-94194`. La mémoire du backend reste vers 70 Mo.
+
+Tests : back 155 (dont 2 qui demandent un vrai BIOS via `PS1_BIOS`), front 119. Le disque de test est fabriqué en mémoire, aucun jeu ni BIOS dans le dépôt.
+
+## En plus - PRODUCT.md (impeccable init)
+
+"/impeccable init" → l'agent a lu le dépôt puis posé 3 questions :
+
+- Utilisateur principal ? → "Correcteur du TP"
+- Garder le nom « Guitar Practice Cloud » ? → "Nom à changer" (pas encore choisi)
+- Rôle de la musique ? → "+ orienté bandes son mais on peut mettre ce qu'on veut"
+
+Résultat : `PRODUCT.md` à la racine (utilisateurs, fonctionnalités, contraintes, principes). Aucun choix visuel dedans.
+
+## En plus - DESIGN.md (impeccable document)
+
+"/impeccable document" → l'agent a relevé les couleurs, polices, arrondis et composants déjà dans le code, puis demandé :
+
+- Image d'ensemble ? → "La console grise"
+- Ambiance ? → "Ludique et chaleureux"
+- Boutons, cartes, champs ? → "Doux et plats"
+- Noms des couleurs ? → "Bleu Croix / Gris Console / Orange Lecture"
+- À éviter ? → "Néon gamer RGB, Pixel art / CRT, Material par défaut"
+
+Résultat : `DESIGN.md` à la racine et `.impeccable/design.json` à côté. Ils décrivent le style actuel sans rien changer au code.
+
+## En plus - audit technique (impeccable audit)
+
+"/impeccable audit" → l'agent a relu le code du front (pas de Chrome sur la machine, donc pas de scan de la page rendue). Score 14/20. Les gros points : en mode sombre le bouton lecture du lecteur et les boutons connexion/inscription sont en blanc sur un fond clair (presque illisible), le bouton « Ajouter un BIOS » n'est pas un vrai bouton Material, et le choix de fichier dans l'import de jeu n'a pas de contour au clavier. Rien n'est corrigé pour l'instant.
+
+"go for all" → l'agent a corrigé tout ce que l'audit avait trouvé :
+- mode sombre : le bouton lecture du lecteur et les boutons des pages connexion/inscription/profil prennent les couleurs du thème au lieu de `#fff`.
+- « Ajouter un BIOS » est maintenant un vrai bouton Material qui ouvre un `<input type="file" hidden>`. L'import de jeu a un contour quand on arrive au clavier sur la zone de dépôt.
+- même style de titre (`h1`) pour Jeux et Musique, et la page Jeux n'a plus de marge en double.
+- titres des pistes en `h2` au lieu de `h3`, texte de la liste vide sans « backing track ».
+- la police d'icônes ne télécharge plus que les 23 icônes utilisées (9,6 Ko au lieu de 1,2 Mo). Il faut ajouter le nom dans `index.html` si on utilise une nouvelle icône.
+- la waveform se remplit avec la couleur de la pochette (orange sans pochette), le cœur des favoris a une zone de clic de 44px, plus de gris-vert de l'ancien thème dans le dialog d'upload.
+Build OK, 119 tests front OK. Pas vérifié à l'écran (pas de Chrome sur la machine).
+
+"I still think it looks kinda bad" (capture de la page Jeux en sombre) → l'agent a comparé avec la page Musique, qui elle est propre. Sur Jeux il restait les composants Material de base : champs hauts avec label flottant, boutons en pilule, « Ajouter un jeu » tout seul sur une 2e ligne, pochette par défaut vert menthe de l'ancien thème, et le paginateur disait « Pistes par page ».
+Ce qui a changé : une ligne avec le nombre de jeux et les actions (« Importer un jeu » devient le bouton principal, l'ajout manuel s'appelle « Saisir à la main »), puis une ligne de filtres en 42px comme sur Musique, Favoris en bouton bascule, un vrai état vide, « Jeux par page » et pas de paginateur quand il n'y a qu'une page. Tous les boutons sont à 10px d'arrondi, et la pochette par défaut est un disque PS1 noir sur gris (elle suit le mode clair/sombre).
+Bug trouvé en faisant les captures : il manquait `<base href="/">` dans `index.html`, donc recharger `/games/bios` ou la fiche d'un jeu donnait une page blanche. Corrigé.
+Vérifié avec des captures (Chromium headless de Playwright), build OK, 119 tests OK.
+
+## En plus - refonte complète du design (impeccable)
+
+"the site is not really apealing I would like to do a full redisign of it and like the site is both music and games" (avec 4 captures : Jeux, Musique, Profil, Connexion)
+
+L'agent a posé 3 questions :
+- Jeux et musique, quel lien ? → "Two equal sections"
+- Juste le visuel ou aussi la nav et la mise en page ? → "Layout and nav too"
+- On garde l'interdiction du néon gamer et du pixel/CRT ? → "Allow PS1-era nods"
+
+Ensuite l'outil a tiré une direction au hasard (« Le Manuel », le livret du jeu PS1) et l'agent a ouvert une page de choix avec 5 maquettes : Le Manuel, Le Boîtier (le boîtier CD PS1, choix de l'agent), Tuiles Metro (style Zune), Catalogue FAC (Factory Records) et le standard Steam/Spotify.
+
+"go or e boitier if you like (you can tweak the desing and porduct md) and use the impeccable skills" → Le Boîtier.
+
+Ce qui a changé :
+- la barre du haut devient une barre latérale noire, comme le dos d'un boîtier PS1. Chaque section a son symbole de manette : croix pour Jeux, rond pour Musique, triangle pour Profil. Sur mobile elle repasse en barre en haut.
+- chaque jeu est un boîtier : bande noire à gauche avec le numéro de série et la région écrits à la verticale, pochette à côté, petit reflet de plastique.
+- les pistes sont des lignes séparées par un trait, avec une mini pochette de CD (charnière noire à gauche).
+- le lecteur est un tiroir noir en bas, avec un disque qui sort du boîtier et tourne pendant la lecture (il ne tourne pas si le système demande moins d'animations).
+- connexion, inscription et profil : une jaquette avec un dos noir où le nom de la page est écrit.
+- polices Archivo (texte) et Spline Sans Mono (numéros de série, tailles, dates), angles de 3px, bouton principal en noir plein au lieu du bleu Material. Clair et sombre suivent toujours le système.
+Rien n'a changé dans la logique ni les test-id. Build OK, 119 tests OK, vérifié avec des captures en clair/sombre, ordinateur et mobile.
+Un agent relecteur a ensuite comparé les captures avec la direction choisie. Corrigé après sa relecture : le format (FLAC, MP3…) écrit sur la charnière des pistes, la barre mobile sans « pilule » blanche (souligné de la couleur du symbole), le mot répété sur le dos des formulaires remplacé par les 4 couleurs, l'onglet Bibliothèque actif sur la fiche d'un jeu, la date du profil au même format que le reste.
+
+L'agent a demandé : il reste le lecteur qui disparaît sur Jeux, le nombre de jeux pas à côté du titre, le tri serré sur mobile → "One more round". DESIGN.md → "Overwrite".
+- le lecteur est maintenant dans la coquille de l'app (nouveau `PlaybackService` dans `shared/services`) : la musique continue quand on passe sur Jeux ou Profil, et s'arrête à la déconnexion. Trois tests de la page Musique ont été adaptés (avant ils vérifiaient que l'URL était libérée en quittant la page, ce qui n'est plus voulu) et un test ajouté sur la coquille.
+- « 1 jeu » est sous le titre Jeux, comme « 27 pistes » sur Musique.
+
+"the icon ir eally bad" (capture du logo) → le logo est redessiné : les 4 symboles en grille 2x2, même taille et même trait, sans le carré gris derrière. Le favicon suit.
+Build OK, 120 tests OK.
+
+"/impeccable audit the whole site//app" → audit technique, sans rien modifier. L'agent a lu tous les composants, lancé le détecteur (0 problème) et fait des captures avec le compte démo en clair, en sombre et sur mobile.
+Score 15/20. Rien de bloquant. Le principal problème : les bordures des champs et des boutons sont trop pâles (contraste 1,8 à 2,2 au lieu de 3). Ensuite : la fiche d'un jeu disparaît si un favori échoue, pas d'état de chargement sur Jeux, l'onglet actif presque invisible dans la barre en mode sombre, et toutes les pochettes téléchargées d'un coup.
+
+"go them all please" → l'agent a tout corrigé :
+- bordures des champs et boutons plus foncées (nouvelle couleur `--gpc-edge-control`, contraste 3:1 en clair et en sombre).
+- fiche d'un jeu : si le favori ou la suppression échoue, un bandeau s'affiche au-dessus et la fiche reste. Un test ajouté pour ça.
+- barre de chargement sur Jeux, la fiche d'un jeu et BIOS.
+- en sombre, l'onglet actif de la barre latérale est clair comme en mode clair (la barre est noire dans les deux modes).
+- barres non lues de la waveform plus visibles.
+- dialog d'import de piste : petit boîtier de CD comme dans la liste, couleur FLAC qui manquait, police mono.
+- les pochettes ne se téléchargent que quand elles arrivent à l'écran (`IntersectionObserver`, dans `shared/utils/visible.ts`).
+- police Archivo sans l'axe de largeur inutile, couleurs du logo et du lecteur passées en variables, même contour de focus partout.
+Build OK, 121 tests OK, vérifié avec des captures en clair/sombre et mobile.
+
+## Fusion des branches
+
+"regarde les branches et les pr (je pense faut aussi faire une pr pour la branche charles issues 1,2,3) regarde si y'a des conflicts pour 4..7 comme y'a un redesign et tout tu peux t'occuper des merges?"
+
+L'agent a regardé : le dernier commit de `Charles` contenait déjà tout #5, #6 et #7 (le back est identique) et refaisait #4 dans la refonte, donc les PR #18 à #21 n'apportaient plus rien. Par contre `main` avait le commit « tp 4 début du projet » que `Charles` n'avait jamais repris : 17 conflits. Il a fusionné `main` dans `Charles` en gardant le code de `Charles` (plus récent), supprimé ce qui était remplacé (`game-detail-page`, `game-form`, `ThemeService`, `seed.ts`), gardé `PROJECT_CONCEPT.md` et les sections du rapport des deux côtés. Tests back et front OK, build OK.

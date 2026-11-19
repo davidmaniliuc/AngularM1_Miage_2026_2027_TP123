@@ -2,16 +2,17 @@ import { Component, effect, inject, input, output, signal } from '@angular/core'
 import { Track } from '../../shared/models/track.model';
 import { TrackService } from '../../shared/services/track.service';
 import { paletteOf } from '../../shared/utils/cover-palette';
+import { nearViewport } from '../../shared/utils/visible';
 
 /**
  * Cover image of a track, fetched as a Blob because <img src> cannot send the
- * JWT. Fills its positioned parent; renders nothing until the image is ready,
+ * JWT, only once the cover is near the screen. Fills its positioned parent; renders nothing until the image is ready,
  * so the parent's format label stays visible as a fallback.
  * The image is decorative (alt=""): the play button already names the track.
  */
 @Component({
   selector: 'app-track-cover',
-  template: `@if (url(); as src) { <img [src]="src" alt="" (load)="onLoad($event)" (error)="onError()" /> }`,
+  template: `@if (url(); as src) { <img [src]="src" alt="" decoding="async" (load)="onLoad($event)" (error)="onError()" /> }`,
   styles: `
     :host { position: absolute; inset: 0; pointer-events: none; }
     img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -24,13 +25,14 @@ export class TrackCoverComponent {
   readonly url = signal<string | null>(null);
   /** Accent colors of the loaded image; [] without a cover. */
   readonly palette = output<string[]>();
+  private readonly visible = nearViewport();
 
   constructor() {
     effect((onCleanup) => {
       const track = this.track();
       this.url.set(null);
       this.palette.emit([]);
-      if (!track.hasCover) return;
+      if (!track.hasCover || !this.visible()) return;
 
       let objectUrl: string | undefined;
       const subscription = this.service.cover(track.id).subscribe({

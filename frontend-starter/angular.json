@@ -15,6 +15,11 @@
                             {
                                 "glob": "**/*",
                                 "input": "public"
+                            },
+                            {
+                                "glob": "ps1.wasm",
+                                "input": "node_modules/@davidmaniliuc/substation/dist",
+                                "output": "ps1"
                             }
                         ],
                         "styles": [

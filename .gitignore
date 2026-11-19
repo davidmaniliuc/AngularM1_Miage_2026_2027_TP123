@@ -1,3 +1,7 @@
 
 # Fichiers système macOS
 .DS_Store
+
+# Caches (build Angular, détecteur impeccable)
+.angular/
+.impeccable/hook.cache.json

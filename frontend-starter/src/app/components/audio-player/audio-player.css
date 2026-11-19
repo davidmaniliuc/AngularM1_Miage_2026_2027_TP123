@@ -1,6 +1,7 @@
+/* Le tiroir du lecteur : noir comme le dos, collé à droite de la barre latérale. */
 :host {
   position: fixed;
-  inset: auto 0 0 0;
+  inset: auto 0 0 var(--gpc-rail);
   z-index: 20;
   display: block;
   container-type: inline-size;
@@ -8,43 +9,73 @@
 
 .player {
   display: grid;
-  grid-template-columns: minmax(0, 260px) auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 300px) auto minmax(0, 1fr) auto;
   gap: 24px;
   align-items: center;
-  padding: 12px max(16px, calc((100vw - 1080px) / 2 + 16px));
-  background: var(--mat-sys-surface-container-lowest);
-  border-top: 1px solid var(--mat-sys-outline-variant);
-  box-shadow: 0 -8px 24px -16px var(--gpc-shadow);
+  min-height: var(--gpc-dock);
+  padding: 10px clamp(16px, 4vw, 48px);
+  background: var(--gpc-spine);
+  color: var(--gpc-spine-ink);
+  border-top: 1px solid #000;
+  box-shadow: inset 0 3px 0 var(--gpc-spine-raised), 0 -12px 28px -20px #000c;
+  /* Couleur de lecture : celle de la pochette, rouge Rond sans pochette. */
+  --live: var(--cover-accent, var(--gpc-live-spine));
 }
 
 audio { display: none; }
 
-.now { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.now { position: relative; display: flex; align-items: center; gap: 14px; min-width: 0; padding-left: 0; }
 .cover {
   position: relative;
+  z-index: 1;
   overflow: hidden;
   flex: none;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  color: var(--gpc-on-accent);
+  width: 52px;
+  height: 52px;
+  border-radius: 2px;
+  color: #fff;
   background: var(--gpc-format-mp3);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  box-shadow: 0 0 0 1px #2c2d31;
+  font: 600 10px/1 var(--gpc-mono);
+  letter-spacing: 0.08em;
 }
 .cover.format-m4a { background: var(--gpc-format-m4a); }
 .cover.format-wav { background: var(--gpc-format-wav); }
 .cover.format-ogg { background: var(--gpc-format-ogg); }
 .cover.format-flac { background: var(--gpc-format-flac); }
+
+/* Disque argenté qui dépasse à droite du boîtier, teinté par la pochette. */
+.disc {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--gpc-spine) 0 5px, #c9ccd2 5.5px 7px, transparent 7.5px),
+    conic-gradient(from 20deg, #8d9098, #eef0f3, color-mix(in srgb, var(--live) 45%, #b8bbc2), #eef0f3, #8d9098, #dfe1e5, color-mix(in srgb, var(--live) 35%, #9a9da5), #8d9098);
+  transition: left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.disc.spinning { left: 34px; animation: spin 2.4s linear infinite; }
+.disc + .cover { margin-right: 24px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .now-text { min-width: 0; }
 .now-text b, .now-text small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.now-text b { font-size: 14px; }
-.now-text small { font-size: 12px; color: var(--mat-sys-on-surface-variant); }
+.now-text b { font-size: 14px; font-weight: 600; }
+.now-text small { margin-top: 2px; font-size: 12px; color: var(--gpc-spine-ink-soft); }
 
-.controls { display: flex; align-items: center; gap: 4px; color: var(--mat-sys-on-surface-variant); }
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  --mat-icon-button-icon-color: var(--gpc-spine-ink-soft);
+  --mat-icon-button-state-layer-color: var(--gpc-spine-ink);
+}
 .play {
   display: grid;
   place-items: center;
@@ -53,10 +84,13 @@ audio { display: none; }
   padding: 0;
   border: 0;
   border-radius: 50%;
-  color: var(--mat-sys-surface);
-  background: var(--mat-sys-on-surface);
+  color: var(--gpc-spine);
+  background: var(--gpc-spine-ink);
   cursor: pointer;
+  transition: transform 0.15s;
 }
+.play:hover { transform: scale(1.06); }
+.play:active { transform: scale(0.96); }
 
 .scrub {
   display: grid;
@@ -64,7 +98,7 @@ audio { display: none; }
   gap: 12px;
   align-items: center;
 }
-.time { font-size: 12px; color: var(--mat-sys-on-surface-variant); font-variant-numeric: tabular-nums; }
+.time { font: 12px/1 var(--gpc-mono); color: var(--gpc-spine-ink-soft); font-variant-numeric: tabular-nums; }
 .wave {
   display: flex;
   align-items: center;
@@ -72,32 +106,33 @@ audio { display: none; }
   height: 36px;
   min-width: 0;
   overflow: hidden;
-  border-radius: 4px;
   cursor: pointer;
-}
-.wave {
-  /* No scrolling or text selection while dragging on a touch screen. */
+  /* Pas de défilement ni de sélection pendant le glisser sur écran tactile. */
   touch-action: none;
   user-select: none;
 }
 .wave i {
   flex: 1;
   min-width: 1px;
-  border-radius: 2px;
   background: var(--gpc-wave-rest);
   transform-origin: center;
   transition: transform 160ms ease;
 }
-.wave i.played { background: var(--mat-sys-primary); }
-/* Like Apple Music, the bar grows under the pointer and while scrubbing. */
+.wave i.played { background: var(--live); }
+/* Comme Apple Music, les barres grandissent sous le pointeur et pendant le glisser. */
 .wave:hover i, .wave.dragging i { transform: scaleY(1.15); }
 .wave.dragging { cursor: grabbing; }
+
+.volume { --mat-icon-button-icon-color: var(--gpc-spine-ink-soft); --mat-icon-button-state-layer-color: var(--gpc-spine-ink); }
+
 @media (prefers-reduced-motion: reduce) {
-  .wave i { transition: none; }
+  .wave i, .disc, .play { transition: none; }
+  .disc.spinning { animation: none; }
 }
 
-.volume { color: var(--mat-sys-on-surface-variant); }
-
+@media (max-width: 760px) {
+  :host { left: 0; }
+}
 @container (max-width: 640px) {
   .player { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 10px 16px; }
   .scrub { grid-column: 1 / -1; grid-row: 1; }
