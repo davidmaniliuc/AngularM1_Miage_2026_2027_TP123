@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "material symbols rounded",
+        "createdAt": "2026-11-18T16:12:22.906Z",
+        "reason": "agent: icon font, already documented in DESIGN.md Typography (Icons: Material Symbols Rounded); not a text face"
+      }
+    ]
+  }
+}

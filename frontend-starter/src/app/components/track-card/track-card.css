@@ -2,57 +2,75 @@
 
 .track-card {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 96px 120px 40px;
+  grid-template-columns: 68px minmax(0, 1fr) 96px 120px 40px;
   gap: 16px;
   align-items: center;
-  padding: 10px 12px 10px 16px;
-  border-radius: 14px;
-  background: var(--mat-sys-surface-container-lowest);
-  --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
+  padding: 10px 8px 10px 12px;
+  border-radius: 0;
+  background: transparent;
+  --mat-card-outlined-outline-width: 0;
+  --mat-card-outlined-container-shape: 0;
+  --mat-card-outlined-container-color: transparent;
+  transition: background-color 0.15s;
 }
+.track-card:hover { background: color-mix(in srgb, var(--gpc-inlay) 70%, transparent); }
 
 .track-card {
-  /* Colors of the cover when it has one, the default orange otherwise. */
+  /* Couleurs de la pochette quand il y en a une, rouge Rond sinon. */
   --live: var(--cover-accent, var(--gpc-live));
   --live-2: var(--cover-accent-2, var(--live));
 }
 .track-card.live {
-  --mat-card-outlined-outline-color: color-mix(in srgb, var(--live) 45%, transparent);
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--live) 18%, var(--mat-sys-surface-container-lowest)),
-    color-mix(in srgb, var(--live-2) 10%, var(--mat-sys-surface-container-lowest)) 30%,
-    var(--mat-sys-surface-container-lowest) 60%
+    color-mix(in srgb, var(--live) 20%, var(--gpc-inlay)),
+    color-mix(in srgb, var(--live-2) 10%, var(--gpc-inlay)) 34%,
+    var(--gpc-inlay) 70%
   );
-  transition: border-color 0.4s;
 }
 
+/* Boîtier de CD : charnière noire à gauche, pochette carrée. */
 .cover {
   position: relative;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  padding: 0;
-  border: 0;
-  border-radius: 10px;
+  width: 68px;
+  height: 54px;
+  padding: 0 0 0 16px;
+  border: 1px solid var(--gpc-edge);
+  border-radius: 2px;
   overflow: hidden;
   color: #fff;
   background: var(--cover, var(--gpc-format-mp3));
-  font: 700 11px/1 inherit;
-  letter-spacing: 0.04em;
+  background-clip: content-box;
+  box-shadow: 0 6px 10px -8px #000a;
+  font: 600 10px/1 var(--gpc-mono);
+  letter-spacing: 0.08em;
   cursor: pointer;
 }
+.hinge {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  background: var(--gpc-spine);
+  color: var(--gpc-spine-ink);
+  font: 500 8.5px/1 var(--gpc-mono);
+  letter-spacing: 0.12em;
+}
+.hinge { writing-mode: vertical-rl; transform: rotate(180deg); }
+.cover app-track-cover { left: 16px; }
 .cover.format-m4a { --cover: var(--gpc-format-m4a); }
 .cover.format-wav { --cover: var(--gpc-format-wav); }
 .cover.format-ogg { --cover: var(--gpc-format-ogg); }
 .cover.format-flac { --cover: var(--gpc-format-flac); }
 .cover .overlay {
   position: absolute;
-  inset: 0;
+  inset: 0 0 0 16px;
   display: grid;
   place-items: center;
-  background: #0008;
+  background: #000a;
   opacity: 0;
   transition: opacity 0.15s;
   --mat-progress-spinner-active-indicator-color: #fff;
@@ -70,49 +88,51 @@
 .live .format { opacity: 0; }
 
 .info { min-width: 0; }
-.info h3 {
+.info h2 {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.005em;
+  line-height: 1.25;
 }
-.info p { margin: 3px 0 0; font-size: 13px; color: var(--mat-sys-on-surface-variant); }
+.info p { margin: 3px 0 0; font-size: 13px; color: var(--gpc-ink-soft); }
 .file { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mobile-meta { display: none; }
-.owner { color: var(--mat-sys-primary); font-weight: 500; }
+.owner { color: var(--gpc-ink); font-weight: 600; }
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 1px 7px 1px 5px;
-  border-radius: 999px;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-  font-size: 11px;
-  font-weight: 600;
+  padding: 2px 6px 2px 4px;
+  border: 1px solid var(--gpc-edge);
+  border-radius: 2px;
+  color: var(--gpc-ink-soft);
+  font: 500 10.5px/1 var(--gpc-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .badge mat-icon { font-size: 13px; width: 13px; height: 13px; }
 
-.size, time { font-size: 14px; color: var(--mat-sys-on-surface-variant); font-variant-numeric: tabular-nums; }
+.size, time { font: 13px/1 var(--gpc-mono); color: var(--gpc-ink-soft); font-variant-numeric: tabular-nums; }
 .size { text-align: right; }
 
 .eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
-.eq i { width: 3px; border-radius: 1px; background: var(--live); animation: eq 1s ease-in-out infinite; }
+.eq i { width: 3px; border-radius: 0; background: var(--live); animation: eq 1s ease-in-out infinite; }
 .eq i:nth-child(2) { animation-delay: -0.3s; }
 .eq i:nth-child(3) { animation-delay: -0.6s; }
 @keyframes eq { 0%, 100% { height: 30%; } 50% { height: 100%; } }
 @media (prefers-reduced-motion: reduce) {
   .eq i { animation: none; height: 70%; }
+  .track-card { transition: none; }
   .cover .overlay, .cover .format { transition: none; }
 }
 
 .danger { color: var(--mat-sys-error); --mat-menu-item-icon-color: var(--mat-sys-error); }
 
 @container (max-width: 560px) {
-  .track-card { grid-template-columns: 52px minmax(0, 1fr) 40px; gap: 12px; padding: 10px 8px 10px 12px; }
+  .track-card { grid-template-columns: 68px minmax(0, 1fr) 40px; gap: 12px; padding: 10px 4px 10px 4px; }
   .size, time { display: none; }
   .mobile-meta { display: block; }
 }

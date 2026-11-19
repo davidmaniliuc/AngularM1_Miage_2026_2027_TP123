@@ -1,13 +1,16 @@
 <section class="card">
-  <h1>Mon profil</h1>
-  @if (auth.currentUser(); as user) {
-    <p>
-      <b>{{ user.name }}</b><br />{{ user.email }}<br />
-      Membre depuis {{ user.createdAt.slice(0, 10) }}
-    </p>
-    <form [formGroup]="form" (ngSubmit)="save()">
-      <label>Nouveau nom<input formControlName="name" /></label>
-      <button type="submit">Enregistrer</button>
-    </form>
-  }
+  <div class="body">
+    <h1>Mon profil</h1>
+    @if (auth.currentUser(); as user) {
+      <dl class="identity">
+        <dt>Nom</dt><dd>{{ user.name }}</dd>
+        <dt>Email</dt><dd>{{ user.email }}</dd>
+        <dt>Membre depuis</dt><dd class="mono">{{ user.createdAt | date: 'd MMM y' }}</dd>
+      </dl>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <label>Nouveau nom<input formControlName="name" autocomplete="name" /></label>
+        <button type="submit">Enregistrer</button>
+      </form>
+    }
+  </div>
 </section>

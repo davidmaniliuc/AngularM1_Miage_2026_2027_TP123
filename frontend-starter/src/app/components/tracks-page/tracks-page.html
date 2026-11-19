@@ -1,8 +1,8 @@
-<section class="library" [class.with-player]="currentTrack()">
+<section class="library">
   <div class="toolbar">
     <div>
       <h1>{{ heading() }}</h1>
-      <p class="count">{{ total() }} {{ total() > 1 ? 'pistes' : 'piste' }}</p>
+      <p class="count summary">{{ total() }} {{ total() > 1 ? 'pistes' : 'piste' }}</p>
     </div>
     <div class="actions">
       <div class="scope" role="group" aria-label="Pistes affichées">
@@ -78,7 +78,7 @@
             } @else {
               <span class="ring"><mat-icon>library_music</mat-icon></span>
               <h2>Aucune piste pour l'instant</h2>
-              <p>Importez un premier backing track pour commencer à jouer dessus.</p>
+              <p>Importez une bande-son de jeu, ou n'importe quel morceau, pour l'écouter ici.</p>
               <button mat-flat-button type="button" (click)="openUpload()">
                 <mat-icon>add</mat-icon>Importer une piste
               </button>
@@ -93,8 +93,3 @@
                    (page)="onPage($event)" aria-label="Pagination des pistes" />
   </div>
 </section>
-
-@if (currentTrack(); as current) {
-  <app-audio-player [track]="current" [src]="audioUrl()" [blob]="audioBlob()"
-                    (playingChange)="playing.set($event)" (audioError)="onAudioError()" />
-}

@@ -35,6 +35,9 @@ export class AudioPlayerComponent {
   readonly duration = signal(0);
   readonly muted = signal(false);
   readonly peaks = signal<number[]>(FLAT);
+  /** Cover colors, like the track card; the waveform fills with the first one. */
+  readonly palette = signal<string[]>([]);
+  readonly accent = computed(() => this.palette()[0] ?? null);
   /** Position under the pointer while scrubbing; null when not dragging. */
   readonly dragTime = signal<number | null>(null);
   /** While dragging, the bar and the clock follow the pointer, not the audio. */

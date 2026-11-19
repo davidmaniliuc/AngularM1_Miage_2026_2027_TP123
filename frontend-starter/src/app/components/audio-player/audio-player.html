@@ -1,4 +1,4 @@
-<section class="player" aria-label="Lecteur audio">
+<section class="player" aria-label="Lecteur audio" [style.--cover-accent]="accent()">
   <!-- Hidden element: the custom controls below drive it. -->
   <audio #audio [src]="src()" autoplay preload="auto"
          (play)="onPlayState(true)" (pause)="onPlayState(false)" (ended)="onPlayState(false)"
@@ -6,9 +6,11 @@
          (error)="audioError.emit()"></audio>
 
   <div class="now">
+    <!-- Le disque sort du boîtier et tourne pendant la lecture. -->
+    <span class="disc" [class.spinning]="playing()" aria-hidden="true"></span>
     <span class="cover" [class]="'format-' + format().toLowerCase()" aria-hidden="true">
       {{ format() }}
-      <app-track-cover [track]="track()" />
+      <app-track-cover [track]="track()" (palette)="palette.set($event)" />
     </span>
     <div class="now-text">
       <span class="sr-only">En cours :</span>

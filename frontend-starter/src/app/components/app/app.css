@@ -1,67 +1,134 @@
-:host { display: block; min-height: 100vh; }
+/*
+ * Le dos noir du boîtier à gauche, l'étagère à droite. Sous 760px le dos
+ * se couche et devient une barre en haut.
+ */
+:host {
+  display: grid;
+  grid-template-columns: var(--gpc-rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
 
-.topbar {
+.spine {
   position: sticky;
   top: 0;
   z-index: 10;
   display: flex;
-  align-items: center;
-  gap: 24px;
-  height: 64px;
-  padding: 0 max(16px, calc((100vw - 1080px) / 2 + 16px));
-  background: var(--mat-sys-surface-container-lowest);
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  flex-direction: column;
+  height: 100vh;
+  padding: 22px 16px 18px;
+  background: var(--gpc-spine);
+  color: var(--gpc-spine-ink);
+  border-right: 1px solid #000;
+  box-shadow: inset -3px 0 0 var(--gpc-spine-raised);
 }
 
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--mat-sys-on-surface);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  display: grid;
+  gap: 12px;
+  padding: 0 6px 26px;
+  color: var(--gpc-spine-ink);
   text-decoration: none;
 }
-.mark {
+.mark { display: block; width: 34px; height: 34px; }
+.mark svg { display: block; width: 100%; height: 100%; }
+.brand { font-size: 17px; font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; }
+
+nav { display: flex; flex: 1; flex-direction: column; gap: 2px; }
+nav > a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 10px;
+  border-radius: 3px;
+  color: var(--gpc-spine-ink-soft);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s, background-color 0.15s;
+}
+nav > a:hover { color: var(--gpc-spine-ink); background: var(--gpc-spine-raised); }
+/* La section ouverte est la jaquette tirée hors du dos. */
+nav > a.active { color: var(--gpc-spine-active-ink); background: var(--gpc-spine-active); }
+.sym { flex: none; width: 16px; height: 16px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.foot { display: grid; gap: 14px; margin-top: auto; }
+.strip { display: flex; height: 4px; }
+.strip i { flex: 1; }
+.strip i:nth-child(1) { background: var(--gpc-ps-triangle); }
+.strip i:nth-child(2) { background: var(--gpc-ps-circle); }
+.strip i:nth-child(3) { background: var(--gpc-ps-cross); }
+.strip i:nth-child(4) { background: var(--gpc-ps-square); }
+
+.user { display: flex; align-items: center; gap: 10px; padding: 0 4px; min-width: 0; }
+.avatar {
   display: grid;
+  flex: none;
   place-items: center;
   width: 30px;
   height: 30px;
-  border-radius: 8px;
-  color: #fff;
-  background: var(--mat-sys-primary);
-}
-.mark mat-icon { font-size: 19px; width: 19px; height: 19px; }
-
-nav { display: flex; flex: 1; align-items: center; gap: 4px; }
-nav > a {
-  padding: 8px 14px;
-  border-radius: 8px;
-  color: var(--mat-sys-on-surface-variant);
+  border-radius: 3px;
+  background: var(--gpc-spine-raised);
+  color: var(--gpc-spine-ink);
   font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-}
-nav > a:hover { color: var(--mat-sys-on-surface); }
-nav > a.active { color: var(--mat-sys-on-surface); background: var(--mat-sys-surface); }
-
-.user { display: flex; align-items: center; gap: 10px; margin-left: auto; font-size: 14px; color: var(--mat-sys-on-surface-variant); }
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  color: var(--mat-sys-primary);
-  background: var(--mat-sys-primary-container);
-  font-size: 13px;
   font-weight: 700;
 }
-nav > a[routerLink='/login'] { margin-left: auto; }
-
-@media (max-width: 720px) {
-  .topbar { gap: 8px; }
-  .brand, .name, .logout-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  nav > a { padding: 8px 10px; }
+.name { overflow: hidden; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.logout {
+  justify-content: flex-start;
+  --mat-button-text-label-text-color: var(--gpc-spine-ink-soft);
+  --mat-button-text-state-layer-color: var(--gpc-spine-ink);
+  --mat-button-text-horizontal-padding: 10px;
 }
+.logout:hover { --mat-button-text-label-text-color: var(--gpc-spine-ink); }
+
+main { min-width: 0; padding: 36px clamp(16px, 4vw, 48px) 48px; }
+main.with-player { padding-bottom: calc(var(--gpc-dock) + 40px); }
+main > * { display: block; max-width: 1240px; }
+
+@media (max-width: 760px) {
+  :host { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+  .spine {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 4px;
+    height: 56px;
+    padding: 0 6px 0 12px;
+    border-right: 0;
+    box-shadow: none;
+  }
+  /* La bande des quatre couleurs court le long du bas de la barre. */
+  .spine::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gpc-ps-triangle) 0 25%, var(--gpc-ps-circle) 25% 50%, var(--gpc-ps-cross) 50% 75%, var(--gpc-ps-square) 75%);
+  }
+  .logo { align-self: center; padding: 0 4px 3px 0; }
+  .mark { width: 28px; height: 28px; }
+  .brand, .name, .logout-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  nav { flex-direction: row; align-items: stretch; gap: 0; }
+  nav > a { height: auto; padding: 0 10px; gap: 7px; font-size: 14px; border-radius: 0; margin-bottom: 3px; }
+  nav > a:hover { background: none; }
+  /* Section ouverte : soulignée de la couleur de son symbole, pas de pilule. */
+  nav > a.active { color: var(--gpc-spine-ink); background: none; box-shadow: inset 0 -3px 0 var(--mark, var(--gpc-spine-ink)); }
+  nav > a:nth-of-type(1) { --mark: var(--gpc-ps-cross); }
+  nav > a:nth-of-type(2) { --mark: var(--gpc-ps-circle); }
+  nav > a:nth-of-type(3) { --mark: var(--gpc-ps-triangle); }
+  .foot { display: flex; align-items: center; gap: 4px; margin: 0 0 0 auto; padding-bottom: 3px; }
+  .strip, .user { display: none; }
+  .logout { min-width: 40px; --mat-button-text-horizontal-padding: 8px; }
+  .logout mat-icon { margin: 0; }
+  main { padding: 24px 16px 40px; }
+}
+@media (max-width: 400px) {
+  nav > a { padding: 0 7px; gap: 6px; font-size: 13.5px; }
+  .logo { padding-right: 0; }
+}
+
+/* Symboles de la manette : couleurs prises dans les jetons. */
+.ps-triangle { stroke: var(--gpc-ps-triangle); }
+.ps-circle { stroke: var(--gpc-ps-circle); }
+.ps-cross { stroke: var(--gpc-ps-cross); }
+.ps-square { stroke: var(--gpc-ps-square); }

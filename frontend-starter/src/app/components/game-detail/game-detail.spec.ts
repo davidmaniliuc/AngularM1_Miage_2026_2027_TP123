@@ -78,4 +78,19 @@ describe('GameDetailComponent', () => {
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Jeu introuvable');
   });
+
+  it('keeps the sheet on screen when a favorite fails', () => {
+    const fixture = TestBed.createComponent(GameDetailComponent);
+    fixture.detectChanges();
+    httpMock.expectOne('/api/games/g1').flush(game);
+    fixture.detectChanges();
+
+    const element: HTMLElement = fixture.nativeElement;
+    (element.querySelector('[data-testid="favorite"]') as HTMLButtonElement).click();
+    httpMock.expectOne({ method: 'PATCH', url: '/api/games/g1' }).flush({ message: 'Erreur' }, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="alert"]')?.textContent).toContain('Impossible de modifier ce favori');
+    expect(element.querySelector('[data-testid="serial"]')?.textContent).toContain('SCUS-94163');
+  });
 });

@@ -4,6 +4,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AppComponent } from './app';
 import { AuthService } from '../../shared/services/auth.service';
 import { User } from '../../shared/models/user.model';
+import { Track } from '../../shared/models/track.model';
+import { PlaybackService } from '../../shared/services/playback.service';
 
 describe('AppComponent', () => {
   let auth: AuthService;
@@ -68,5 +70,26 @@ describe('AppComponent', () => {
 
     expect(logoutSpy).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith('/login');
+  });
+
+  it('keeps the player in the shell, on every page, and stops it on logout', () => {
+    auth.currentUser.set(user);
+    const playback = TestBed.inject(PlaybackService);
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const nativeElement: HTMLElement = fixture.nativeElement;
+    expect(nativeElement.querySelector('app-audio-player')).toBeNull();
+
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    playback.currentTrack.set({ id: 't1', title: 'Liberi Fatali', mimeType: 'audio/mpeg' } as Track);
+    playback.audioUrl.set('blob:fake');
+    fixture.detectChanges();
+    expect(nativeElement.querySelector('app-audio-player')!.textContent).toContain('Liberi Fatali');
+
+    nativeElement.querySelector<HTMLButtonElement>('button[data-testid="logout"]')!.click();
+    fixture.detectChanges();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:fake');
+    expect(nativeElement.querySelector('app-audio-player')).toBeNull();
   });
 });

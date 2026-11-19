@@ -4,6 +4,8 @@
           [attr.aria-current]="current() ? 'true' : null">
   <button type="button" class="cover" [class]="formatClass()" (click)="play.emit()"
           [disabled]="loading()" [attr.aria-label]="playLabel()">
+    <!-- Charnière du boîtier : le format y est imprimé, comme le numéro de série des jeux. -->
+    <span class="hinge" aria-hidden="true">{{ format() }}</span>
     <app-track-cover [track]="track()" (palette)="palette.set($event)" />
     <span class="format" aria-hidden="true">{{ format() }}</span>
     <span class="overlay" aria-hidden="true">
@@ -16,7 +18,7 @@
   </button>
 
   <div class="info">
-    <h3>
+    <h2>
       {{ track().title }}
       @if (showPause()) {
         <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -27,7 +29,7 @@
           <mat-icon>public</mat-icon>Publique
         </span>
       }
-    </h3>
+    </h2>
     <p class="file" [title]="track().originalName">
       @if (sharedBy()) {
         <span class="owner">{{ sharedBy() }}</span> ·

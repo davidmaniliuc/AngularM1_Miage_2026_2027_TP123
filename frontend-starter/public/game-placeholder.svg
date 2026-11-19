@@ -1,6 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Pas de pochette">
-  <rect width="200" height="200" fill="#dcefe6"/>
-  <circle cx="100" cy="100" r="62" fill="#17664f"/>
-  <circle cx="100" cy="100" r="22" fill="#dcefe6"/>
-  <circle cx="100" cy="100" r="8" fill="#17664f"/>
+  <style>
+    .bg { fill: #dcdde3; } .disc { fill: #2a2b31; } .groove { stroke: #3a3c46; } .hub { fill: #c9cad2; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #23242b; } .disc { fill: #0c0d10; } .groove { stroke: #2c2e36; } .hub { fill: #3a3c46; }
+    }
+  </style>
+  <rect class="bg" width="200" height="200"/>
+  <!-- Face gravée noire d'un disque PS1 -->
+  <circle class="disc" cx="100" cy="100" r="58"/>
+  <circle class="groove" cx="100" cy="100" r="44" fill="none" stroke-width="1.5"/>
+  <circle class="groove" cx="100" cy="100" r="30" fill="none" stroke-width="1"/>
+  <circle class="hub" cx="100" cy="100" r="17"/>
+  <circle class="bg" cx="100" cy="100" r="7"/>
 </svg>

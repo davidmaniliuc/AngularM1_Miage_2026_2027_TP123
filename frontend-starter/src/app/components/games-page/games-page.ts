@@ -1,5 +1,8 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, Signal, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, map, startWith } from 'rxjs';
+import { GamesLibraryComponent } from '../games-library/games-library';
 
 @Component({
   selector: 'app-games-page',
@@ -7,24 +10,50 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   template: `
     <section class="games">
       <h1>Jeux</h1>
+      <p class="summary">{{ count() }}</p>
       <nav class="subnav" aria-label="Sections des jeux">
         <a
           routerLink="/games"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          ariaCurrentWhenActive="page"
+          [class.active]="!onBios()"
+          [attr.aria-current]="onBios() ? null : 'page'"
           >Bibliothèque</a
         >
         <a routerLink="/games/bios" routerLinkActive="active" ariaCurrentWhenActive="page">BIOS</a>
       </nav>
-      <router-outlet />
+      <router-outlet (activate)="onActivate($event)" />
     </section>
   `,
   styles: `
-    .games { max-width: 1080px; margin: 0 auto; padding: 32px 16px; }
-    .subnav { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--mat-sys-outline-variant); }
-    .subnav a { padding: 8px 14px; color: var(--mat-sys-on-surface-variant); font-size: 14px; font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent; }
-    .subnav a.active { color: var(--mat-sys-on-surface); border-bottom-color: var(--mat-sys-primary); }
+    .summary { min-height: 1lh; margin: 8px 0 0; }
+    .subnav { display: flex; gap: 28px; margin: 14px 0 24px; border-bottom: 1px solid var(--gpc-edge); }
+    .subnav a { margin-bottom: -1px; padding: 10px 0; color: var(--gpc-ink-soft); font-size: 15px; font-weight: 600; text-decoration: none; border-bottom: 3px solid transparent; }
+    .subnav a:hover { color: var(--gpc-ink); }
+    .subnav a.active { color: var(--gpc-ink); border-bottom-color: var(--gpc-ink); }
   `,
 })
-export class GamesPageComponent {}
+export class GamesPageComponent {
+  private readonly router = inject(Router);
+  /** The library's total, shown under the title like « 27 pistes » on Musique. */
+  private readonly library = signal<{ total: Signal<number>; loaded: Signal<boolean> } | null>(null);
+  readonly count = computed(() => {
+    const library = this.library();
+    if (!library?.loaded()) return '';
+    const total = library.total();
+    return total + (total > 1 ? ' jeux' : ' jeu');
+  });
+
+  onActivate(component: unknown): void {
+    // The BIOS tab and a game's sheet have no total: keep the last one known.
+    if (component instanceof GamesLibraryComponent) this.library.set(component);
+  }
+
+  /** Bibliothèque stays the active tab on a game's sheet; only /games/bios switches it. */
+  readonly onBios = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      startWith(null),
+      map(() => this.router.url.startsWith('/games/bios')),
+    ),
+    { initialValue: false },
+  );
+}

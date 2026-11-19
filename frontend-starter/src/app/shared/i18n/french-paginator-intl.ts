@@ -17,3 +17,9 @@ export class FrenchPaginatorIntl extends MatPaginatorIntl {
     return `${start} à ${end} sur ${length}`;
   };
 }
+
+/** Same labels on the games library, counted in games. */
+@Injectable()
+export class GamesPaginatorIntl extends FrenchPaginatorIntl {
+  override itemsPerPageLabel = 'Jeux par page';
+}

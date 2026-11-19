@@ -36,3 +36,19 @@ Object.defineProperty(globalThis, 'localStorage', {
   configurable: true,
   writable: true,
 });
+
+// happy-dom's IntersectionObserver never reports anything, so covers loaded
+// near the viewport would never load in tests: report every element as visible.
+class VisibleObserver {
+  constructor(private readonly callback: IntersectionObserverCallback) {}
+  observe(target: Element): void {
+    this.callback([{ isIntersecting: true, target } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
+  }
+  unobserve(): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+}
+
+Object.defineProperty(globalThis, 'IntersectionObserver', { value: VisibleObserver, configurable: true, writable: true });

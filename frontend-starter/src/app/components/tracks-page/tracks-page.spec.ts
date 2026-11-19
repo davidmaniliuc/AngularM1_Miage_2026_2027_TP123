@@ -10,6 +10,7 @@ import { TracksPageComponent } from './tracks-page';
 import { Track } from '../../shared/models/track.model';
 import { Page } from '../../shared/models/page.model';
 import { FrenchPaginatorIntl } from '../../shared/i18n/french-paginator-intl';
+import { PlaybackService } from '../../shared/services/playback.service';
 import { AuthService } from '../../shared/services/auth.service';
 
 const track: Track = {
@@ -221,22 +222,28 @@ describe('TracksPageComponent', () => {
   });
 
   describe('lecture authentifiée', () => {
-    it('plays a track, shows it as current and revokes the previous and the final ObjectURL', () => {
+    it('plays a track, revokes the previous ObjectURL and keeps the music when leaving the page', () => {
       const fixture = create();
+      const playback = TestBed.inject(PlaybackService);
       fixture.componentInstance.play(track);
       httpMock.expectOne('/api/tracks/t1/audio').flush(new Blob(['a'], { type: 'audio/mpeg' }));
       fixture.detectChanges();
 
       const firstUrl = fixture.componentInstance.audioUrl();
       expect(firstUrl).toMatch(/^blob:/);
-      expect(el(fixture).querySelector('app-audio-player')!.textContent).toContain('En cours');
+      expect(playback.currentTrack()?.id).toBe('t1');
 
       fixture.componentInstance.play(other);
       httpMock.expectOne('/api/tracks/t2/audio').flush(new Blob(['b'], { type: 'audio/wav' }));
       expect(URL.revokeObjectURL).toHaveBeenCalledWith(firstUrl);
 
+      // The player bar lives in the shell: going to Jeux does not stop the music.
       const finalUrl = fixture.componentInstance.audioUrl();
       fixture.destroy();
+      expect(URL.revokeObjectURL).not.toHaveBeenCalledWith(finalUrl);
+      expect(playback.currentTrack()?.id).toBe('t2');
+
+      playback.stop();
       expect(URL.revokeObjectURL).toHaveBeenCalledWith(finalUrl);
     });
 
@@ -268,7 +275,8 @@ describe('TracksPageComponent', () => {
       httpMock.expectOne('/api/tracks/t1/audio').flush(new Blob(['a']));
       fixture.detectChanges();
 
-      el(fixture).querySelector('audio')!.dispatchEvent(new Event('error'));
+      // The <audio> element is in the shell's player; it reports through the service.
+      TestBed.inject(PlaybackService).reportDecodeError();
       fixture.detectChanges();
 
       expect(fixture.componentInstance.audioError()).toContain('lire ce fichier');
