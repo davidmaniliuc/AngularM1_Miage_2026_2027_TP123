@@ -40,7 +40,7 @@
   border: 1px solid var(--gpc-edge);
   border-radius: 2px;
   overflow: hidden;
-  color: #fff;
+  color: var(--gpc-on-accent);
   background: var(--cover, var(--gpc-format-mp3));
   background-clip: content-box;
   box-shadow: 0 6px 10px -8px #000a;
