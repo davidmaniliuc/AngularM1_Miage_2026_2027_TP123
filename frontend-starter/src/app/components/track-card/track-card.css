@@ -2,7 +2,8 @@
 
 .track-card {
   display: grid;
-  grid-template-columns: 68px minmax(0, 1fr) 96px 120px 40px;
+  /* 16px de plus que le boîtier : la place du CD quand il sort. */
+  grid-template-columns: 84px minmax(0, 1fr) 96px 120px 40px;
   gap: 16px;
   align-items: center;
   padding: 10px 8px 10px 12px;
@@ -29,9 +30,29 @@
   );
 }
 
+/* Au survol, le boîtier s'entrouvre sur sa charnière et le CD sort à droite. */
+.stage { position: relative; display: block; width: 68px; height: 54px; }
+.disc {
+  position: absolute;
+  top: 5px;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--gpc-case) 0 12%, #c9ccd2 12.5% 17%, transparent 17.5%),
+    conic-gradient(from 20deg, #8d9098, #eef0f3, #b8bbc2, #eef0f3, #8d9098, #dfe1e5, #9a9da5, #8d9098);
+  box-shadow: 0 4px 8px -5px #000a, 0 0 0 1px var(--gpc-edge);
+  transition: translate 0.5s cubic-bezier(0.16, 1, 0.3, 1), rotate 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.track-card:hover .disc, .stage:has(.cover:focus-visible) .disc { translate: 24px 0; rotate: 115deg; }
+.track-card:hover .cover, .cover:focus-visible { transform: perspective(420px) translateY(-2px) rotateY(-16deg) rotateZ(-1.2deg); }
+
 /* Boîtier de CD : charnière noire à gauche, pochette carrée. */
 .cover {
   position: relative;
+  transform-origin: left center;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   display: grid;
   place-items: center;
   width: 68px;
@@ -40,7 +61,7 @@
   border: 1px solid var(--gpc-edge);
   border-radius: 2px;
   overflow: hidden;
-  color: var(--gpc-on-accent);
+  color: var(--gpc-spine-ink);
   background: var(--cover, var(--gpc-format-mp3));
   background-clip: content-box;
   box-shadow: 0 6px 10px -8px #000a;
@@ -126,7 +147,7 @@
 @media (prefers-reduced-motion: reduce) {
   .eq i { animation: none; height: 70%; }
   .track-card { transition: none; }
-  .cover .overlay, .cover .format { transition: none; }
+  .cover .overlay, .cover .format, .cover, .disc { transition: none; }
 }
 
 .danger { color: var(--mat-sys-error); --mat-menu-item-icon-color: var(--mat-sys-error); }

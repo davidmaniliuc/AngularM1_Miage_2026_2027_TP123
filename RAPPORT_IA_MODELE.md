@@ -377,3 +377,29 @@ Build OK, 121 tests OK, vérifié avec des captures en clair/sombre et mobile.
 "regarde les branches et les pr (je pense faut aussi faire une pr pour la branche charles issues 1,2,3) regarde si y'a des conflicts pour 4..7 comme y'a un redesign et tout tu peux t'occuper des merges?"
 
 L'agent a regardé : le dernier commit de `Charles` contenait déjà tout #5, #6 et #7 (le back est identique) et refaisait #4 dans la refonte, donc les PR #18 à #21 n'apportaient plus rien. Par contre `main` avait le commit « tp 4 début du projet » que `Charles` n'avait jamais repris : 17 conflits. Il a fusionné `main` dans `Charles` en gardant le code de `Charles` (plus récent), supprimé ce qui était remplacé (`game-detail-page`, `game-form`, `ThemeService`, `seed.ts`), gardé `PROJECT_CONCEPT.md` et les sections du rapport des deux côtés. Tests back et front OK, build OK.
+
+## Visuels plus flamboyants
+
+"please make the project viusals grat and floamobyent" → l'agent a demandé jusqu'où aller : garder « Le Boîtier » en plus fort, nouveau style complet, ou seulement quelques écrans. → « Boîtier, turned up ».
+- titres de page beaucoup plus grands, résumé en mono majuscules.
+- grand symbole de la manette dans le coin de chaque section (croix Jeux, rond Musique, triangle Profil, carré connexion).
+- au survol d'un jeu, le disque PS1 (noir avec reflet arc-en-ciel) sort du boîtier en tournant. Sur la fiche du jeu il reste à moitié sorti et tourne doucement, et la pochette floutée éclaire la fiche.
+- quand une piste joue, la page prend une lueur de la couleur de la pochette (le lecteur envoie la couleur à la coquille).
+- connexion / inscription : écran de démarrage, les quatre symboles se dessinent un par un avec le nom en très gros.
+Problème : le nom en gros passait par-dessus le bouton « Se connecter » (le composant était limité à 520px), corrigé. Les animations s'arrêtent avec « réduire les animations ».
+Build OK, 121 tests OK, vérifié en captures clair/sombre et mobile.
+
+"where are do other angets? the neons and ohter?" → l'agent avait tout fait seul, aucun autre agent lancé. Les « neons » ce sont les modèles Gemini 4 Neon dans agy.
+
+"cna you enhence funrther collabaoret withe other impress me use skills and sufff potato mode impecable what you want just do something great"
+L'agent a commité le premier passage sur une branche `design/boitier-flamboyant`, puis lancé trois agents en parallèle, chacun dans son worktree et son onglet Rex, sur des fichiers différents :
+- `musique` (agy, Gemini 4 Neon high) : la piste en cours s'agrandit, son CD sort et tourne, au survol le boîtier s'entrouvre.
+- `tiroir` (agy, Gemini 4 Neon xhigh) : le lecteur glisse depuis le bas, CD plus grand, bouton play à la couleur de la pochette, tête de lecture sur la waveform.
+- `coffre` (Claude Sonnet) : BIOS en puces sur cartes noires, profil avec l'initiale en grand, zone de dépôt en emplacement de disque.
+Pendant ce temps l'agent a ajouté un petit CD qui tourne à côté de « Musique » dans la barre quand ça joue.
+Les agents agy demandaient la permission pour chaque `grep` ou `git status`, l'agent validait au fur et à mesure. Un agent a remarqué que le trou du disque PS1 n'était pas vraiment un trou, corrigé.
+Tout fusionné sans conflit, build OK, 121 tests OK, captures clair/sombre sans erreur console. Ensuite un agent de revue Impeccable relit le tout.
+L'agent de revue a trouvé 7 problèmes : titres des dialogues restés en 400 (la règle de Material gagnait, passé par les jetons `subhead-*`), contour bleu coupé dans la zone de dépôt à l'ouverture, disque PS1 qui dépassait sous chaque boîtier, dialogues restés « Material de base », BIOS par défaut en vert (contraire à la règle des quatre boutons), initiale du profil qui se cognait avec la carte, et pas de capture mobile de Musique. Tout corrigé : dialogues avec le dos noir, disque visible dans la zone de dépôt, BIOS par défaut marqué en encre, initiale retirée. Build OK, 121 tests OK, captures desktop et mobile vérifiées.
+
+"c'est vrm overkill y'a que le hover comme ça que j'aime bien" (capture du survol d'une piste) → l'agent a tout remis comme avant cette session et n'a gardé que ce survol : le boîtier du CD s'entrouvre sur sa charnière et le CD argenté sort à droite. La colonne du boîtier passe de 68 à 84px pour que le CD ne touche pas le titre. Au passage, l'icône play du survol était sombre en mode clair (variable de couleur qui n'existait pas), corrigé. Build OK, 121 tests OK.
+"le hover sur les jeux bien aussi" → l'agent a remis aussi le survol des jeux : le boîtier se soulève en penchant un peu et le disque PS1 noir sort à droite en tournant. Seulement le survol, la fiche du jeu reste comme avant. Build OK, 121 tests OK.

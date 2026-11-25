@@ -140,12 +140,16 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
         <li>
           <a [routerLink]="['/games', game.id]" data-testid="game-link">
             <!-- Le boîtier : le numéro de série est imprimé sur le dos. -->
-            <span class="case">
-              <span class="spine" aria-hidden="true">
-                <span class="serial">{{ game.serial || 'PS1' }}</span>
-                @if (game.region) { <span class="region">{{ regionCode(game.region) }}</span> }
+            <span class="shelf">
+              <!-- Le disque sort du boîtier au survol. -->
+              <span class="disc" aria-hidden="true"></span>
+              <span class="case">
+                <span class="spine" aria-hidden="true">
+                  <span class="serial">{{ game.serial || 'PS1' }}</span>
+                  @if (game.region) { <span class="region">{{ regionCode(game.region) }}</span> }
+                </span>
+                <app-game-cover [game]="game" />
               </span>
-              <app-game-cover [game]="game" />
             </span>
             <b>{{ game.title }}</b>
             <small>{{ subtitle(game) }}</small>
@@ -218,6 +222,8 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
 
     .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 32px 26px; margin: 0; padding: 0; list-style: none; }
     li { position: relative; }
+    /* Le disque sorti passe au-dessus du boîtier voisin. */
+    li:has(a:hover, a:focus-visible) { z-index: 1; }
     a { display: grid; gap: 3px; color: var(--gpc-ink); text-decoration: none; }
     a b { margin-top: 10px; font-size: 15px; font-weight: 600; line-height: 1.25; text-wrap: balance; }
     a small { font: 12px/1.4 var(--gpc-mono); color: var(--gpc-ink-soft); font-variant-numeric: tabular-nums; }
@@ -231,8 +237,24 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
       border-radius: 2px;
       background: var(--gpc-inlay);
       box-shadow: 0 10px 18px -12px #000a;
-      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s;
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    /* Disque PS1 : face noire, reflet arc-en-ciel, rangé derrière la jaquette. */
+    .shelf { position: relative; display: block; }
+    .disc {
+      position: absolute;
+      top: 7%;
+      left: 14%;
+      height: 86%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, var(--gpc-case) 0 9%, #3a3b40 9.5% 11%, #0b0b0c 11.5% 30%, #1d1e22 30.5% 31.5%, transparent 32%),
+        conic-gradient(from 200deg, #0b0b0c, #3a1d4d 8%, #0b0b0c 16%, #123a52 26%, #0b0b0c 34%, #4a3a12 44%, #0b0b0c 52%, #12402c 62%, #0b0b0c 70%, #4d1a2c 82%, #0b0b0c);
+      box-shadow: 0 8px 18px -10px #000c, 0 0 0 1px var(--gpc-edge);
+      transition: translate 0.55s cubic-bezier(0.16, 1, 0.3, 1), rotate 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    a:hover .disc, a:focus-visible .disc { translate: 42% 0; rotate: 160deg; }
     .case::after {
       content: '';
       position: absolute;
@@ -241,7 +263,7 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
       box-shadow: inset 0 1px 0 #ffffff59;
       pointer-events: none;
     }
-    a:hover .case, a:focus-visible .case { transform: translateY(-4px); box-shadow: 0 18px 24px -14px #000b; }
+    a:hover .case, a:focus-visible .case { transform: translateY(-6px) rotate(-1.5deg); box-shadow: 0 26px 30px -16px #000b; }
     .spine {
       display: flex;
       flex-direction: column;
@@ -281,7 +303,11 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
 
     mat-paginator { margin-top: 24px; }
 
-    @media (prefers-reduced-motion: reduce) { .case { transition: none; } a:hover .case, a:focus-visible .case { transform: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      .case, .disc { transition: none; }
+      a:hover .case, a:focus-visible .case { transform: none; }
+      a:hover .disc, a:focus-visible .disc { rotate: none; }
+    }
 
     @container (max-width: 820px) {
       .filters { grid-template-columns: 1fr 1fr; }
