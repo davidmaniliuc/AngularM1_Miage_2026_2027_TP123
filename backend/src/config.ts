@@ -34,6 +34,12 @@ export const COVERS_DIR = path.join(UPLOADS_DIR, "covers");
 // Les images disque des jeux et les BIOS, privés, ont chacun leur dossier.
 export const GAMES_DIR = path.join(UPLOADS_DIR, "games");
 export const BIOS_DIR = path.join(UPLOADS_DIR, "bios");
+// Cartes mémoire et sauvegardes rapides, privées elles aussi.
+export const SAVES_DIR = path.join(UPLOADS_DIR, "saves");
+
+// Une carte mémoire PS1 fait exactement 128 Ko ; un état de machine reste sous 64 Mo.
+export const MEMCARD_BYTES = 128 * 1024;
+export const MAX_STATE_BYTES = 64 * 1024 * 1024;
 
 // Un jeu PS1 en .bin pèse jusqu'à 700 Mo (un .chd, la moitié environ).
 export const MAX_GAME_SIZE = 1024 * 1024 * 1024;

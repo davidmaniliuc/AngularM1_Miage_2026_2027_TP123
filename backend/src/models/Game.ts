@@ -28,6 +28,14 @@ export function isRegion(value: unknown): value is Region {
   return REGIONS.includes(value as Region);
 }
 
+/** Résultat du test du jeu dans l'émulateur (docs/EMULATOR_COMPAT.md). */
+export const COMPAT_STATUSES = ["untested", "tested", "broken"] as const;
+export type CompatStatus = (typeof COMPAT_STATUSES)[number];
+
+export function isCompat(value: unknown): value is CompatStatus {
+  return COMPAT_STATUSES.includes(value as CompatStatus);
+}
+
 export const MIN_YEAR = 1994;
 export const MAX_YEAR = 2100;
 
@@ -50,6 +58,7 @@ export interface GameDoc {
   region?: Region;
   year?: number;
   favorite: boolean;
+  compat: CompatStatus;
   coverStoredName?: string;
   coverMimeType?: string;
   discStoredName?: string;
@@ -76,6 +85,7 @@ const schema = new Schema<GameDoc, GameModel, GameMethods>(
     region: { type: String, enum: REGIONS },
     year: { type: Number, min: MIN_YEAR, max: MAX_YEAR, validate: Number.isInteger },
     favorite: { type: Boolean, default: false },
+    compat: { type: String, enum: COMPAT_STATUSES, default: "untested" },
     coverStoredName: { type: String, select: false },
     coverMimeType: { type: String },
     // Comme la pochette, le fichier du jeu reste sur le disque, jamais exposé.
@@ -100,6 +110,7 @@ schema.method("toPublic", function toPublic(): PublicGame {
     region: this.region,
     year: this.year,
     favorite: Boolean(this.favorite),
+    compat: this.compat ?? "untested",
     // coverStoredName n'est présent que si la requête l'a sélectionné.
     hasCover: Boolean(this.coverStoredName),
     disc:

@@ -2,20 +2,24 @@
           [class.deleting]="deleting()" [attr.aria-busy]="deleting()"
           [style.--cover-accent]="accent()" [style.--cover-accent-2]="accent2()"
           [attr.aria-current]="current() ? 'true' : null">
-  <button type="button" class="cover" [class]="formatClass()" (click)="play.emit()"
-          [disabled]="loading()" [attr.aria-label]="playLabel()">
-    <!-- Charnière du boîtier : le format y est imprimé, comme le numéro de série des jeux. -->
-    <span class="hinge" aria-hidden="true">{{ format() }}</span>
-    <app-track-cover [track]="track()" (palette)="palette.set($event)" />
-    <span class="format" aria-hidden="true">{{ format() }}</span>
-    <span class="overlay" aria-hidden="true">
-      @if (loading()) {
-        <mat-spinner diameter="24" />
-      } @else {
-        <mat-icon class="icon-fill">{{ showPause() ? 'pause' : 'play_arrow' }}</mat-icon>
-      }
-    </span>
-  </button>
+  <!-- Le CD argenté rangé derrière le boîtier : il sort au survol. -->
+  <span class="stage">
+    <span class="disc" aria-hidden="true"></span>
+    <button type="button" class="cover" [class]="formatClass()" (click)="play.emit()"
+            [disabled]="loading()" [attr.aria-label]="playLabel()">
+      <!-- Charnière du boîtier : le format y est imprimé, comme le numéro de série des jeux. -->
+      <span class="hinge" aria-hidden="true">{{ format() }}</span>
+      <app-track-cover [track]="track()" (palette)="palette.set($event)" />
+      <span class="format" aria-hidden="true">{{ format() }}</span>
+      <span class="overlay" aria-hidden="true">
+        @if (loading()) {
+          <mat-spinner diameter="24" />
+        } @else {
+          <mat-icon class="icon-fill">{{ showPause() ? 'pause' : 'play_arrow' }}</mat-icon>
+        }
+      </span>
+    </button>
+  </span>
 
   <div class="info">
     <h2>

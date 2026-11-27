@@ -4,7 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { Game, genreLabel, regionLabel } from '../../shared/models/game.model';
+import { CompatBadgeComponent } from '../compat-badge/compat-badge';
+import { COMPAT_STATUSES, Compat, Game, genreLabel, regionLabel } from '../../shared/models/game.model';
 import { GameService } from '../../shared/services/game.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../confirm-dialog/confirm-dialog';
 import { GameCoverComponent } from '../game-cover/game-cover';
@@ -14,7 +15,7 @@ import { formatSize } from '../../shared/utils/audio-file';
 /** Game sheet: cover, serial, genre, region, year, favorite, with edit and delete. */
 @Component({
   selector: 'app-game-detail',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressBarModule, GameCoverComponent],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressBarModule, GameCoverComponent, CompatBadgeComponent],
   template: `
     <a routerLink="/games" class="back"><mat-icon>arrow_back</mat-icon>Bibliothèque</a>
 
@@ -47,10 +48,24 @@ import { formatSize } from '../../shared/utils/audio-file';
             <dd data-testid="region">{{ region(game) || '—' }}</dd>
             <dt>Année</dt>
             <dd data-testid="year" class="mono">{{ game.year || '—' }}</dd>
+            <dt>Émulateur</dt>
+            <dd class="compat">
+              <app-compat-badge [compat]="game.compat" />
+              <select data-testid="compat-select" aria-label="Résultat du test dans l'émulateur" [value]="game.compat" (change)="setCompat(game, $any($event.target).value)">
+                @for (item of compats; track item.value) {
+                  <option [value]="item.value">{{ item.label }}</option>
+                }
+              </select>
+            </dd>
             <dt>Fichier du jeu</dt>
             <dd data-testid="disc">{{ game.disc ? game.disc.name + ' (' + formatSize(game.disc.size) + ')' : 'Aucun' }}</dd>
           </dl>
           <div class="actions">
+            @if (game.disc) {
+              <a mat-flat-button class="play" data-testid="play" [routerLink]="['/games', game.id, 'play']">
+                <mat-icon>play_arrow</mat-icon>Jouer
+              </a>
+            }
             <button mat-button type="button" data-testid="favorite" [attr.aria-pressed]="game.favorite" (click)="toggleFavorite(game)">
               <mat-icon [class.icon-fill]="game.favorite">favorite</mat-icon>{{ game.favorite ? 'Favori' : 'Ajouter aux favoris' }}
             </button>
@@ -85,6 +100,8 @@ import { formatSize } from '../../shared/utils/audio-file';
     dt { padding-right: 24px; color: var(--gpc-ink-soft); font-size: 13px; }
     dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
     dd.mono { font-weight: 500; }
+    .compat { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .compat select { padding: 3px 6px; border: 1px solid var(--gpc-edge-control); border-radius: 3px; background: var(--gpc-inlay); color: var(--gpc-ink); font: inherit; font-size: 13px; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .actions button[data-testid='favorite'][aria-pressed='true'] mat-icon { color: var(--gpc-ps-circle); }
     .delete { --mat-button-text-label-text-color: var(--mat-sys-error); }
@@ -118,6 +135,7 @@ export class GameDetailComponent {
   readonly genre = (game: Game) => genreLabel(game.genre);
   readonly region = (game: Game) => regionLabel(game.region);
   readonly formatSize = formatSize;
+  readonly compats = COMPAT_STATUSES;
 
   constructor() {
     const id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
@@ -136,6 +154,16 @@ export class GameDetailComponent {
       error: (error) => {
         console.error('[GameDetail] Favori impossible', error);
         this.actionError.set('Impossible de modifier ce favori. Réessayez.');
+      },
+    });
+  }
+
+  setCompat(game: Game, compat: Compat): void {
+    this.service.setCompat(game.id, compat).subscribe({
+      next: (updated) => this.game.set(updated),
+      error: (error) => {
+        console.error('[GameDetail] Statut impossible', error);
+        this.actionError.set('Impossible de changer le résultat du test. Réessayez.');
       },
     });
   }

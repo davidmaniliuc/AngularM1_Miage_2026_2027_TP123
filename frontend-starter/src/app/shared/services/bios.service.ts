@@ -11,6 +11,11 @@ export class BiosService {
     return this.http.get<Bios[]>('/api/bios');
   }
 
+  /** The BIOS image; the JWT is needed, so no plain link. */
+  file(id: string) {
+    return this.http.get(`/api/bios/${id}/file`, { responseType: 'blob' });
+  }
+
   upload(file: File) {
     const body = new FormData();
     body.append('bios', file);

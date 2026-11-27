@@ -85,7 +85,7 @@
 
 .cols {
   display: grid;
-  grid-template-columns: 68px minmax(0, 1fr) 96px 120px 40px;
+  grid-template-columns: 84px minmax(0, 1fr) 96px 120px 40px;
   gap: 16px;
   padding: 0 8px 8px 12px;
   border-bottom: 1px solid var(--gpc-edge);

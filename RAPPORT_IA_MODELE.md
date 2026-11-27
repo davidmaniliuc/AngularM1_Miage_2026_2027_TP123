@@ -377,3 +377,66 @@ Build OK, 121 tests OK, vérifié avec des captures en clair/sombre et mobile.
 "regarde les branches et les pr (je pense faut aussi faire une pr pour la branche charles issues 1,2,3) regarde si y'a des conflicts pour 4..7 comme y'a un redesign et tout tu peux t'occuper des merges?"
 
 L'agent a regardé : le dernier commit de `Charles` contenait déjà tout #5, #6 et #7 (le back est identique) et refaisait #4 dans la refonte, donc les PR #18 à #21 n'apportaient plus rien. Par contre `main` avait le commit « tp 4 début du projet » que `Charles` n'avait jamais repris : 17 conflits. Il a fusionné `main` dans `Charles` en gardant le code de `Charles` (plus récent), supprimé ce qui était remplacé (`game-detail-page`, `game-form`, `ThemeService`, `seed.ts`), gardé `PROJECT_CONCEPT.md` et les sections du rapport des deux côtés. Tests back et front OK, build OK.
+
+## Visuels plus flamboyants
+
+"please make the project viusals grat and floamobyent" → l'agent a demandé jusqu'où aller : garder « Le Boîtier » en plus fort, nouveau style complet, ou seulement quelques écrans. → « Boîtier, turned up ».
+- titres de page beaucoup plus grands, résumé en mono majuscules.
+- grand symbole de la manette dans le coin de chaque section (croix Jeux, rond Musique, triangle Profil, carré connexion).
+- au survol d'un jeu, le disque PS1 (noir avec reflet arc-en-ciel) sort du boîtier en tournant. Sur la fiche du jeu il reste à moitié sorti et tourne doucement, et la pochette floutée éclaire la fiche.
+- quand une piste joue, la page prend une lueur de la couleur de la pochette (le lecteur envoie la couleur à la coquille).
+- connexion / inscription : écran de démarrage, les quatre symboles se dessinent un par un avec le nom en très gros.
+Problème : le nom en gros passait par-dessus le bouton « Se connecter » (le composant était limité à 520px), corrigé. Les animations s'arrêtent avec « réduire les animations ».
+Build OK, 121 tests OK, vérifié en captures clair/sombre et mobile.
+
+"where are do other angets? the neons and ohter?" → l'agent avait tout fait seul, aucun autre agent lancé. Les « neons » ce sont les modèles Gemini 4 Neon dans agy.
+
+"cna you enhence funrther collabaoret withe other impress me use skills and sufff potato mode impecable what you want just do something great"
+L'agent a commité le premier passage sur une branche `design/boitier-flamboyant`, puis lancé trois agents en parallèle, chacun dans son worktree et son onglet Rex, sur des fichiers différents :
+- `musique` (agy, Gemini 4 Neon high) : la piste en cours s'agrandit, son CD sort et tourne, au survol le boîtier s'entrouvre.
+- `tiroir` (agy, Gemini 4 Neon xhigh) : le lecteur glisse depuis le bas, CD plus grand, bouton play à la couleur de la pochette, tête de lecture sur la waveform.
+- `coffre` (Claude Sonnet) : BIOS en puces sur cartes noires, profil avec l'initiale en grand, zone de dépôt en emplacement de disque.
+Pendant ce temps l'agent a ajouté un petit CD qui tourne à côté de « Musique » dans la barre quand ça joue.
+Les agents agy demandaient la permission pour chaque `grep` ou `git status`, l'agent validait au fur et à mesure. Un agent a remarqué que le trou du disque PS1 n'était pas vraiment un trou, corrigé.
+Tout fusionné sans conflit, build OK, 121 tests OK, captures clair/sombre sans erreur console. Ensuite un agent de revue Impeccable relit le tout.
+L'agent de revue a trouvé 7 problèmes : titres des dialogues restés en 400 (la règle de Material gagnait, passé par les jetons `subhead-*`), contour bleu coupé dans la zone de dépôt à l'ouverture, disque PS1 qui dépassait sous chaque boîtier, dialogues restés « Material de base », BIOS par défaut en vert (contraire à la règle des quatre boutons), initiale du profil qui se cognait avec la carte, et pas de capture mobile de Musique. Tout corrigé : dialogues avec le dos noir, disque visible dans la zone de dépôt, BIOS par défaut marqué en encre, initiale retirée. Build OK, 121 tests OK, captures desktop et mobile vérifiées.
+
+"c'est vrm overkill y'a que le hover comme ça que j'aime bien" (capture du survol d'une piste) → l'agent a tout remis comme avant cette session et n'a gardé que ce survol : le boîtier du CD s'entrouvre sur sa charnière et le CD argenté sort à droite. La colonne du boîtier passe de 68 à 84px pour que le CD ne touche pas le titre. Au passage, l'icône play du survol était sombre en mode clair (variable de couleur qui n'existait pas), corrigé. Build OK, 121 tests OK.
+"le hover sur les jeux bien aussi" → l'agent a remis aussi le survol des jeux : le boîtier se soulève en penchant un peu et le disque PS1 noir sort à droite en tournant. Seulement le survol, la fiche du jeu reste comme avant. Build OK, 121 tests OK.
+
+## Étape 3 - émulateur dans le navigateur (issues #8 et #9)
+
+"réalise l'issue 8 , la dépendance pour les jeux est @davidmaniliuc/substation" → l'agent a lu l'issue #8 (page `/games/:id/play`), le code existant (`EmulatorService`, `GameService`, `BiosService`) et l'API du paquet après un `npm install`. Il a créé la page `game-play` :
+- télécharge le BIOS par défaut et le disque avec le token, barre de progression pendant le téléchargement du disque ;
+- `loadBios` + `loadDisc`, puis boucle `requestAnimationFrame` à 60 Hz (50 Hz en PAL) vers un canvas ;
+- son stéréo 44 100 Hz avec Web Audio ;
+- un message en français pour chaque `Ps1Error`, et un lien vers la page BIOS s'il n'y en a aucun ;
+- en quittant la page : boucle arrêtée, téléchargement annulé, son fermé, machine lâchée.
+Ajouts : `GameService.disc()`, `BiosService.file()`, la route `games/:id/play` et le bouton « Jouer » sur la fiche (seulement si le jeu a un disque).
+Erreur de l'agent corrigée avant la fin : il avait mis `takeUntilDestroyed()` dans un callback asynchrone, hors contexte d'injection, ce qui aurait planté ; remplacé par l'annulation dans `stop()`. Build OK, 121 tests OK. Pas testé avec un vrai jeu (pas de BIOS sur la machine).
+
+"lance pour que je puisse visualiser" → le port 4200 était pris par le conteneur Docker `gpc-frontend`, l'agent a lancé `ng serve` sur le port 4300 (le backend et Mongo tournaient déjà dans Docker, le proxy envoie `/api` vers le 3000).
+
+"passons à l'issue suivante" → issue #9 « Contrôles et clavier du lecteur » :
+- boutons Pause (touche `P`), Reset (`reset()`) et Plein écran ;
+- touches du clavier vers `setButtons(mask)` (un bit à 0 = appuyé, `0xFFFF` = rien), dans `shared/utils/pad.ts` ;
+- écran d'aide avec les touches (bouton « Touches » ou `H`).
+Choix : les touches sont lues par position physique (`event.code`) et l'agent a évité A, Z, Q, W, M dont la position change entre AZERTY et QWERTY. Flèches et Entrée ne font plus défiler la page, et toutes les touches sont relâchées quand la fenêtre perd le focus. 3 tests ajoutés, 124 tests OK, build OK.
+
+"rajoute les prompts de développement que je t'ai fais dans le fichier de rapport IA et à partir de mtn ajoute les prompts que je te fais à ce fichier stp" → cette section. Les prochains prompts seront ajoutés ici au fur et à mesure.
+
+"retire ma question sur le BIOS et les jeux ainsi que le prompt de mise à jour de Charles depuis dev" → ces deux entrées sont retirées de la section, le reste n'a pas changé.
+
+"utilise des vraies icones pour les touches" → l'écran d'aide du lecteur dessinait les touches en texte. Chaque bouton de la manette a maintenant son icône SVG : triangle, rond, croix et carré aux couleurs PlayStation déjà utilisées dans le logo, croix directionnelle avec la flèche allumée pour haut / bas / gauche / droite, pastilles L1 / R1 / L2 / R2, et Start (triangle de lecture) / Select (barre). La touche du clavier reste affichée à droite. Build OK, 124 tests OK.
+
+"mets les explcations de commandes dans un menu à part, les boutons de reset, pause, plein ecran et touches eux doivent etre avec des icones stylées et non pas seulement avec le rendu simple" → la liste des touches n'est plus sous l'écran : elle s'ouvre dans une fenêtre à part (`pad-help-dialog.ts`, bouton « Touches » ou touche `H`). Le jeu se met en pause pendant qu'elle est ouverte et les touches tapées dedans n'arrivent pas à la manette. Les quatre boutons de commande sont des boutons ronds façon manette, avec une icône dessinée en SVG (pause / lecture, flèche de reset, coins du plein écran, manette) et la couleur d'un des symboles PlayStation, avec un petit effet d'enfoncement au clic. Build OK, 124 tests OK.
+
+"continues avec les issues 10 et 11" → issue #10 (cartes mémoire et sauvegardes rapides sur le serveur) et #11 (compatibilité).
+- Backend #10 : modèle `GameSave` (une sauvegarde par jeu, par compte et par type), routes `GET / PUT / DELETE /api/games/:id/saves/memcard` et `/state` (carte de 128 Ko exactement, état limité à 64 Mo), fichiers dans `uploads/saves`, supprimés avec le jeu. Privées : 404 pour un autre compte.
+- Front #10 : au lancement la page recharge la carte mémoire puis la sauvegarde rapide ; la carte est renvoyée au serveur toutes les 5 s si le jeu l'a écrite (et en quittant la page, avec nouvel essai si l'envoi échoue) ; boutons Sauvegarder / Charger (touches `K` et `L`). Une sauvegarde refusée (`STATE_DISC`, `STATE_BIOS`…) affiche un message et la partie continue.
+- #11 : champ `compat` du jeu (`untested`, `tested`, `broken`) modifiable sur la fiche, badge sur la fiche et dans la bibliothèque, et `docs/EMULATOR_COMPAT.md` avec la méthode de test. Les jeux eux-mêmes n'ont pas pu être testés : pas de BIOS ni de disque sur la machine, le tableau est donc vide.
+- Erreur de l'agent : le nouveau dossier `saves` a cassé 4 tests existants (`tracks-upload`, qui comptent les fichiers dans `uploads`), corrigé en l'ajoutant à la liste des dossiers ignorés. Les tests du back se lancent dans Docker (`docker exec -e TEST_MONGODB_URI=mongodb://mongo:27017/... gpc-backend bun test`), pas de bun sur le Mac. Back 159 tests OK, front 128 tests OK.
+
+"l'issue 10 est elle opérationnelle?" → réponse : le serveur oui (testé), le côté navigateur est écrit, compilé et testé en unitaire, mais pas essayé avec un vrai jeu.
+
+"tu peux review la pr de charles et merge si c'est bien?" → review de la PR #26. Front 128 tests OK, build OK. L'agent a relevé un bug : le message des sauvegardes (« Sauvegarde rapide enregistrée », refus…) était dans le bloc `@if (error())`, donc invisible pendant la partie. Aussi : `package-lock.json` réindenté à 4 espaces (16 000 lignes de bruit) et le bouton « Gérer mes BIOS » sans `MatButtonModule`. Question de l'agent : corriger puis merger, merger tel quel, ou commenter la PR ? Réponse : corriger puis merger. Message sorti du bloc d'erreur, lockfile remis comme sur `main`, `MatButtonModule` importé, front 128 tests OK, PR mergée.

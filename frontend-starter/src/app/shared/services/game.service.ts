@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Game, GameFields, GameListQuery } from '../models/game.model';
+import { Compat, Game, GameFields, GameListQuery } from '../models/game.model';
 import { Page } from '../models/page.model';
 
 /** Encapsulates all HTTP operations for games. */
@@ -36,6 +36,12 @@ export class GameService {
     return this.http.patch<Game>(`/api/games/${id}`, body);
   }
 
+  setCompat(id: string, compat: Compat) {
+    const body = new FormData();
+    body.append('compat', compat);
+    return this.http.patch<Game>(`/api/games/${id}`, body);
+  }
+
   /**
    * Creates a game from its disc image; the backend fills title, region and
    * serial. The file is the raw request body (no multipart) so the server
@@ -51,6 +57,11 @@ export class GameService {
       reportProgress: true,
       observe: 'events',
     });
+  }
+
+  /** The disc image as a Blob, with download progress events. */
+  disc(id: string) {
+    return this.http.get(`/api/games/${id}/disc`, { responseType: 'blob', reportProgress: true, observe: 'events' });
   }
 
   /** Cover image as a Blob: an <img src> could not send the JWT. */
