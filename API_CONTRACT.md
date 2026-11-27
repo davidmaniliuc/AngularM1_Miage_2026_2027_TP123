@@ -121,7 +121,7 @@ Un jeu appartient à son créateur : les autres utilisateurs ne le voient pas (`
 - `region` : `ntsc-u`, `ntsc-j` ou `pal`.
 - `year` : entier de 1994 à 2100.
 - `favorite` : `true` ou `false` (faux par défaut).
-- `compat` : résultat du test dans l'émulateur, `untested` (par défaut), `tested` ou `broken`. Modifiable avec `PATCH`.
+- `compat` : résultat du test dans l'émulateur, `untested` (par défaut, « Non testé »), `tested` (« Marche »), `issues` (« Problèmes » : le jeu tourne mais avec des défauts) ou `broken` (« Ne marche pas »). Modifiable avec `PATCH`.
 - `cover` : image JPEG, PNG ou WebP de 5 Mo maximum, identifiée par son contenu.
 - `disc` : l'image disque envoyée par `POST /games/disc`, `{ "name": "suikoden.chd", "size": 329653141, "format": "chd" | "bin", "cue"?: "FILE ..." }`. `cue` n'existe que pour un `.bin` envoyé avec son `.cue`.
 

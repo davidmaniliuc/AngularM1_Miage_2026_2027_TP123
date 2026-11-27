@@ -1,6 +1,6 @@
 # Compatibilité de l'émulateur
 
-Résultats des essais de jeux dans la page `/games/:id/play`. Le statut de chaque jeu (**Testé**, **Non testé**, **Ne marche pas**) se règle sur sa fiche et s'affiche en badge sur la fiche et dans la bibliothèque.
+Résultats des essais de jeux dans la page `/games/:id/play`. Le statut de chaque jeu (**Non testé**, **Marche**, **Problèmes**, **Ne marche pas**) se règle sur sa fiche et s'affiche en badge sur la fiche et dans la bibliothèque.
 
 ## Comment tester un jeu
 

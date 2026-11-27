@@ -29,7 +29,7 @@ export function isRegion(value: unknown): value is Region {
 }
 
 /** Résultat du test du jeu dans l'émulateur (docs/EMULATOR_COMPAT.md). */
-export const COMPAT_STATUSES = ["untested", "tested", "broken"] as const;
+export const COMPAT_STATUSES = ["untested", "tested", "issues", "broken"] as const;
 export type CompatStatus = (typeof COMPAT_STATUSES)[number];
 
 export function isCompat(value: unknown): value is CompatStatus {

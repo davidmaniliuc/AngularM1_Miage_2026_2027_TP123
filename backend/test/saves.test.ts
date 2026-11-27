@@ -93,5 +93,6 @@ test("le test de compatibilité d'un jeu se change et refuse une valeur inconnue
   };
   const response = await patch("tested");
   expect(((await response.json()) as PublicGame).compat).toBe("tested");
+  expect(((await (await patch("issues")).json()) as PublicGame).compat).toBe("issues");
   expect((await patch("parfait")).status).toBe(400);
 });
