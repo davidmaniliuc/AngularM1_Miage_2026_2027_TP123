@@ -1,6 +1,7 @@
 import { HttpEventType } from '@angular/common/http';
 import { Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { PadHelpDialogComponent } from './pad-help-dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,7 +29,7 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
 /** Page /games/:id/play: downloads the disc and the BIOS, then runs the emulator on a canvas. */
 @Component({
   selector: 'app-game-play',
-  imports: [RouterLink, MatIconModule, MatProgressBarModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressBarModule],
   template: `
     <a [routerLink]="['/games', id]" class="back"><mat-icon>arrow_back</mat-icon>Quitter la partie</a>
 
@@ -39,7 +40,6 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
           <a mat-flat-button routerLink="/games/bios">Gérer mes BIOS</a>
         }
       </div>
-      <p class="notice" role="status" data-testid="notice">{{ notice() }}</p>
     }
     @if (status()) {
       <div class="loading">
@@ -87,6 +87,7 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
         </button>
       </div>
     }
+    <p class="notice" role="status" data-testid="notice">{{ notice() }}</p>
   `,
   styles: `
     .back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; color: var(--gpc-ink-soft); font-size: 14px; font-weight: 600; text-decoration: none; }
