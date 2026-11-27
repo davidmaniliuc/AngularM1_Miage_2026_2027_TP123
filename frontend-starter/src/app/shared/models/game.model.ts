@@ -34,6 +34,19 @@ export function regionLabel(region: string | undefined): string {
 /** PS1 serial: four letters, a dash, five digits (SCUS-94163). */
 export const SERIAL_PATTERN = /^[A-Za-z]{4}-\d{5}$/;
 
+/** How the game ran in the emulator; docs/EMULATOR_COMPAT.md has the details. */
+export const COMPAT_STATUSES = [
+  { value: 'untested', label: 'Non testé' },
+  { value: 'tested', label: 'Testé' },
+  { value: 'broken', label: 'Ne marche pas' },
+] as const;
+
+export type Compat = (typeof COMPAT_STATUSES)[number]['value'];
+
+export function compatLabel(compat: string | undefined): string {
+  return COMPAT_STATUSES.find((item) => item.value === compat)?.label ?? 'Non testé';
+}
+
 /** Game metadata returned by the API. */
 export interface Game {
   id: string;
@@ -44,6 +57,7 @@ export interface Game {
   region?: Region;
   year?: number;
   favorite: boolean;
+  compat: Compat;
   /** A cover is available at GET /api/games/:id/cover. */
   hasCover: boolean;
   /** The disc image, downloadable at GET /api/games/:id/disc. */

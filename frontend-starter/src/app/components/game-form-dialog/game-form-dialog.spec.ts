@@ -18,7 +18,7 @@ describe('GameFormDialogComponent', () => {
     genre: 'rpg',
     region: 'pal',
     year: 1997,
-    favorite: false,
+    favorite: false, compat: 'untested',
     hasCover: true,
     createdAt: '2026-10-15T08:00:00.000Z',
   };

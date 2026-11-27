@@ -21,6 +21,7 @@ import {
   genreLabel,
 } from '../../shared/models/game.model';
 import { GameService } from '../../shared/services/game.service';
+import { CompatBadgeComponent } from '../compat-badge/compat-badge';
 import { GameCoverComponent } from '../game-cover/game-cover';
 import { GameFormDialogComponent } from '../game-form-dialog/game-form-dialog';
 import { GameImportDialogComponent } from '../game-import-dialog/game-import-dialog';
@@ -52,6 +53,7 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
     MatPaginatorModule,
     MatProgressBarModule,
     MatSelectModule,
+    CompatBadgeComponent,
     GameCoverComponent,
   ],
   providers: [{ provide: MatPaginatorIntl, useClass: GamesPaginatorIntl }],
@@ -153,6 +155,7 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
             </span>
             <b>{{ game.title }}</b>
             <small>{{ subtitle(game) }}</small>
+            <app-compat-badge [compat]="game.compat" />
           </a>
           <button
             type="button"

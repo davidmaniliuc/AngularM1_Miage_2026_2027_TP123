@@ -18,7 +18,7 @@ describe('GamesLibraryComponent', () => {
     serial: 'SCUS-94900',
     genre: 'plateforme',
     year: 1996,
-    favorite: false,
+    favorite: false, compat: 'untested',
     hasCover: false,
     createdAt: '2026-10-15T08:00:00.000Z',
   };
