@@ -76,6 +76,7 @@ audio { display: none; }
   --mat-icon-button-icon-color: var(--gpc-spine-ink-soft);
   --mat-icon-button-state-layer-color: var(--gpc-spine-ink);
 }
+.aux:hover, .volume:hover { --mat-icon-button-icon-color: var(--gpc-spine-ink); }
 .play {
   display: grid;
   place-items: center;
@@ -91,6 +92,7 @@ audio { display: none; }
 }
 .play:hover { transform: scale(1.06); }
 .play:active { transform: scale(0.96); }
+.play:focus-visible { outline: 2px solid var(--gpc-ps-cross); outline-offset: 3px; }
 
 .scrub {
   display: grid;

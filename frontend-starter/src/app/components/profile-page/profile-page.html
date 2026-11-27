@@ -9,8 +9,18 @@
       </dl>
       <form [formGroup]="form" (ngSubmit)="save()">
         <label>Nouveau nom<input formControlName="name" autocomplete="name" /></label>
-        <button type="submit">Enregistrer</button>
+        <div class="submit-row">
+          <button type="submit" [disabled]="saving() || form.invalid">
+            {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+          @if (saved()) {
+            <span class="saved-msg" role="status"><mat-icon>check</mat-icon>Nom enregistré</span>
+          }
+        </div>
       </form>
+      @if (error()) {
+        <p class="error" role="alert"><mat-icon class="icon-fill">error</mat-icon><span>{{ error() }}</span></p>
+      }
     }
   </div>
 </section>

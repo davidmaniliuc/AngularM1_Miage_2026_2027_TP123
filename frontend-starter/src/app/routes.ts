@@ -6,7 +6,6 @@ import { RegisterPageComponent } from './components/register-page/register-page'
 import { GamesPageComponent } from './components/games-page/games-page';
 import { GamesLibraryComponent } from './components/games-library/games-library';
 import { GameDetailComponent } from './components/game-detail/game-detail';
-import { GamePlayComponent } from './components/game-play/game-play';
 import { BiosPageComponent } from './components/bios-page/bios-page';
 import { TracksPageComponent } from './components/tracks-page/tracks-page';
 
@@ -22,7 +21,10 @@ export const routes: Routes = [
     children: [
       { path: '', component: GamesLibraryComponent },
       { path: 'bios', component: BiosPageComponent },
-      { path: ':id/play', component: GamePlayComponent },
+      {
+        path: ':id/play',
+        loadComponent: () => import('./components/game-play/game-play').then((m) => m.GamePlayComponent),
+      },
       { path: ':id', component: GameDetailComponent },
     ],
   },

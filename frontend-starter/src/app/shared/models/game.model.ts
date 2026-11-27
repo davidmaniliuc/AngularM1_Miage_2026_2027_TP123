@@ -37,7 +37,8 @@ export const SERIAL_PATTERN = /^[A-Za-z]{4}-\d{5}$/;
 /** How the game ran in the emulator; docs/EMULATOR_COMPAT.md has the details. */
 export const COMPAT_STATUSES = [
   { value: 'untested', label: 'Non testé' },
-  { value: 'tested', label: 'Testé' },
+  { value: 'tested', label: 'Marche' },
+  { value: 'issues', label: 'Problèmes' },
   { value: 'broken', label: 'Ne marche pas' },
 ] as const;
 

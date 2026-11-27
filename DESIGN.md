@@ -23,7 +23,11 @@ colors:
   lecture: "light-dark(#c4352e, #f06a62)"
   lecture-dos: "#f06a62"
   onde-repos: "#63656c"
+  compat-ok: "light-dark(#1b7453, #52c79c)"
+  compat-issues: "light-dark(#8a560b, #e5a64a)"
+  compat-broken: "light-dark(#b3261e, #f27b73)"
   erreur: "light-dark(#b3261e, #ff8a80)"
+  on-erreur: "light-dark(#ffffff, #410002)"
   erreur-container: "light-dark(#fbe9e7, #4a1a17)"
   on-erreur-container: "light-dark(#5c1410, #ffdad6)"
   format-mp3: "#17664f"
@@ -182,7 +186,8 @@ Clear plastic grey and ink, a black spine, and four controller colours used as m
 - **Arête contrôle** (#7a7e87 / #6a6d76): 1px edge of inputs, selects, outlined buttons, the segmented control and the Favoris toggle. At least 3:1 against both the ground and the inlay (WCAG 1.4.11); cases and dialogs keep the lighter Arête.
 - **Onde repos** (#63656c): unplayed waveform bars on the black tray, 3.4:1 against it.
 - **Lecture dos** (#f06a62): the playing tint on the black tray when the cover gives no colour (the tray is black in both modes, so it always takes the light-on-dark red).
-- **Erreur** family: Material error values, used for the error banner and destructive menu items only.
+- **Compat status** (`compat-ok` #1b7453 / #52c79c, `compat-issues` #8a560b / #e5a64a, `compat-broken` #b3261e / #f27b73): emulator compatibility states at 4.5:1+ on ground and inlay.
+- **Erreur** family (`erreur`, `on-erreur` / `--mat-sys-on-error` #ffffff / #410002, `erreur-container`, `on-erreur-container`): Material error values, used for error banners, destructive actions, and the armed two-step reset confirmation.
 
 ### Named Rules
 **The Ink Action Rule.** The primary action is solid ink, the secondary is outlined ink. No UI hue is ever the button colour; Material's azure seed is overridden to ink.
@@ -257,7 +262,7 @@ Square case geometry. Cases and covers use 2px corners, controls and cards 3px, 
 
 ### Cards / Containers
 - **Form card:** 520px inlay card with a 28px black spine column on its left carrying four 4px x 14px controller bars, 3px corners, 1px edge, form-card shadow, 32px padding.
-- **Dialogs and menus:** inlay surface, 4px / 3px corners.
+- **Dialogs and menus:** inlay surface, 4px / 3px corners. Material dialogs carry a 1px `Arête` border (`.mat-mdc-dialog-surface`) and Archivo 800 (20px, `-0.015em`) titles.
 
 ### Inputs / Fields
 - **Style:** inlay fill (ground fill on form cards), 1px Arête contrôle edge, 3px corners, 40-42px tall, 12px side padding.
@@ -274,6 +279,26 @@ A case is a 22px black spine strip plus a square cover on an inlay fill, 1px edg
 
 ### Track Row
 A CD case 68 x 54px: a 16px black hinge printing the format, the cover (or format colour) beside it, hover reveals a play overlay, tilts the case open on its hinge (`perspective(420px) rotateY(-16deg)`) and slides a silver CD 24px out to the right; the case column is 84px so the CD clears the title. No motion under reduced motion. The row playing is tinted with a gradient from the cover's accent into the inlay, with a three-bar equaliser in the same colour (static under reduced motion). Size and date in mono on the right.
+
+### Game Detail
+A two-column sheet (320px large jewel case with 30px spine strip beside metadata and actions; stacks single-column under 720px). Specifications sit in a hairline definition list with mono values for serial, year and disc file (`format` badge in black spine ink + filename + size). Emulator status is edited inline through a segmented radio group with no duplicate badge. Primary action is solid-ink `Jouer` (when a disc is attached) or `Modifier`, paired with outlined secondary actions and a right-aligned destructive `Supprimer` text button.
+
+### BIOS
+Private BIOS library under the `BIOS` sub-tab: top intro bar with right-aligned `Ajouter un BIOS`, hairline list rows with a 42px black chip tile (`Dos` with subtle dark-mode border), mono filename and size, region/version identity, solid-ink `Par défaut` badge or outlined `Utiliser par défaut` action, and delete icon button. Empty state uses the 1.5px dashed border and circular black `Dos` ring.
+
+### Game Console (play page)
+On `/games/:id/play`, the `Jeux` page heading and sub-tabs hide so the console owns the viewport. A compact play header sits flush with the console width: back link (`Quitter la partie`), hairline separator, game title + mono metadata (`serial · region · format`), and a live mono status chip (`NTSC · 60 Hz` / `PAL · 50 Hz`, `En pause`, or `Carte mémoire sauvée`).
+
+The game sits in a black stage (16:10 in 3D, 4:3 in 2D) with a black command tray attached below it, the same black as the spine and the player tray; fullscreen covers the entire console host (stage + tray). Boot is a single 5-step sequence inside the stage: recessed spinning black PS1 disc, game title and mono disc metadata, linked steps (`Console`, `Disque`, `Démarrage`, `Sauvegardes`, `Salon 3D`) in mono capitals with the active step marked `PS Croix`, a progress bar with live `Mo / Mo · %` download telemetry, a dimmed and `inert` command tray during boot, and a direct `Passer directement en écran 2D` fallback button on step 5.
+
+Pausing opens an interactive in-stage Pause sheet (four-colour top strip, solid light-jaquette `Reprendre la partie`, 2x2 quick actions for Save/Load/Controls/Reset, and exit link) while dimming and setting `inert` on the tray beneath it.
+
+Commands in the tray use spine ink on black (38px desktop), grouped by hairlines (Partie / Affichage / Sauvegarde rapide / Aide et écran at the right end) with mono `kbd` hints (`P`, `U` for mute — AZERTY/QWERTY-invariant — `V`, `K`, `L`, `H`). Active toggles (`3D | 2D` segmented switch, `Zoom télé`, `CRT`, `Muet`, `Plein écran`) take the unified light-jaquette state (`dos-actif` / `dos-actif-encre`); `Reset` uses a two-step `Confirmer ?` guard styled with error tokens. Controller colours are never used on tray buttons. Compact desktop single-row breakpoints stack icon over label and drop keycaps under `940px` (3D) and `740px` (2D); under `540px` mobile switches to a balanced 4-column grid where `Touches` and `Plein écran` span 2 columns each in 3D.
+
+Pressing `H` or clicking `Touches` opens `pad-help-dialog.ts`: a visual PlayStation controller schematic (L1/L2/R1/R2 shoulders, D-pad cross, Select/Start centre keys, four-colour action diamond) above the console shortcut list, with the physical AZERTY/QWERTY-invariant note.
+
+### Emulator status
+Four statuses: Non testé (empty ring), Marche (check, `--gpc-compat-ok`), Problèmes (exclamation, `--gpc-compat-issues`), Ne marche pas (cross, `--gpc-compat-broken`); each colour is a light-dark pair at 4.5:1 on ground and inlay. On the game sheet the status is a segmented radio group (selected segment in solid ink); in the library it is the small mono badge.
 
 ### Player Tray (signature)
 A black tray fixed at the bottom, right of the rail, in both modes. The cover sits with a silver disc behind it, tinted by the cover's accent; the disc slides out and spins (2.4s linear) while audio plays and stops under reduced motion. A 44px round play button in spine ink. The waveform is a row of bars, unplayed in onde repos, played in the cover accent, growing slightly under the pointer and while dragging.

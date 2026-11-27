@@ -4,3 +4,6 @@
 .identity dt { color: var(--gpc-ink-soft); }
 .identity dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 .identity dd.mono { font-weight: 500; }
+.submit-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.saved-msg { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--gpc-compat-ok); font-size: 13.5px; font-weight: 600; }
+.saved-msg mat-icon { font-size: 18px; width: 18px; height: 18px; }

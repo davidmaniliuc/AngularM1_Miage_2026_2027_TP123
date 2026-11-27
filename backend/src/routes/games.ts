@@ -101,7 +101,7 @@ function parseFields(body: Body, partial: boolean) {
   const compat = text(body, "compat");
   if (compat !== undefined) {
     if (!isCompat(compat)) {
-      throw new HTTPException(400, { message: "compat doit valoir untested, tested ou broken" });
+      throw new HTTPException(400, { message: "compat doit valoir untested, tested, issues ou broken" });
     }
     fields.compat = compat;
   }
