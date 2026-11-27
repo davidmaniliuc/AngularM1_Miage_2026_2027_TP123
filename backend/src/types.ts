@@ -60,6 +60,8 @@ export interface PublicGame {
   region?: string;
   year?: number;
   favorite: boolean;
+  /** Test dans l'émulateur : "untested", "tested" ou "broken". */
+  compat: "untested" | "tested" | "broken";
   /** Une pochette est disponible sur GET /games/:id/cover. */
   hasCover: boolean;
   /** L'image disque, téléchargeable sur GET /games/:id/disc. */

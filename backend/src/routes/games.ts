@@ -9,6 +9,7 @@ import {
   MAX_YEAR,
   MIN_YEAR,
   SERIAL_PATTERN,
+  isCompat,
   isGenre,
   isRegion,
   type GameDoc,
@@ -17,6 +18,7 @@ import { coverPath, removeCover, saveCover } from "../lib/covers";
 import { TooLargeError, discardFiles, writeStream } from "../lib/uploads";
 import { Ps1Error, checkCue, identifyDiscFile, ps1Message } from "../lib/ps1";
 import { GAMES_DIR, MAX_GAME_SIZE } from "../config";
+import { discardSaves } from "./saves";
 import type { AppEnv, Page } from "../types";
 
 export const gamesRoutes = new Hono<AppEnv>();
@@ -39,7 +41,7 @@ function text(body: Body, key: string): string | undefined {
  * (PATCH) ; sinon le titre est obligatoire (POST).
  */
 function parseFields(body: Body, partial: boolean) {
-  const fields: Partial<Pick<GameDoc, "title" | "serial" | "genre" | "region" | "year" | "favorite">> & {
+  const fields: Partial<Pick<GameDoc, "title" | "serial" | "genre" | "region" | "year" | "favorite" | "compat">> & {
     unset: ("serial" | "genre" | "region" | "year")[];
   } = { unset: [] };
 
@@ -94,6 +96,14 @@ function parseFields(body: Body, partial: boolean) {
       throw new HTTPException(400, { message: "favorite doit valoir true ou false" });
     }
     fields.favorite = favorite === "true";
+  }
+
+  const compat = text(body, "compat");
+  if (compat !== undefined) {
+    if (!isCompat(compat)) {
+      throw new HTTPException(400, { message: "compat doit valoir untested, tested ou broken" });
+    }
+    fields.compat = compat;
   }
 
   return fields;
@@ -439,5 +449,6 @@ gamesRoutes.delete("/:id", async (c) => {
 
   await discardCover(game.coverStoredName);
   if (game.discStoredName) await discardFiles([discPath(game.discStoredName)]);
+  await discardSaves(game.id);
   return c.body(null, 204);
 });

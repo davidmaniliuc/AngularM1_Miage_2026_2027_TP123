@@ -7,6 +7,7 @@ import {
   BIOS_DIR,
   COVERS_DIR,
   GAMES_DIR,
+  SAVES_DIR,
   MAX_FILE_SIZE,
   UPLOADS_DIR,
 } from "../config";
@@ -18,7 +19,7 @@ import {
 export function ensureUploadsDir(): void {
   try {
     // recursive crée UPLOADS_DIR en même temps que ses sous-dossiers.
-    for (const dir of [COVERS_DIR, GAMES_DIR, BIOS_DIR]) {
+    for (const dir of [COVERS_DIR, GAMES_DIR, BIOS_DIR, SAVES_DIR]) {
       fs.mkdirSync(dir, { recursive: true });
     }
     console.log(`[startup] Dossier des uploads prêt : ${UPLOADS_DIR}`);

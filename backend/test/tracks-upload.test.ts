@@ -65,7 +65,7 @@ function audio(name = "song.mp3"): Promise<File> {
 function filesOnDisk(): string[] {
   return [
     // Les sous-dossiers (pochettes, jeux, BIOS) ne sont pas des fichiers audio.
-    ...fs.readdirSync(UPLOADS_DIR).filter((name) => !["covers", "games", "bios"].includes(name)),
+    ...fs.readdirSync(UPLOADS_DIR).filter((name) => !["covers", "games", "bios", "saves"].includes(name)),
     ...fs.readdirSync(COVERS_DIR),
   ];
 }
