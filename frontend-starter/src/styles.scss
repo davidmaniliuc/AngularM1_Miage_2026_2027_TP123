@@ -35,6 +35,10 @@ html {
   @include mat.dialog-overrides((
     container-shape: 4px,
     container-color: var(--gpc-inlay),
+    subhead-font: 'Archivo',
+    subhead-size: 20px,
+    subhead-weight: 800,
+    subhead-tracking: -0.015em,
   ));
   @include mat.menu-overrides((
     container-shape: 3px,
@@ -88,6 +92,11 @@ html {
   --gpc-live-spine: #f06a62;
   --gpc-wave-rest: #63656c;
 
+  /* Statut dans l'émulateur : lisibles à 4.5:1 sur le sol et la jaquette. */
+  --gpc-compat-ok: light-dark(#1b7453, #52c79c);
+  --gpc-compat-issues: light-dark(#8a560b, #e5a64a);
+  --gpc-compat-broken: light-dark(#b3261e, #f27b73);
+
   /* Couleur des tuiles sans pochette, par format. */
   --gpc-format-mp3: #17664f;
   --gpc-format-m4a: #3d55b8;
@@ -115,6 +124,7 @@ html {
   --mat-sys-outline: var(--gpc-edge);
   --mat-sys-outline-variant: var(--gpc-edge-soft);
   --mat-sys-error: light-dark(#b3261e, #ff8a80);
+  --mat-sys-on-error: light-dark(#ffffff, #410002);
   --mat-sys-on-error-container: light-dark(#5c1410, #ffdad6);
   --mat-sys-error-container: light-dark(#fbe9e7, #4a1a17);
 }
@@ -145,6 +155,8 @@ h1 { margin: 0; font-size: 34px; font-weight: 800; line-height: 1.1; letter-spac
 
 /* Les boutons Material gardent leurs 3px même quand une page les agrandit. */
 .mat-mdc-button-base { letter-spacing: 0; }
+/* Bord d'arête 1px sur les boîtes de dialogue, comme sur les boîtiers. */
+.mat-mdc-dialog-surface { border: 1px solid var(--gpc-edge); }
 
 /*
  * Pages de formulaire du TP1 (connexion, inscription, profil) : une jaquette
@@ -203,6 +215,25 @@ h1 { margin: 0; font-size: 34px; font-weight: 800; line-height: 1.1; letter-spac
 .card button:hover { background: color-mix(in srgb, var(--gpc-ink) 86%, var(--gpc-case)); }
 .card button:disabled { opacity: 0.45; cursor: default; }
 .card .alt { margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--gpc-edge-soft); font-size: 14px; color: var(--gpc-ink-soft); }
-.card .error { margin: 14px 0 0; font-size: 14px; }
+.card .error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+  border-radius: 3px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.card .error mat-icon { flex: none; font-size: 18px; width: 18px; height: 18px; color: var(--mat-sys-error); }
+
+@media (max-width: 560px) {
+  .card { grid-template-columns: 20px minmax(0, 1fr); margin-top: 16px; }
+  .card > .body { padding: 24px 20px 22px; }
+  .card h1 { font-size: 26px; }
+}
 
 :focus-visible { outline: 2px solid var(--gpc-ps-cross); outline-offset: 2px; }

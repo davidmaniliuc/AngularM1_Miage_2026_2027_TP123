@@ -8,18 +8,20 @@ import { GamesLibraryComponent } from '../games-library/games-library';
   selector: 'app-games-page',
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
   template: `
-    <section class="games">
-      <h1>Jeux</h1>
-      <p class="summary">{{ count() }}</p>
-      <nav class="subnav" aria-label="Sections des jeux">
-        <a
-          routerLink="/games"
-          [class.active]="!onBios()"
-          [attr.aria-current]="onBios() ? null : 'page'"
-          >Bibliothèque</a
-        >
-        <a routerLink="/games/bios" routerLinkActive="active" ariaCurrentWhenActive="page">BIOS</a>
-      </nav>
+    <section class="games" [class.playing]="onPlay()">
+      @if (!onPlay()) {
+        <h1>Jeux</h1>
+        <p class="summary">{{ count() }}</p>
+        <nav class="subnav" aria-label="Sections des jeux">
+          <a
+            routerLink="/games"
+            [class.active]="!onBios()"
+            [attr.aria-current]="onBios() ? null : 'page'"
+            >Bibliothèque</a
+          >
+          <a routerLink="/games/bios" routerLinkActive="active" ariaCurrentWhenActive="page">BIOS</a>
+        </nav>
+      }
       <router-outlet (activate)="onActivate($event)" />
     </section>
   `,
@@ -53,6 +55,16 @@ export class GamesPageComponent {
       filter((event) => event instanceof NavigationEnd),
       startWith(null),
       map(() => this.router.url.startsWith('/games/bios')),
+    ),
+    { initialValue: false },
+  );
+
+  /** Hide library header/tabs while playing so the PS1 stage owns the viewport. */
+  readonly onPlay = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      startWith(null),
+      map(() => /^\/games\/[^/]+\/play(?:\?|#|$)/.test(this.router.url)),
     ),
     { initialValue: false },
   );

@@ -70,11 +70,13 @@ interface AnimatedButton {
   selector: 'app-ps1-scene-3d',
   template: `
     <div #viewport class="viewport" data-testid="scene-3d" (pointerdown)="onInteract()">
-      @if (loadingModel()) {
-        <div class="scene-loading" role="status" aria-live="polite">Chargement de la scène 3D…</div>
-      }
-      @if (!loadingModel() && !interacted()) {
-        <p class="hint" aria-hidden="true">Glisser pour pivoter · Molette pour zoomer</p>
+      <!-- Disparaît au premier geste, au zoom télé, ou seule après quelques secondes. -->
+      @if (!loadingModel() && !interacted() && !paused() && cameraPreset() !== 'screen') {
+        <p class="hint" aria-hidden="true">
+          <span><kbd>Glisser</kbd>tourner</span>
+          <span><kbd>Molette</kbd>zoomer</span>
+          <span><kbd>V</kbd>zoom télé</span>
+        </p>
       }
     </div>
   `,
@@ -84,37 +86,48 @@ interface AnimatedButton {
       position: relative;
       width: 100%;
       height: 100%;
-      min-height: 420px;
+      min-height: 0;
       background: #0b0b0c;
       overflow: hidden;
       cursor: grab;
       touch-action: none;
     }
     .viewport:active { cursor: grabbing; }
-    .scene-loading {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      color: var(--gpc-spine-ink-soft);
-      font: 500 12px/1 var(--gpc-mono);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      pointer-events: none;
-    }
     .hint {
       position: absolute;
-      right: 12px;
-      bottom: 10px;
+      left: 50%;
+      bottom: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px 14px;
+      max-width: calc(100% - 24px);
       margin: 0;
-      padding: 4px 8px;
-      border-radius: 2px;
-      background: #0b0b0cc8;
-      color: var(--gpc-spine-ink-soft);
-      font: 500 11px/1.2 var(--gpc-mono);
-      letter-spacing: 0.04em;
+      padding: 7px 12px;
+      border: 1px solid #2f3138;
+      border-radius: 3px;
+      background: #0b0b0ce0;
+      color: var(--gpc-spine-ink);
+      font: 500 12px/1 Archivo, system-ui, sans-serif;
+      white-space: nowrap;
       pointer-events: none;
+      transform: translateX(-50%);
+      animation: hint-out 600ms ease-in 7s forwards;
     }
+    .hint span { display: inline-flex; align-items: center; gap: 6px; }
+    .hint kbd {
+      padding: 3px 5px;
+      border: 1px solid #454750;
+      border-radius: 2px;
+      background: #17181c;
+      color: var(--gpc-spine-ink);
+      font: 500 10px/1 var(--gpc-mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    @keyframes hint-out { to { opacity: 0; visibility: hidden; } }
+    @media (max-width: 560px) { .hint { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .hint { animation-timing-function: step-end; } }
   `,
 })
 export class Ps1Scene3dComponent {
@@ -138,6 +151,8 @@ export class Ps1Scene3dComponent {
 
   /** Emitted if WebGL cannot be initialized or the 3D asset fails to load. */
   readonly webglFailed = output<void>();
+  /** Emitted once the living-room model is in the scene. */
+  readonly ready = output<void>();
 
   readonly loadingModel = signal(true);
   readonly interacted = signal(false);
@@ -380,6 +395,7 @@ export class Ps1Scene3dComponent {
         this.positionLightsAndPoses(gltf.scene);
         this.applyCameraPreset(this.cameraPreset(), true);
         this.loadingModel.set(false);
+        this.ready.emit();
       },
       undefined,
       (error) => {

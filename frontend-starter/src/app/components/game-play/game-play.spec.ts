@@ -202,7 +202,26 @@ describe('GamePlayComponent', () => {
       window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyX' }));
       expect(cmp.pressedMask()).toBe(PAD_IDLE);
 
+      // Toggle mute via button and KeyU (AZERTY/QWERTY invariant)
+      expect(cmp.muted()).toBe(false);
+      cmp.toggleMute();
+      expect(cmp.muted()).toBe(true);
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyU' }));
+      expect(cmp.muted()).toBe(false);
+
+      // Two-click reset guard requires confirmation before resetting the core
+      cmp.requestReset();
+      expect(cmp.confirmingReset()).toBe(true);
+      expect(fakeCore.reset).not.toHaveBeenCalled();
+      cmp.requestReset();
+      expect(cmp.confirmingReset()).toBe(false);
+      expect(fakeCore.reset).toHaveBeenCalledTimes(1);
+
       // Toggle 2D/3D and verify graceful WebGL fallback
+      cmp.setViewMode('2d');
+      expect(cmp.viewMode()).toBe('2d');
+      cmp.setViewMode('3d');
+      expect(cmp.viewMode()).toBe('3d');
       cmp.toggleViewMode();
       expect(cmp.viewMode()).toBe('2d');
       cmp.toggleViewMode();

@@ -115,13 +115,29 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
       >
         <mat-icon [class.icon-fill]="query().favorite">favorite</mat-icon>Favoris
       </button>
+      @if (hasFilters()) {
+        <button mat-button type="button" class="clear-inline" (click)="clearFilters()">Effacer</button>
+      }
     </div>
 
-    @if (loading()) {
+    @if (loading() && loaded()) {
       <mat-progress-bar mode="indeterminate" class="loading" aria-label="Chargement des jeux" />
     }
     @if (error()) {
-      <p class="error" role="alert">{{ error() }}</p>
+      <div class="banner" role="alert">
+        <mat-icon class="icon-fill">error</mat-icon>
+        <span>{{ error() }}</span>
+      </div>
+    } @else if (!loaded() && loading()) {
+      <ul class="games skeletons" role="status" aria-label="Chargement des jeux">
+        @for (slot of skeletonSlots; track slot) {
+          <li aria-hidden="true">
+            <span class="skel-case"><span class="skel-spine"></span><span class="skel-cover"></span></span>
+            <span class="skel-line"></span>
+            <span class="skel-line short"></span>
+          </li>
+        }
+      </ul>
     } @else if (loaded() && games().length === 0) {
       <div class="empty">
         @if (hasFilters()) {
@@ -155,7 +171,12 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
             </span>
             <b>{{ game.title }}</b>
             <small>{{ subtitle(game) }}</small>
-            <app-compat-badge [compat]="game.compat" />
+            <span class="status-row">
+              <app-compat-badge [compat]="game.compat" />
+              @if (game.disc) {
+                <span class="disc-pill mono">{{ game.disc.format.toUpperCase() }}</span>
+              }
+            </span>
           </a>
           <button
             type="button"
@@ -190,7 +211,8 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
     .actions { display: flex; gap: 8px; }
     .actions button { height: 40px; }
 
-    .filters { display: grid; grid-template-columns: minmax(200px, 1fr) repeat(3, 196px) auto; gap: 8px; margin-bottom: 32px; }
+    .filters { display: grid; grid-template-columns: minmax(200px, 1fr) repeat(3, 184px) auto auto; gap: 8px; margin-bottom: 32px; align-items: center; }
+    .clear-inline { height: 40px; }
     .filters mat-form-field {
       --mat-form-field-container-height: 40px;
       --mat-form-field-container-vertical-padding: 8px;
@@ -283,9 +305,59 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
 
     /* 44px de zone cliquable autour du disque de 30px. */
     .fav { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #fff; cursor: pointer; }
-    .fav::before { content: ''; position: absolute; inset: 7px; border-radius: 50%; background: #0b0b0ccc; }
+    .fav::before {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border-radius: 50%;
+      border: 1px solid #ffffff29;
+      background: #0b0b0cd4;
+      transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms;
+    }
+    .fav:hover::before { transform: scale(1.08); background: #0b0b0c; }
     .fav mat-icon { position: relative; font-size: 18px; width: 18px; height: 18px; }
     .fav[aria-pressed='true'] mat-icon { color: var(--gpc-ps-circle); }
+
+    .status-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 2px; }
+    .disc-pill {
+      padding: 2px 5px;
+      border: 1px solid var(--gpc-edge);
+      border-radius: 2px;
+      background: var(--gpc-inlay);
+      color: var(--gpc-ink-soft);
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    .banner {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 10px 14px;
+      border: 1px solid color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+      border-radius: 3px;
+      background: var(--mat-sys-error-container);
+      color: var(--mat-sys-on-error-container);
+    }
+    .banner > mat-icon { color: var(--mat-sys-error); }
+
+    .skeletons li { display: grid; gap: 8px; }
+    .skel-case {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      aspect-ratio: 1.1;
+      border: 1px solid var(--gpc-edge-soft);
+      border-radius: 2px;
+      background: var(--gpc-inlay);
+      overflow: hidden;
+    }
+    .skel-spine { background: var(--gpc-spine); opacity: 0.3; }
+    .skel-cover { margin: 3px; background: var(--gpc-edge-soft); opacity: 0.5; }
+    .skel-line { height: 13px; width: 78%; border-radius: 2px; background: var(--gpc-edge-soft); opacity: 0.7; }
+    .skel-line.short { height: 10px; width: 52%; opacity: 0.45; }
 
     .empty {
       display: grid;
@@ -301,15 +373,15 @@ const SORTS: { value: string; label: string; sort: GameSort; order: 'asc' | 'des
     .empty > mat-icon { font-size: 32px; width: 32px; height: 32px; color: var(--gpc-ink-soft); }
     .ring { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--gpc-spine); color: var(--gpc-spine-ink); box-shadow: inset 0 0 0 22px var(--gpc-spine), inset 0 0 0 24px #44464d; }
     .ring mat-icon { font-size: 26px; width: 26px; height: 26px; }
-    .error { color: var(--mat-sys-error); }
     .loading { margin: -20px 0 16px; }
 
     mat-paginator { margin-top: 24px; }
 
     @media (prefers-reduced-motion: reduce) {
-      .case, .disc { transition: none; }
+      .case, .disc, .fav::before { transition: none; }
       a:hover .case, a:focus-visible .case { transform: none; }
       a:hover .disc, a:focus-visible .disc { rotate: none; }
+      .fav:hover::before { transform: none; }
     }
 
     @container (max-width: 820px) {
@@ -334,6 +406,7 @@ export class GamesLibraryComponent {
   readonly genres = GENRES;
   readonly sorts = SORTS;
   readonly pageSizes = [12, 24, 48];
+  readonly skeletonSlots = [1, 2, 3, 4, 5, 6];
 
   readonly games = signal<Game[]>([]);
   readonly loaded = signal(false);

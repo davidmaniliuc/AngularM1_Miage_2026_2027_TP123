@@ -8,7 +8,7 @@
       <button type="submit">Créer mon compte</button>
     </form>
     @if (error()) {
-      <p class="error" role="alert">{{ error() }}</p>
+      <p class="error" role="alert"><mat-icon class="icon-fill">error</mat-icon><span>{{ error() }}</span></p>
     }
     <p class="alt">Déjà inscrit ? <a routerLink="/login">Se connecter</a></p>
   </div>

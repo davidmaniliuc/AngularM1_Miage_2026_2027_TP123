@@ -154,6 +154,8 @@
 
 @container (max-width: 560px) {
   .track-card { grid-template-columns: 68px minmax(0, 1fr) 40px; gap: 12px; padding: 10px 4px 10px 4px; }
+  .track-card:hover .disc, .stage:has(.cover:focus-visible) .disc { translate: none; rotate: none; }
+  .track-card:hover .cover, .cover:focus-visible { transform: none; }
   .size, time { display: none; }
   .mobile-meta { display: block; }
 }

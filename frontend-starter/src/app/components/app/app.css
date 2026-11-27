@@ -82,8 +82,10 @@ nav > a.active { color: var(--gpc-spine-active-ink); background: var(--gpc-spine
 }
 .logout:hover { --mat-button-text-label-text-color: var(--gpc-spine-ink); }
 
-main { min-width: 0; padding: 36px clamp(16px, 4vw, 48px) 48px; }
-main.with-player { padding-bottom: calc(var(--gpc-dock) + 40px); }
+main { min-width: 0; padding: 36px clamp(16px, 4vw, 48px) 48px; --gpc-play-chrome: 174px; }
+main.with-player { padding-bottom: calc(var(--gpc-dock) + 40px); --gpc-play-chrome: calc(174px + var(--gpc-dock)); }
+main:has(app-game-play) { padding-top: 18px; padding-bottom: 18px; }
+main.with-player:has(app-game-play) { padding-bottom: calc(var(--gpc-dock) + 20px); }
 main > * { display: block; max-width: 1240px; }
 
 @media (max-width: 760px) {
@@ -113,14 +115,15 @@ main > * { display: block; max-width: 1240px; }
   nav > a:hover { background: none; }
   /* Section ouverte : soulignée de la couleur de son symbole, pas de pilule. */
   nav > a.active { color: var(--gpc-spine-ink); background: none; box-shadow: inset 0 -3px 0 var(--mark, var(--gpc-spine-ink)); }
-  nav > a:nth-of-type(1) { --mark: var(--gpc-ps-cross); }
-  nav > a:nth-of-type(2) { --mark: var(--gpc-ps-circle); }
-  nav > a:nth-of-type(3) { --mark: var(--gpc-ps-triangle); }
+  nav > a:has(.ps-cross) { --mark: var(--gpc-ps-cross); }
+  nav > a:has(.ps-circle) { --mark: var(--gpc-ps-circle); }
+  nav > a:has(.ps-triangle) { --mark: var(--gpc-ps-triangle); }
   .foot { display: flex; align-items: center; gap: 4px; margin: 0 0 0 auto; padding-bottom: 3px; }
   .strip, .user { display: none; }
   .logout { min-width: 40px; --mat-button-text-horizontal-padding: 8px; }
   .logout mat-icon { margin: 0; }
   main { padding: 24px 16px 40px; }
+  main.with-player { padding-bottom: calc(var(--gpc-dock) + 72px); }
 }
 @media (max-width: 400px) {
   nav > a { padding: 0 7px; gap: 6px; font-size: 13.5px; }
