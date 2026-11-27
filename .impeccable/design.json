@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-19T08:04:50+00:00",
+  "generatedAt": "2026-11-27T18:20:00+00:00",
   "title": "Design System: Guitar Practice Cloud (nom provisoire)",
   "extensions": {
     "colorMeta": {
@@ -94,6 +94,21 @@
           "#fafafb"
         ]
       },
+      "arete-controle": {
+        "role": "neutral",
+        "displayName": "Arête contrôle (control border, 3:1 WCAG 1.4.11)",
+        "canonical": "light-dark(#7a7e87, #6a6d76)",
+        "tonalRamp": [
+          "#18191b",
+          "#313236",
+          "#494c51",
+          "#62656c",
+          "#9b9ea5",
+          "#b6b8bd",
+          "#d1d3d6",
+          "#ececed"
+        ]
+      },
       "on-encre": {
         "role": "primary",
         "displayName": "On-encre",
@@ -167,6 +182,36 @@
           "#c6c8cc",
           "#e3e4e6",
           "#f4f4f5"
+        ]
+      },
+      "dos-actif": {
+        "role": "secondary",
+        "displayName": "Dos actif (active nav & tray toggle surface)",
+        "canonical": "#f6f7f9",
+        "tonalRamp": [
+          "#313132",
+          "#626364",
+          "#949495",
+          "#c5c6c7",
+          "#f8f9fa",
+          "#fafbfc",
+          "#fdfdfe",
+          "#fefefe"
+        ]
+      },
+      "dos-actif-encre": {
+        "role": "secondary",
+        "displayName": "Dos actif encre (text on active nav & tray toggle)",
+        "canonical": "#121316",
+        "tonalRamp": [
+          "#040404",
+          "#070809",
+          "#0b0b0d",
+          "#0e0f12",
+          "#4d4e50",
+          "#88898a",
+          "#c4c4c5",
+          "#e7e7e8"
         ]
       },
       "ps-triangle": {
@@ -244,19 +289,79 @@
           "#f9ebea"
         ]
       },
+      "lecture-dos": {
+        "role": "tertiary",
+        "displayName": "Lecture dos (now-playing fallback on black tray)",
+        "canonical": "#f06a62",
+        "tonalRamp": [
+          "#301514",
+          "#602a27",
+          "#90403b",
+          "#c0554e",
+          "#f48f89",
+          "#f8b5b1",
+          "#fbdad8",
+          "#fdf0ef"
+        ]
+      },
       "onde-repos": {
         "role": "secondary",
-        "displayName": "Onde repos",
-        "canonical": "#3a3b40",
+        "displayName": "Onde repos (unplayed waveform bars, 3.4:1 on Dos)",
+        "canonical": "#63656c",
         "tonalRamp": [
-          "#0c0c0d",
-          "#17181a",
-          "#232326",
-          "#2e2f33",
-          "#6b6c70",
-          "#9c9da0",
-          "#cececf",
-          "#ebebec"
+          "#141416",
+          "#28282b",
+          "#3b3d41",
+          "#4f5156",
+          "#8a8c91",
+          "#b1b2b6",
+          "#d8d9db",
+          "#eff0f1"
+        ]
+      },
+      "compat-ok": {
+        "role": "tertiary",
+        "displayName": "Compat Marche (4.5:1+)",
+        "canonical": "light-dark(#1b7453, #52c79c)",
+        "tonalRamp": [
+          "#051711",
+          "#0b2e21",
+          "#104632",
+          "#165d42",
+          "#54977e",
+          "#8db9a9",
+          "#c6dcd4",
+          "#e8f1ee"
+        ]
+      },
+      "compat-issues": {
+        "role": "tertiary",
+        "displayName": "Compat Problèmes (4.5:1+)",
+        "canonical": "light-dark(#8a560b, #e5a64a)",
+        "tonalRamp": [
+          "#1c1102",
+          "#372204",
+          "#533407",
+          "#6e4509",
+          "#a78048",
+          "#c4ab85",
+          "#e2d5c2",
+          "#f3eee7"
+        ]
+      },
+      "compat-broken": {
+        "role": "error",
+        "displayName": "Compat Ne marche pas (4.5:1+)",
+        "canonical": "light-dark(#b3261e, #f27b73)",
+        "tonalRamp": [
+          "#240806",
+          "#480f0c",
+          "#6b1712",
+          "#8f1e18",
+          "#c65c56",
+          "#d9928e",
+          "#ecc9c7",
+          "#f7e9e8"
         ]
       },
       "erreur": {
@@ -272,6 +377,21 @@
           "#d9928e",
           "#ecc9c7",
           "#f7e9e8"
+        ]
+      },
+      "on-erreur": {
+        "role": "error",
+        "displayName": "On-erreur (--mat-sys-on-error)",
+        "canonical": "light-dark(#ffffff, #410002)",
+        "tonalRamp": [
+          "#333333",
+          "#666666",
+          "#999999",
+          "#cccccc",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff"
         ]
       },
       "erreur-container": {
@@ -504,6 +624,21 @@
         "name": "track-row",
         "value": "560px (container)",
         "purpose": "Track row drops size and date columns."
+      },
+      {
+        "name": "play-tray-3d",
+        "value": "940px (container)",
+        "purpose": "3D console tray stacks icon over label on one row and drops keycaps."
+      },
+      {
+        "name": "play-tray-2d",
+        "value": "740px (container)",
+        "purpose": "2D console tray stacks icon over label on one row and drops keycaps."
+      },
+      {
+        "name": "play-tray-mobile",
+        "value": "540px (container)",
+        "purpose": "Console tray becomes a balanced 4-column grid; Touches and Plein écran span 2 columns each in 3D."
       }
     ]
   },
@@ -522,7 +657,7 @@
       "refersTo": "button-secondary",
       "description": "Outlined ink for the other toolbar actions.",
       "html": "<button class=\"ds-btn-secondary\">Saisir à la main</button>",
-      "css": ".ds-btn-secondary{height:40px;padding:0 18px;font:600 14px/1 Archivo,system-ui,sans-serif;color:light-dark(#121316,#ececef);background:transparent;border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:3px;cursor:pointer}.ds-btn-secondary:hover{border-color:light-dark(#121316,#ececef)}.ds-btn-secondary:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}"
+      "css": ".ds-btn-secondary{height:40px;padding:0 18px;font:600 14px/1 Archivo,system-ui,sans-serif;color:light-dark(#121316,#ececef);background:transparent;border:1px solid light-dark(#7a7e87,#6a6d76);border-radius:3px;cursor:pointer}.ds-btn-secondary:hover{border-color:light-dark(#121316,#ececef)}.ds-btn-secondary:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}"
     },
     {
       "name": "Segmented Scope",
@@ -530,7 +665,7 @@
       "refersTo": "segmented-selected",
       "description": "Three joined choices; the selected one is solid ink.",
       "html": "<div class=\"ds-scope\"><button class=\"ds-on\">Tout</button><button>Les miens</button><button>Publics</button></div>",
-      "css": ".ds-scope{display:inline-grid;grid-template-columns:repeat(3,auto);height:40px;border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:3px;background:light-dark(#f6f7f9,#1e1f23);overflow:hidden}.ds-scope button{padding:0 14px;border:0;background:none;font:600 14px Archivo,system-ui,sans-serif;color:light-dark(#4f525a,#a6a9b1);cursor:pointer}.ds-scope button+button{border-left:1px solid light-dark(#cbced4,#2d2f34)}.ds-scope button:hover{color:light-dark(#121316,#ececef)}.ds-scope button.ds-on{background:light-dark(#121316,#ececef);color:light-dark(#fff,#121316)}.ds-scope button:focus-visible{outline:2px solid #4a7bd6;outline-offset:-3px}"
+      "css": ".ds-scope{display:inline-grid;grid-template-columns:repeat(3,auto);height:40px;border:1px solid light-dark(#7a7e87,#6a6d76);border-radius:3px;background:light-dark(#f6f7f9,#1e1f23);overflow:hidden}.ds-scope button{padding:0 14px;border:0;background:none;font:600 14px Archivo,system-ui,sans-serif;color:light-dark(#4f525a,#a6a9b1);cursor:pointer}.ds-scope button+button{border-left:1px solid light-dark(#cbced4,#2d2f34)}.ds-scope button:hover{color:light-dark(#121316,#ececef)}.ds-scope button.ds-on{background:light-dark(#121316,#ececef);color:light-dark(#fff,#121316)}.ds-scope button:focus-visible{outline:2px solid #4a7bd6;outline-offset:-3px}"
     },
     {
       "name": "Search Field",
@@ -538,7 +673,7 @@
       "refersTo": "input-field",
       "description": "Inlay field with a 1px edge; focus is an ink ring, no glow.",
       "html": "<label class=\"ds-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"6\"/><path d=\"M20 20l-4.5-4.5\"/></svg><input placeholder=\"Rechercher une piste\"></label>",
-      "css": ".ds-search{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid light-dark(#a9adb5,#4a4d55);border-radius:3px;background:light-dark(#f6f7f9,#1e1f23);color:light-dark(#4f525a,#a6a9b1)}.ds-search:hover{border-color:light-dark(#4f525a,#a6a9b1)}.ds-search:focus-within{border-color:light-dark(#121316,#ececef);box-shadow:0 0 0 1px light-dark(#121316,#ececef)}.ds-search input{width:210px;border:0;outline:0;background:none;font:14px Archivo,system-ui,sans-serif;color:light-dark(#121316,#ececef)}"
+      "css": ".ds-search{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid light-dark(#7a7e87,#6a6d76);border-radius:3px;background:light-dark(#f6f7f9,#1e1f23);color:light-dark(#4f525a,#a6a9b1)}.ds-search:hover{border-color:light-dark(#4f525a,#a6a9b1)}.ds-search:focus-within{border-color:light-dark(#121316,#ececef);box-shadow:0 0 0 1px light-dark(#121316,#ececef)}.ds-search input{width:210px;border:0;outline:0;background:none;font:14px Archivo,system-ui,sans-serif;color:light-dark(#121316,#ececef)}"
     },
     {
       "name": "Spine Nav",
@@ -546,7 +681,7 @@
       "refersTo": "spine-rail",
       "description": "Black rail with controller-symbol nav; the active item is the inlay pulled out of the spine.",
       "html": "<nav class=\"ds-spine\"><a class=\"ds-on\"><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 3.5l9 9m0-9l-9 9\" stroke=\"#4a7bd6\"/></svg>Jeux</a><a><svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"4.8\" stroke=\"#e0463f\"/></svg>Musique</a><a><svg viewBox=\"0 0 16 16\"><path d=\"M8 3l5.2 9H2.8z\" stroke=\"#3eb489\"/></svg>Profil</a><span class=\"ds-strip\"><i></i><i></i><i></i><i></i></span></nav>",
-      "css": ".ds-spine{display:flex;flex-direction:column;gap:2px;width:216px;padding:22px 16px 18px;background:#0b0b0c;box-shadow:inset -3px 0 0 #1b1b1e}.ds-spine a{display:flex;align-items:center;gap:12px;height:42px;padding:0 10px;border-radius:3px;color:#8e9199;font:600 15px Archivo,system-ui,sans-serif;cursor:pointer;transition:color .15s,background-color .15s}.ds-spine a:hover{color:#ececee;background:#1b1b1e}.ds-spine a.ds-on{color:light-dark(#121316,#ececef);background:light-dark(#f6f7f9,#1e1f23)}.ds-spine a:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}.ds-spine svg{width:16px;height:16px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ds-strip{display:flex;height:4px;margin-top:24px}.ds-strip i{flex:1}.ds-strip i:nth-child(1){background:#3eb489}.ds-strip i:nth-child(2){background:#e0463f}.ds-strip i:nth-child(3){background:#4a7bd6}.ds-strip i:nth-child(4){background:#e27bb4}"
+      "css": ".ds-spine{display:flex;flex-direction:column;gap:2px;width:216px;padding:22px 16px 18px;background:#0b0b0c;box-shadow:inset -3px 0 0 #1b1b1e}.ds-spine a{display:flex;align-items:center;gap:12px;height:42px;padding:0 10px;border-radius:3px;color:#8e9199;font:600 15px Archivo,system-ui,sans-serif;cursor:pointer;transition:color .15s,background-color .15s}.ds-spine a:hover{color:#ececee;background:#1b1b1e}.ds-spine a.ds-on{color:#121316;background:#f6f7f9}.ds-spine a:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}.ds-spine svg{width:16px;height:16px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ds-strip{display:flex;height:4px;margin-top:24px}.ds-strip i{flex:1}.ds-strip i:nth-child(1){background:#3eb489}.ds-strip i:nth-child(2){background:#e0463f}.ds-strip i:nth-child(3){background:#4a7bd6}.ds-strip i:nth-child(4){background:#e27bb4}"
     },
     {
       "name": "Jewel Case",
@@ -562,7 +697,7 @@
       "refersTo": "player-dock",
       "description": "Signature: black tray with the cover, a disc that spins while playing, and a cover-tinted waveform.",
       "html": "<div class=\"ds-tray\"><span class=\"ds-now\"><span class=\"ds-disc\"></span><span class=\"ds-tcover\">FLAC</span></span><button class=\"ds-play\" aria-label=\"Lecture\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M8 5v14l11-7z\"/></svg></button><span class=\"ds-wave\"><i class=\"p\" style=\"height:40%\"></i><i class=\"p\" style=\"height:80%\"></i><i class=\"p\" style=\"height:60%\"></i><i style=\"height:90%\"></i><i style=\"height:50%\"></i><i style=\"height:70%\"></i><i style=\"height:35%\"></i></span></div>",
-      "css": ".ds-tray{--live:#f06a62;display:flex;align-items:center;gap:24px;min-height:76px;padding:10px 24px;background:#0b0b0c;color:#ececee;box-shadow:inset 0 3px 0 #1b1b1e,0 -12px 28px -20px #000c}.ds-now{position:relative;display:flex;align-items:center}.ds-disc{position:absolute;left:34px;top:50%;width:48px;height:48px;margin-top:-24px;border-radius:50%;background:radial-gradient(circle,#0b0b0c 0 5px,#c9ccd2 5.5px 7px,transparent 7.5px),conic-gradient(from 20deg,#8d9098,#eef0f3,#b8bbc2,#eef0f3,#8d9098);animation:ds-spin 2.4s linear infinite}.ds-tcover{position:relative;z-index:1;display:grid;place-items:center;width:52px;height:52px;margin-right:24px;border-radius:2px;background:#2f6f8f;box-shadow:0 0 0 1px #2c2d31;font:600 10px/1 'Spline Sans Mono',monospace;letter-spacing:.08em}.ds-play{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;color:#0b0b0c;background:#ececee;cursor:pointer;transition:transform .15s}.ds-play:hover{transform:scale(1.06)}.ds-play:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}.ds-wave{display:flex;align-items:center;gap:2px;height:36px;flex:1}.ds-wave i{flex:1;background:#3a3b40}.ds-wave i.p{background:var(--live)}@keyframes ds-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.ds-disc{animation:none}.ds-play{transition:none}}"
+      "css": ".ds-tray{--live:#f06a62;display:flex;align-items:center;gap:24px;min-height:76px;padding:10px 24px;background:#0b0b0c;color:#ececee;box-shadow:inset 0 3px 0 #1b1b1e,0 -12px 28px -20px #000c}.ds-now{position:relative;display:flex;align-items:center}.ds-disc{position:absolute;left:34px;top:50%;width:48px;height:48px;margin-top:-24px;border-radius:50%;background:radial-gradient(circle,#0b0b0c 0 5px,#c9ccd2 5.5px 7px,transparent 7.5px),conic-gradient(from 20deg,#8d9098,#eef0f3,#b8bbc2,#eef0f3,#8d9098);animation:ds-spin 2.4s linear infinite}.ds-tcover{position:relative;z-index:1;display:grid;place-items:center;width:52px;height:52px;margin-right:24px;border-radius:2px;background:#2f6f8f;box-shadow:0 0 0 1px #2c2d31;font:600 10px/1 'Spline Sans Mono',monospace;letter-spacing:.08em}.ds-play{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;color:#0b0b0c;background:#ececee;cursor:pointer;transition:transform .15s}.ds-play:hover{transform:scale(1.06)}.ds-play:focus-visible{outline:2px solid #4a7bd6;outline-offset:2px}.ds-wave{display:flex;align-items:center;gap:2px;height:36px;flex:1}.ds-wave i{flex:1;background:#63656c}.ds-wave i.p{background:var(--live)}@keyframes ds-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.ds-disc{animation:none}.ds-play{transition:none}}"
     },
     {
       "name": "Form Card",
