@@ -3,17 +3,19 @@ import { Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@a
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { PadHelpDialogComponent } from './pad-help-dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AUDIO_SAMPLE_RATE, Ps1Core, Ps1Error, Ps1ErrorCode, toBytes } from '@davidmaniliuc/substation';
-import { isPadKey, padMask, PAD_IDLE } from '../../shared/utils/pad';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { Game } from '../../shared/models/game.model';
 import { BiosService } from '../../shared/services/bios.service';
 import { EmulatorService } from '../../shared/services/emulator.service';
-import { SaveService } from '../../shared/services/save.service';
 import { GameService } from '../../shared/services/game.service';
+import { SaveService } from '../../shared/services/save.service';
+import { isPadKey, padMask, PAD_IDLE } from '../../shared/utils/pad';
+import { sampleFrameColor } from './frame-color';
+import { PadHelpDialogComponent } from './pad-help-dialog';
+import { Ps1Scene3dComponent, type CameraPreset } from './ps1-scene-3d';
 
 const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
   BAD_BIOS_SIZE: "Ce BIOS n'est pas valide (il doit faire exactement 512 Ko).",
@@ -26,10 +28,10 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
   CRASHED: "L'émulateur a planté. Relancez le jeu.",
 };
 
-/** Page /games/:id/play: downloads the disc and the BIOS, then runs the emulator on a canvas. */
+/** Page /games/:id/play: downloads the disc and the BIOS, then runs the emulator in a 3D CRT/PS1 setup (or 2D fallback). */
 @Component({
   selector: 'app-game-play',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressBarModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressBarModule, Ps1Scene3dComponent],
   template: `
     <a [routerLink]="['/games', id]" class="back"><mat-icon>arrow_back</mat-icon>Quitter la partie</a>
 
@@ -51,8 +53,32 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
         />
       </div>
     }
-    <div #stage class="stage" [hidden]="!running()">
-      <canvas #screen class="screen" aria-label="Écran du jeu" data-testid="screen"></canvas>
+    <div #stage class="stage" [class.stage-3d]="viewMode() === '3d'" [hidden]="!running()">
+      <canvas
+        #screen
+        class="screen"
+        [class.offscreen]="viewMode() === '3d'"
+        aria-label="Écran du jeu"
+        data-testid="screen"
+      ></canvas>
+      @if (viewMode() === '3d') {
+        @defer (when running() && viewMode() === '3d') {
+          <app-ps1-scene-3d
+            [sourceCanvas]="canvas().nativeElement"
+            [frameTick]="frameTick()"
+            [screenGlow]="screenGlow()"
+            [pressedMask]="pressedMask()"
+            [paused]="paused()"
+            [cameraPreset]="cameraPreset()"
+            [crtEffect]="crtEffect()"
+            (webglFailed)="onWebglFailed()"
+          />
+        } @placeholder {
+          <div class="scene-placeholder" aria-hidden="true"></div>
+        } @loading (minimum 150ms) {
+          <div class="scene-placeholder" role="status">Chargement du moteur 3D…</div>
+        }
+      }
       @if (paused()) {
         <div class="overlay" data-testid="paused" aria-live="polite">Pause</div>
       }
@@ -69,6 +95,54 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
           <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M24.5 11A9.5 9.5 0 1 0 25.5 18" /><path d="M25 5v6.5h-6.5" /></svg>
           <span>Reset</span>
         </button>
+        @if (viewMode() === '3d') {
+          <button
+            type="button"
+            class="ctl square"
+            data-testid="camera-zoom"
+            [attr.aria-pressed]="cameraPreset() === 'screen'"
+            (click)="toggleCameraPreset($event)"
+          >
+            <svg viewBox="0 0 32 32" aria-hidden="true">
+              <circle cx="14.5" cy="14.5" r="7.5" />
+              <path d="M20.2 20.2L26 26" />
+              @if (cameraPreset() === 'screen') {
+                <path d="M11.5 14.5h6" />
+              } @else {
+                <path d="M14.5 11.5v6M11.5 14.5h6" />
+              }
+            </svg>
+            <span>{{ cameraPreset() === 'screen' ? 'Vue console' : 'Zoom écran' }}</span>
+          </button>
+          <button
+            type="button"
+            class="ctl triangle"
+            data-testid="crt-toggle"
+            [attr.aria-pressed]="crtEffect()"
+            (click)="toggleCrt($event)"
+          >
+            <svg viewBox="0 0 32 32" aria-hidden="true">
+              <rect x="5" y="7" width="22" height="16" rx="2" />
+              <path d="M9 12h14M9 16h14M11 26h10" />
+            </svg>
+            <span>CRT</span>
+          </button>
+        }
+        @if (!webglUnavailable()) {
+          <button
+            type="button"
+            class="ctl cross"
+            data-testid="view-mode"
+            [attr.aria-pressed]="viewMode() === '3d'"
+            (click)="toggleViewMode($event)"
+          >
+            <svg viewBox="0 0 32 32" aria-hidden="true">
+              <path d="M16 5l10 5.5v11L16 27 6 21.5v-11z" />
+              <path d="M6 10.5L16 16l10-5.5M16 16v11" />
+            </svg>
+            <span>{{ viewMode() === '3d' ? 'Vue 2D' : 'Vue 3D' }}</span>
+          </button>
+        }
         <button type="button" class="ctl triangle" data-testid="fullscreen" (click)="fullscreen($event)">
           <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12V5h7M20 5h7v7M27 20v7h-7M12 27H5v-7" /></svg>
           <span>Plein écran</span>
@@ -95,11 +169,56 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
     .back mat-icon { font-size: 18px; width: 18px; height: 18px; }
     .loading { max-width: 480px; }
     .error { color: var(--mat-sys-error); }
-    .stage { position: relative; width: min(100%, 960px); background: #000; }
-    .stage:fullscreen { display: grid; place-items: center; width: 100vw; }
-    .stage:fullscreen .screen { width: min(100vw, 133.33vh); }
-    .overlay { position: absolute; inset: 0; display: grid; place-items: center; background: #0008; color: #fff; font-size: 28px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
-    .controls { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 16px; }
+    .stage {
+      position: relative;
+      width: min(100%, 960px);
+      border: 1px solid var(--gpc-edge);
+      border-radius: 2px;
+      background: #0b0b0c;
+      box-shadow: 0 22px 36px -22px #000b;
+      overflow: hidden;
+    }
+    .stage.stage-3d {
+      width: min(100%, 1040px);
+      aspect-ratio: 16 / 10;
+    }
+    .stage:fullscreen {
+      display: grid;
+      place-items: center;
+      width: 100vw;
+      height: 100vh;
+      max-width: none;
+      border: 0;
+      border-radius: 0;
+      aspect-ratio: auto;
+    }
+    .stage.stage-3d:fullscreen app-ps1-scene-3d { width: 100vw; height: 100vh; }
+    .stage:fullscreen .screen:not(.offscreen) { width: min(100vw, 133.33vh); }
+    .scene-placeholder {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      min-height: 420px;
+      color: var(--gpc-spine-ink-soft);
+      font: 500 12px/1 var(--gpc-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #0008;
+      color: #fff;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; }
     .notice { min-height: 1.4em; margin: 12px 0 0; color: var(--gpc-ink-soft); font-size: 14px; }
     .ctl {
       display: grid;
@@ -129,11 +248,16 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
       stroke-width: 2.6;
       stroke-linecap: round;
       stroke-linejoin: round;
-      transition: transform 120ms, box-shadow 120ms, background-color 120ms;
+      transition: transform 120ms, box-shadow 120ms, background-color 120ms, border-color 120ms;
     }
     .ctl circle { fill: var(--ctl); stroke: none; }
     .ctl:hover { color: var(--gpc-ink); }
     .ctl:hover svg { background: color-mix(in srgb, var(--ctl) 14%, var(--gpc-inlay)); }
+    .ctl[aria-pressed='true'] { color: var(--gpc-ink); }
+    .ctl[aria-pressed='true'] svg {
+      border-color: var(--ctl);
+      background: color-mix(in srgb, var(--ctl) 16%, var(--gpc-inlay));
+    }
     .ctl:active svg { transform: translateY(2px); box-shadow: inset 0 -1px 0 #0003; }
     .ctl:focus-visible { outline: none; }
     .ctl:focus-visible svg { outline: 2px solid var(--gpc-ps-cross); outline-offset: 2px; }
@@ -143,6 +267,7 @@ const MESSAGES: Partial<Record<Ps1ErrorCode, string>> = {
     .ctl.square { --ctl: var(--gpc-ps-square); }
     @media (prefers-reduced-motion: reduce) { .ctl svg { transition: none; } }
     .screen { display: block; width: min(100%, 960px); aspect-ratio: 4 / 3; background: #000; image-rendering: pixelated; }
+    .screen.offscreen { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
   `,
 })
 export class GamePlayComponent {
@@ -152,7 +277,7 @@ export class GamePlayComponent {
   private readonly biosService = inject(BiosService);
   private readonly emulator = inject(EmulatorService);
   private readonly stage = viewChild.required<ElementRef<HTMLElement>>('stage');
-  private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('screen');
+  protected readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('screen');
 
   readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   readonly status = signal('Préparation…');
@@ -165,9 +290,19 @@ export class GamePlayComponent {
   /** Result of the last save or load: it never stops the game. */
   readonly notice = signal('');
 
+  /** 3D console/CRT viewer state. */
+  readonly viewMode = signal<'3d' | '2d'>('3d');
+  readonly cameraPreset = signal<CameraPreset>('hero');
+  readonly crtEffect = signal(true);
+  readonly webglUnavailable = signal(false);
+  readonly frameTick = signal(0);
+  readonly screenGlow = signal<readonly [number, number, number]>([0.16, 0.22, 0.34]);
+  readonly pressedMask = signal(PAD_IDLE);
+
   private core?: Ps1Core;
   private audio?: AudioContext;
   private frameHandle = 0;
+  private frameCount = 0;
   private download?: Subscription;
   private stopped = false;
   private cardTimer = 0;
@@ -180,6 +315,7 @@ export class GamePlayComponent {
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (event.code === 'KeyP' && !event.repeat) this.togglePause();
+    else if (event.code === 'KeyV' && !event.repeat && this.viewMode() === '3d') this.toggleCameraPreset();
     else if (event.code === 'KeyH' && !event.repeat) this.toggleHelp();
     else if (event.code === 'KeyK' && !event.repeat) this.saveState();
     else if (event.code === 'KeyL' && !event.repeat) this.loadState();
@@ -187,16 +323,16 @@ export class GamePlayComponent {
       // Arrows and Enter must not scroll the page or click a focused button.
       event.preventDefault();
       this.held.add(event.code);
-      this.core?.setButtons(padMask(this.held));
+      this.syncButtons();
     }
   };
   private readonly onKeyUp = (event: KeyboardEvent) => {
-    if (this.held.delete(event.code)) this.core?.setButtons(padMask(this.held));
+    if (this.held.delete(event.code)) this.syncButtons();
   };
   /** A key released while the window had no focus would stay pressed. */
   private readonly releaseAll = () => {
     this.held.clear();
-    this.core?.setButtons(PAD_IDLE);
+    this.syncButtons();
   };
 
   constructor() {
@@ -217,6 +353,12 @@ export class GamePlayComponent {
       this.status.set('');
       this.error.set(this.messageOf(error));
     });
+  }
+
+  private syncButtons(): void {
+    const mask = padMask(this.held);
+    this.pressedMask.set(mask);
+    this.core?.setButtons(mask);
   }
 
   private async start(): Promise<void> {
@@ -312,6 +454,10 @@ export class GamePlayComponent {
       owed = Math.min(owed + now - last, step * 3);
       last = now;
       try {
+        let drewFrame = false;
+        let lastRgba: Uint8ClampedArray | Uint8Array | undefined;
+        let lastWidth = 0;
+        let lastHeight = 0;
         while (owed >= step) {
           owed -= step;
           core.runFrame();
@@ -321,8 +467,20 @@ export class GamePlayComponent {
             canvas.height = height;
           }
           // rgba is a view into wasm memory: copy it before the next runFrame.
-          ctx.putImageData(new ImageData(rgba.slice(), width, height), 0, 0);
+          const copy = rgba.slice();
+          ctx.putImageData(new ImageData(copy, width, height), 0, 0);
+          lastRgba = copy;
+          lastWidth = width;
+          lastHeight = height;
+          drewFrame = true;
           this.nextAudio = this.queueAudio(audio, core.readAudio(), this.nextAudio);
+        }
+        if (drewFrame) {
+          this.frameCount++;
+          this.frameTick.set(this.frameCount);
+          if (lastRgba && this.frameCount % 4 === 1) {
+            this.screenGlow.set(sampleFrameColor(lastRgba, lastWidth, lastHeight));
+          }
         }
       } catch (error) {
         console.error('[GamePlay] Erreur pendant la partie', error);
@@ -432,6 +590,30 @@ export class GamePlayComponent {
     this.blur(event);
     this.core?.reset();
     this.nextAudio = 0;
+  }
+
+  toggleCameraPreset(event?: Event): void {
+    this.blur(event);
+    if (!this.running() || this.viewMode() !== '3d') return;
+    this.cameraPreset.update((current) => (current === 'hero' ? 'screen' : 'hero'));
+  }
+
+  toggleCrt(event?: Event): void {
+    this.blur(event);
+    if (!this.running()) return;
+    this.crtEffect.update((enabled) => !enabled);
+  }
+
+  toggleViewMode(event?: Event): void {
+    this.blur(event);
+    if (!this.running() || this.webglUnavailable()) return;
+    this.viewMode.update((mode) => (mode === '3d' ? '2d' : '3d'));
+  }
+
+  onWebglFailed(): void {
+    this.webglUnavailable.set(true);
+    this.viewMode.set('2d');
+    this.say('Scène 3D indisponible sur ce navigateur : affichage sur écran 2D.');
   }
 
   fullscreen(event?: Event): void {

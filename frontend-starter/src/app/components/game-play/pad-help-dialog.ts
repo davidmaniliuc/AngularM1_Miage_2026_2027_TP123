@@ -47,6 +47,7 @@ import { PAD_BUTTONS } from '../../shared/utils/pad';
             </li>
           }
           <li><span class="icon"></span><span class="name">Pause</span><kbd>P</kbd></li>
+          <li><span class="icon"></span><span class="name">Zoom écran (3D)</span><kbd>V</kbd></li>
           <li><span class="icon"></span><span class="name">Sauvegarde rapide</span><kbd>K</kbd></li>
           <li><span class="icon"></span><span class="name">Charger la sauvegarde</span><kbd>L</kbd></li>
           <li><span class="icon"></span><span class="name">Cette aide</span><kbd>H</kbd></li>
