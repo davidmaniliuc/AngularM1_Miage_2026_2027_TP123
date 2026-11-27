@@ -114,13 +114,14 @@ Rend une piste publique ou privée.
 
 Un jeu appartient à son créateur : les autres utilisateurs ne le voient pas (`404` sur toutes les routes). Tous les accès exigent un JWT (`401` sinon).
 
-`Game` : `id`, `ownerId`, `title`, `favorite` (booléen), `hasCover` (booléen), `createdAt` et, s'ils existent, `serial`, `genre`, `region`, `year` et `disc`.
+`Game` : `id`, `ownerId`, `title`, `favorite` (booléen), `compat`, `hasCover` (booléen), `createdAt` et, s'ils existent, `serial`, `genre`, `region`, `year` et `disc`.
 
 - `serial` : numéro de série PS1, quatre lettres, un tiret, cinq chiffres (`SCUS-94163`). Les minuscules sont mises en majuscules.
 - `genre` : `rpg`, `course`, `plateforme`, `action`, `aventure`, `combat`, `sport`, `puzzle`, `strategie` ou `autre`.
 - `region` : `ntsc-u`, `ntsc-j` ou `pal`.
 - `year` : entier de 1994 à 2100.
 - `favorite` : `true` ou `false` (faux par défaut).
+- `compat` : résultat du test dans l'émulateur, `untested` (par défaut), `tested` ou `broken`. Modifiable avec `PATCH`.
 - `cover` : image JPEG, PNG ou WebP de 5 Mo maximum, identifiée par son contenu.
 - `disc` : l'image disque envoyée par `POST /games/disc`, `{ "name": "suikoden.chd", "size": 329653141, "format": "chd" | "bin", "cue"?: "FILE ..." }`. `cue` n'existe que pour un `.bin` envoyé avec son `.cue`.
 
@@ -194,3 +195,13 @@ Corps JSON `{ "isDefault": true }`. Le BIOS devient celui par défaut et l'ancie
 ### `DELETE /bios/:id`
 
 `204`. Si c'était le BIOS par défaut, le plus récent qui reste le devient. `404 { "message": "BIOS inconnu" }`.
+
+## Sauvegardes d'un jeu (`/games/:id/saves`)
+
+Carte mémoire (`memcard`, slot 0) et sauvegarde rapide (`state`) d'un de mes jeux. Une seule par jeu et par compte : l'envoyer remplace la précédente. Privées : `404` pour un autre compte ou un jeu inconnu, `401` sans jeton. Le corps est le fichier brut (`application/octet-stream`).
+
+- `GET /games/:id/saves/{memcard|state}` : `200` avec le fichier, ou `404 { "message": "Carte mémoire inconnue" }` / `"Sauvegarde rapide inconnue"` s'il n'y en a pas encore.
+- `PUT /games/:id/saves/{memcard|state}` : `204`. Une carte mémoire doit faire exactement 128 Ko (`400` sinon) ; une sauvegarde rapide ne doit pas être vide ni dépasser 64 Mo (`400`, ou `413` si `Content-Length` dépasse déjà la limite).
+- `DELETE /games/:id/saves/{memcard|state}` : `204`, ou `404`.
+
+Supprimer le jeu supprime ses sauvegardes.

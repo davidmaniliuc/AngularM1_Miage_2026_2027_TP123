@@ -403,3 +403,38 @@ L'agent de revue a trouvé 7 problèmes : titres des dialogues restés en 400 (l
 
 "c'est vrm overkill y'a que le hover comme ça que j'aime bien" (capture du survol d'une piste) → l'agent a tout remis comme avant cette session et n'a gardé que ce survol : le boîtier du CD s'entrouvre sur sa charnière et le CD argenté sort à droite. La colonne du boîtier passe de 68 à 84px pour que le CD ne touche pas le titre. Au passage, l'icône play du survol était sombre en mode clair (variable de couleur qui n'existait pas), corrigé. Build OK, 121 tests OK.
 "le hover sur les jeux bien aussi" → l'agent a remis aussi le survol des jeux : le boîtier se soulève en penchant un peu et le disque PS1 noir sort à droite en tournant. Seulement le survol, la fiche du jeu reste comme avant. Build OK, 121 tests OK.
+
+## Étape 3 - émulateur dans le navigateur (issues #8 et #9)
+
+"réalise l'issue 8 , la dépendance pour les jeux est @davidmaniliuc/substation" → l'agent a lu l'issue #8 (page `/games/:id/play`), le code existant (`EmulatorService`, `GameService`, `BiosService`) et l'API du paquet après un `npm install`. Il a créé la page `game-play` :
+- télécharge le BIOS par défaut et le disque avec le token, barre de progression pendant le téléchargement du disque ;
+- `loadBios` + `loadDisc`, puis boucle `requestAnimationFrame` à 60 Hz (50 Hz en PAL) vers un canvas ;
+- son stéréo 44 100 Hz avec Web Audio ;
+- un message en français pour chaque `Ps1Error`, et un lien vers la page BIOS s'il n'y en a aucun ;
+- en quittant la page : boucle arrêtée, téléchargement annulé, son fermé, machine lâchée.
+Ajouts : `GameService.disc()`, `BiosService.file()`, la route `games/:id/play` et le bouton « Jouer » sur la fiche (seulement si le jeu a un disque).
+Erreur de l'agent corrigée avant la fin : il avait mis `takeUntilDestroyed()` dans un callback asynchrone, hors contexte d'injection, ce qui aurait planté ; remplacé par l'annulation dans `stop()`. Build OK, 121 tests OK. Pas testé avec un vrai jeu (pas de BIOS sur la machine).
+
+"lance pour que je puisse visualiser" → le port 4200 était pris par le conteneur Docker `gpc-frontend`, l'agent a lancé `ng serve` sur le port 4300 (le backend et Mongo tournaient déjà dans Docker, le proxy envoie `/api` vers le 3000).
+
+"passons à l'issue suivante" → issue #9 « Contrôles et clavier du lecteur » :
+- boutons Pause (touche `P`), Reset (`reset()`) et Plein écran ;
+- touches du clavier vers `setButtons(mask)` (un bit à 0 = appuyé, `0xFFFF` = rien), dans `shared/utils/pad.ts` ;
+- écran d'aide avec les touches (bouton « Touches » ou `H`).
+Choix : les touches sont lues par position physique (`event.code`) et l'agent a évité A, Z, Q, W, M dont la position change entre AZERTY et QWERTY. Flèches et Entrée ne font plus défiler la page, et toutes les touches sont relâchées quand la fenêtre perd le focus. 3 tests ajoutés, 124 tests OK, build OK.
+
+"rajoute les prompts de développement que je t'ai fais dans le fichier de rapport IA et à partir de mtn ajoute les prompts que je te fais à ce fichier stp" → cette section. Les prochains prompts seront ajoutés ici au fur et à mesure.
+
+"retire ma question sur le BIOS et les jeux ainsi que le prompt de mise à jour de Charles depuis dev" → ces deux entrées sont retirées de la section, le reste n'a pas changé.
+
+"utilise des vraies icones pour les touches" → l'écran d'aide du lecteur dessinait les touches en texte. Chaque bouton de la manette a maintenant son icône SVG : triangle, rond, croix et carré aux couleurs PlayStation déjà utilisées dans le logo, croix directionnelle avec la flèche allumée pour haut / bas / gauche / droite, pastilles L1 / R1 / L2 / R2, et Start (triangle de lecture) / Select (barre). La touche du clavier reste affichée à droite. Build OK, 124 tests OK.
+
+"mets les explcations de commandes dans un menu à part, les boutons de reset, pause, plein ecran et touches eux doivent etre avec des icones stylées et non pas seulement avec le rendu simple" → la liste des touches n'est plus sous l'écran : elle s'ouvre dans une fenêtre à part (`pad-help-dialog.ts`, bouton « Touches » ou touche `H`). Le jeu se met en pause pendant qu'elle est ouverte et les touches tapées dedans n'arrivent pas à la manette. Les quatre boutons de commande sont des boutons ronds façon manette, avec une icône dessinée en SVG (pause / lecture, flèche de reset, coins du plein écran, manette) et la couleur d'un des symboles PlayStation, avec un petit effet d'enfoncement au clic. Build OK, 124 tests OK.
+
+"continues avec les issues 10 et 11" → issue #10 (cartes mémoire et sauvegardes rapides sur le serveur) et #11 (compatibilité).
+- Backend #10 : modèle `GameSave` (une sauvegarde par jeu, par compte et par type), routes `GET / PUT / DELETE /api/games/:id/saves/memcard` et `/state` (carte de 128 Ko exactement, état limité à 64 Mo), fichiers dans `uploads/saves`, supprimés avec le jeu. Privées : 404 pour un autre compte.
+- Front #10 : au lancement la page recharge la carte mémoire puis la sauvegarde rapide ; la carte est renvoyée au serveur toutes les 5 s si le jeu l'a écrite (et en quittant la page, avec nouvel essai si l'envoi échoue) ; boutons Sauvegarder / Charger (touches `K` et `L`). Une sauvegarde refusée (`STATE_DISC`, `STATE_BIOS`…) affiche un message et la partie continue.
+- #11 : champ `compat` du jeu (`untested`, `tested`, `broken`) modifiable sur la fiche, badge sur la fiche et dans la bibliothèque, et `docs/EMULATOR_COMPAT.md` avec la méthode de test. Les jeux eux-mêmes n'ont pas pu être testés : pas de BIOS ni de disque sur la machine, le tableau est donc vide.
+- Erreur de l'agent : le nouveau dossier `saves` a cassé 4 tests existants (`tracks-upload`, qui comptent les fichiers dans `uploads`), corrigé en l'ajoutant à la liste des dossiers ignorés. Les tests du back se lancent dans Docker (`docker exec -e TEST_MONGODB_URI=mongodb://mongo:27017/... gpc-backend bun test`), pas de bun sur le Mac. Back 159 tests OK, front 128 tests OK.
+
+"l'issue 10 est elle opérationnelle?" → réponse : le serveur oui (testé), le côté navigateur est écrit, compilé et testé en unitaire, mais pas essayé avec un vrai jeu.
