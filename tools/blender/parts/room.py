@@ -407,7 +407,7 @@ def outside_mat(name, emit, strength=1.0, alpha=None):
 
 GROUND_Z = -24.0
 rbox("Outside_Sky", (0.05, 140, 90), (-52, 10, 15), outside_mat("Outside_Sky", (0.03, 0.05, 0.12)), uv=(1, 2))
-MOON = (-50.0, -9.0, 10.0)
+MOON = (-50.0, -9.0, 8.5)
 cylinder("Outside_Moon", 1.3, 1.3, 0.05, MOON, outside_mat("Outside_Moon", (0.9, 0.88, 0.8), 2.0), seg=48,
          rot=(0, math.pi / 2, 0), uv=(1, 2))
 cylinder("Outside_MoonHalo", 6.0, 6.0, 0.02, (MOON[0] - 0.5, MOON[1], MOON[2]), outside_mat("Outside_MoonHalo", (0.3, 0.35, 0.5), alpha=0.3),
@@ -430,16 +430,16 @@ def skyline(name, x_front, depth, tops, widths, gap, emit, y_from=-30.0, y_to=24
     return b.done(name, outside_mat(name.replace("Buildings", "Facade"), emit), uv_scale=1.0)
 
 
-skyline("Outside_Buildings_Near", -13.0, (5, 9), (-3.5, 1.2), (3.0, 7.0), (1.0, 4.0), (0.02, 0.022, 0.03))
+skyline("Outside_Buildings_Near", -13.0, (5, 9), (-4.5, -0.2), (3.0, 7.0), (1.0, 4.0), (0.02, 0.022, 0.03))
 TOWER = (-25.0, -4.0)
-TOWER_TOP = 5.6
-skyline("Outside_Buildings_Mid", -24.0, (5, 8), (0.0, 4.2), (3.5, 8.0), (0.3, 2.0), (0.03, 0.035, 0.05),
+TOWER_TOP = 4.2
+skyline("Outside_Buildings_Mid", -24.0, (5, 8), (-2.0, 2.6), (3.5, 8.0), (0.3, 2.0), (0.03, 0.035, 0.05),
         y_from=-40.0, y_to=30.0,
         extra=[((4.0, 3.4, TOWER_TOP - GROUND_Z), (TOWER[0], TOWER[1], (TOWER_TOP + GROUND_Z) / 2)),
                ((0.15, 0.15, 1.4), (TOWER[0], TOWER[1], TOWER_TOP + 0.7))])
 cylinder("Outside_AviationLight", 0.22, 0.22, 0.22, (TOWER[0], TOWER[1], TOWER_TOP + 1.45),
          outside_mat("Outside_AviationLight", (1.0, 0.06, 0.03), 6.0), seg=12)
-skyline("Outside_Buildings_Far", -35.0, (6, 10), (1.5, 7.0), (4.0, 10.0), (0.0, 1.5), (0.04, 0.05, 0.08),
+skyline("Outside_Buildings_Far", -35.0, (6, 10), (-0.5, 4.5), (4.0, 10.0), (0.0, 1.5), (0.04, 0.05, 0.08),
         y_from=-50.0, y_to=40.0)
 
 # ---- curtains + rod on the window wall, radiator under the window

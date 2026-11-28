@@ -382,4 +382,16 @@ describe('room life', () => {
     expect(root.getObjectByName('Clock_HandSecond')!.visible).toBe(false);
     expect(turns(root, 'Clock_HandMinute')).toBeCloseTo(41 / 60, 3);
   });
+
+  it('blinks the aviation light when motion is allowed', () => {
+    const root = build();
+    const life = createRoomLife(root, { ...options, reducedMotion: false });
+    const light = (root.getObjectByName('Outside_AviationLight') as THREE.Mesh)
+      .material as THREE.MeshBasicMaterial;
+    const levels = [0.2, 1.4].map((seconds) => {
+      life.update(seconds, new Date());
+      return light.color.r;
+    });
+    expect(levels[0]).toBeGreaterThan(levels[1] * 4);
+  });
 });

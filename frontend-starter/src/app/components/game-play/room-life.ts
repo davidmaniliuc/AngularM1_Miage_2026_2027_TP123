@@ -318,7 +318,7 @@ const TILE_H = 22.4;
 const COLS = 14;
 const FLOORS = 8;
 
-function bindFacade(mesh: THREE.Mesh, kit: LifeKit, style: FacadeStyle): void {
+function bindFacade(mesh: THREE.Mesh, kit: LifeKit, style: FacadeStyle): Animate | void {
   const W = 512;
   const H = 768;
   const cw = W / COLS;
@@ -347,6 +347,22 @@ function bindFacade(mesh: THREE.Mesh, kit: LifeKit, style: FacadeStyle): void {
   mat.color.set(0xffffff);
   prepareFacadeGeometry(mesh.geometry);
   mat.vertexColors = true;
+  if (!style.live) return;
+
+  // Every couple of seconds someone switches a light on or off somewhere across the street
+  let lastStep = 0;
+  return (seconds) => {
+    const step = Math.floor(seconds / 2.2);
+    if (step === lastStep) return;
+    lastStep = step;
+    const flips = kit.rng() < 0.3 ? 2 : 1;
+    for (let k = 0; k < flips; k++) {
+      const i = Math.floor(kit.rng() * cells.length);
+      cells[i] = cells[i] ? 0 : 1 + Math.floor(kit.rng() * WINDOW_LIGHTS.length);
+      paint(i);
+    }
+    tex.needsUpdate = true;
+  };
 }
 
 /**
@@ -367,8 +383,14 @@ function prepareFacadeGeometry(geometry: THREE.BufferGeometry): void {
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 }
 
-function bindAviationLight(mesh: THREE.Mesh): void {
-  basicOf(mesh).color.setRGB(3, 0.18, 0.08);
+/** Red obstruction light on the tower: a slow blink, lit when held still. */
+function bindAviationLight(mesh: THREE.Mesh): Animate {
+  const color = basicOf(mesh).color;
+  return (seconds) => {
+    const phase = (seconds % 1.8) / 1.8;
+    const level = phase < 0.4 ? 1 : 0.06 + 0.94 * Math.max(0, 1 - (phase - 0.4) * 12);
+    color.setRGB(3 * level, 0.18 * level, 0.08 * level);
+  };
 }
 
 // ---------------------------------------------------------------- wall clock
