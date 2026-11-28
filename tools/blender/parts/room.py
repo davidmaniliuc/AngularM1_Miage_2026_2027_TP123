@@ -15,7 +15,7 @@ RUG_TOP = 0.008
 WALL_Y = 0.78
 SIDE_X = -1.88                     # room face of the window wall (the wall itself is built around the opening)
 SIDE_T = 0.2
-RIGHT_X = 3.5                      # room face of the right wall
+RIGHT_X = 3.5                      # room face of the right wall, far enough for the sofa to clear the orbiting camera
 ROOM_W, ROOM_CX = RIGHT_X + 0.04 - (SIDE_X - SIDE_T), (RIGHT_X + 0.04 + SIDE_X - SIDE_T) / 2
 rbox("Room_Floor", (ROOM_W, 4.0, 0.02), (ROOM_CX, -1.2 + WALL_Y / 2 + 0.6, -0.01), M["oak"], uv_scale=1.0)
 rbox("Room_Wall", (ROOM_W, 0.04, 2.6), (ROOM_CX, WALL_Y + 0.02, 1.3), M["wall"])
@@ -531,3 +531,82 @@ for i in range(14):
 ch.done("Snack_Chips", M["chips"])
 rbox("Memory_Card", (0.058, 0.04, 0.004), (-0.52, -0.1, RUG_TOP + 0.002), M["card"], bevel=0.002, seg=1,
      rot=(0, 0, math.radians(25)), uv=(0, 1))
+
+# ---- sofa: a 90s three-seater on the right, its back to the right wall, turned toward the TV
+M["sofa"] = material("Sofa_Fabric", (0.36, 0.27, 0.19), 0.95)               # box UV, 1 unit = 1 m
+M["pillow"] = material("Sofa_Pillow", (0.3, 0.07, 0.08), 0.95)
+
+
+def soft_box(size, radius, level=1):
+    """Box with rounded edges, softened by a subdivision pass (a cushion, an arm)."""
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    for v in bm.verts:
+        v.co = Vector((v.co.x * size[0], v.co.y * size[1], v.co.z * size[2]))
+    bmesh.ops.bevel(bm, geom=bm.edges[:], offset=radius, offset_type="OFFSET", segments=2,
+                    profile=0.5, affect="EDGES", clamp_overlap=True)
+    me = bpy.data.meshes.new("soft_tmp")
+    bm.to_mesh(me)
+    bm.free()
+    tmp = bpy.data.objects.new("soft_tmp", me)
+    scene.collection.objects.link(tmp)
+    sub = tmp.modifiers.new("soft", "SUBSURF")
+    sub.levels = sub.render_levels = level
+    bpy.context.view_layer.update()
+    me2 = bpy.data.meshes.new_from_object(tmp.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+    bpy.data.objects.remove(tmp, do_unlink=True)
+    bpy.data.meshes.remove(me)
+    out = bmesh.new()
+    out.from_mesh(me2)
+    bpy.data.meshes.remove(me2)
+    return out
+
+
+def crown(bm, size, amount):
+    """Puffs the +Z face up in the middle, like a filled cushion."""
+    for v in bm.verts:
+        if v.co.z > 0:
+            nx, ny = 2 * v.co.x / size[0], 2 * v.co.y / size[1]
+            v.co.z += amount * max(0.0, 1 - nx * nx) * max(0.0, 1 - ny * ny)
+
+
+SOFA_L, SOFA_D = 2.0, 0.9
+SOFA_YAW = math.radians(-108)
+SOFA_C = (RIGHT_X - 0.03 - 0.74, -0.5, 0.0)
+SOFA_M = Matrix.Translation(SOFA_C) @ Matrix.Rotation(SOFA_YAW, 4, "Z")
+
+
+def sofa_part(name, bm, mat, center, rot=(0, 0, 0)):
+    """Geometry in sofa space (front toward -Y); every part shares the sofa's node transform."""
+    bmesh.ops.transform(bm, matrix=Matrix.Translation(center) @ Euler(rot).to_matrix().to_4x4(), verts=bm.verts[:])
+    ob = finish(name, bm, mat, smooth_angle=70)
+    ob.matrix_world = SOFA_M
+    return ob
+
+
+feet = Batch()
+for sx in (-1, 1):
+    for sy in (-1, 1):
+        feet.cyl(0.022, 0.09, (sx * (SOFA_L / 2 - 0.12), sy * (SOFA_D / 2 - 0.1), 0.045), seg=16, r2=0.016)
+sofa_part("Sofa_Feet", feet.bm, M["walnut"], (0, 0, 0))
+sofa_part("Sofa_Base", soft_box((SOFA_L - 0.02, SOFA_D - 0.02, 0.2), 0.035), M["sofa"], (0, 0, 0.19))
+for side, sx in (("L", -1), ("R", 1)):
+    sofa_part(f"Sofa_Arm_{side}", soft_box((0.22, SOFA_D, 0.54), 0.08), M["sofa"], (sx * (SOFA_L / 2 - 0.11), 0, 0.37))
+sofa_part("Sofa_Back", soft_box((SOFA_L - 0.04, 0.2, 0.5), 0.06), M["sofa"], (0, SOFA_D / 2 - 0.1, 0.54))
+seat_w = (SOFA_L - 0.44) / 3
+for i in range(3):
+    size = (seat_w - 0.008, SOFA_D - 0.22, 0.15)
+    bm = soft_box(size, 0.045, level=2)
+    crown(bm, size, 0.018)
+    sofa_part(f"Sofa_Seat_{i}", bm, M["sofa"], ((i - 1) * seat_w, -0.11, 0.365))
+    size = (seat_w - 0.008, 0.44, 0.17)
+    bm = soft_box(size, 0.06, level=2)
+    crown(bm, size, 0.025)
+    sofa_part(f"Sofa_BackCushion_{i}", bm, M["sofa"], ((i - 1) * seat_w, 0.17, 0.665), rot=(math.radians(78), 0, 0))
+for i, sx in enumerate((-1, 1)):
+    size = (0.44, 0.44, 0.2)
+    bm = soft_box(size, 0.08, level=2)
+    for v in bm.verts:
+        k = min(1.0, math.hypot(2 * v.co.x / size[0], 2 * v.co.y / size[1]) / math.sqrt(2))
+        v.co.z *= 1 - 0.5 * k ** 2
+    sofa_part(f"Sofa_Pillow_{i}", bm, M["pillow"], (sx * 0.6, 0.06, 0.64), rot=(math.radians(68), sx * 0.12, sx * -0.3))

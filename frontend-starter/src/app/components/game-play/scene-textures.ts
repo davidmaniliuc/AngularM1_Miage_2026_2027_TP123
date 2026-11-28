@@ -445,7 +445,7 @@ function applyPlastic(mat: THREE.MeshStandardMaterial, tc: TextureContext): void
   mat.bumpScale = 0.25;
 }
 
-const FABRIC_MATERIALS = new Set(['Curtain_Fabric', 'Rug_Fringe']);
+const FABRIC_MATERIALS = new Set(['Curtain_Fabric', 'Rug_Fringe', 'Sofa_Fabric', 'Sofa_Pillow']);
 
 /** Woven fabric: keeps the Blender colour, adds a fine weave bump + roughness (box UVs in metres). */
 function applyFabric(mat: THREE.MeshStandardMaterial, tc: TextureContext): void {
