@@ -395,51 +395,6 @@ function applyPoster(mat: THREE.MeshStandardMaterial, tc: TextureContext): void 
   mat.roughness = 0.6;
 }
 
-function applyWindowNight(mat: THREE.MeshStandardMaterial, tc: TextureContext): void {
-  const S = 512;
-  const [canvas, ctx] = makeCanvas(S, S);
-  const g = ctx.createLinearGradient(0, 0, 0, S);
-  g.addColorStop(0, '#060b1c');
-  g.addColorStop(0.6, '#0e1a38');
-  g.addColorStop(1, '#1a2748');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, S, S);
-  for (let i = 0; i < 40; i++) {
-    ctx.fillStyle = `rgba(220,230,255,${0.2 + tc.rng() * 0.5})`;
-    const r = tc.rng() > 0.85 ? 1.6 : 0.9;
-    ctx.fillRect(tc.rng() * S, tc.rng() * S * 0.6, r, r);
-  }
-  // skyline silhouette with sparse lit windows
-  ctx.fillStyle = '#05070f';
-  let x = 0;
-  const buildings: Array<[number, number, number]> = [];
-  while (x < S) {
-    const bw = 28 + tc.rng() * 50;
-    const bh = 50 + tc.rng() * 110;
-    buildings.push([x, bh, bw]);
-    ctx.fillRect(x, S - bh, bw - 2, bh);
-    x += bw;
-  }
-  for (const [bx, bh, bw] of buildings) {
-    for (let wy = S - bh + 8; wy < S - 8; wy += 12) {
-      for (let wx = bx + 5; wx < bx + bw - 9; wx += 10) {
-        if (tc.rng() > 0.86) {
-          ctx.fillStyle = tc.rng() > 0.5 ? 'rgba(240,190,110,0.8)' : 'rgba(200,215,255,0.6)';
-          ctx.fillRect(wx, wy, 3, 4);
-        }
-      }
-    }
-  }
-  const tex = toTexture(tc, canvas, { srgb: true, wrap: false });
-  mat.map = tex;
-  mat.emissiveMap = tex;
-  mat.emissive.set(0xffffff);
-  mat.emissiveIntensity = 0.7;
-  mat.color.set(0x222a40);
-  mat.roughness = 1;
-  mat.metalness = 0;
-}
-
 function applyPlastic(mat: THREE.MeshStandardMaterial, tc: TextureContext): void {
   mat.bumpMap = tc.plasticNoise();
   mat.bumpScale = 0.25;
@@ -545,9 +500,6 @@ export function applyProceduralTextures(root: THREE.Object3D, anisotropy: number
           break;
         case 'Poster_B':
           if (uv) applyPoster(mat, tc);
-          break;
-        case 'Window_Night':
-          if (uv) applyWindowNight(mat, tc);
           break;
         default:
           if (PLASTIC_MATERIALS.has(name) && uv) applyPlastic(mat, tc);
