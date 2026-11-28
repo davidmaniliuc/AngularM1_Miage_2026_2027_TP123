@@ -7,7 +7,9 @@ posters, jewel cases).
 
 Run headless:
   /Applications/Blender.app/Contents/MacOS/Blender -b --python tools/blender/build_living_room.py -- \
-      tools/blender/ps1-base.glb frontend-starter/public/models/ps1-setup.glb [preview.png]
+      tools/blender/ps1-base.glb frontend-starter/public/models/ps1-setup.glb [preview.png [name=view ...]]
+
+Each view is hero, tv, pad or cam:x,y,z:tx,ty,tz; several views write preview_<name>.png.
 
 Blender frame: Z up, -Y towards the viewer (glTF +Z). Units are metres.
 """
@@ -83,19 +85,24 @@ if PREVIEW:
     cam = bpy.data.objects.new("Cam", bpy.data.cameras.new("Cam"))
     scene.collection.objects.link(cam)
     scene.camera = cam
-    cam.data.angle = math.radians(42)
-    view = ARGS[3] if len(ARGS) > 3 else "hero"
-    if view.startswith("cam:"):
-        # cam:x,y,z:tx,ty,tz  (Blender coords) for ad-hoc previews
-        _, c, t = view.split(":")
-        cam.location, target = Vector(map(float, c.split(","))), Vector(map(float, t.split(",")))
-    elif view == "tv":
-        target, cam.location = Vector((0, tv_y0, open_cz - 0.08)), Vector((-0.35, tv_y0 - 0.9, open_cz + 0.05))
-    elif view == "pad":
-        target, cam.location = world(pad, (0, -0.01, 0.01)), world(pad, (0.06, -0.2, 0.14))
-    else:
-        target = Vector((0.0, 0.05, 0.5))
-        cam.location = Vector((0.75, -2.5, 1.15))
-    cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()
-    scene.render.filepath = PREVIEW
-    bpy.ops.render.render(write_still=True)
+    cam.data.sensor_fit = "VERTICAL"
+    cam.data.angle = math.radians(37)
+    cam.data.clip_end = 100
+    views = ARGS[3:] or ["hero"]
+    for i, view in enumerate(views):
+        name, _, view = view.rpartition("=")
+        if view.startswith("cam:"):
+            # cam:x,y,z:tx,ty,tz  (Blender coords) for ad-hoc previews
+            _, c, t = view.split(":")
+            cam.location, target = Vector(map(float, c.split(","))), Vector(map(float, t.split(",")))
+        elif view == "tv":
+            target, cam.location = Vector((0, tv_y0, open_cz - 0.08)), Vector((-0.35, tv_y0 - 0.9, open_cz + 0.05))
+        elif view == "pad":
+            target, cam.location = world(pad, (0, -0.01, 0.01)), world(pad, (0.06, -0.2, 0.14))
+        else:
+            target = Vector((0.0, 0.05, 0.5))
+            cam.location = Vector((0.75, -2.5, 1.15))
+        cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()
+        stem, ext = os.path.splitext(PREVIEW)
+        scene.render.filepath = PREVIEW if len(views) == 1 else f"{stem}_{name or i}{ext}"
+        bpy.ops.render.render(write_still=True)

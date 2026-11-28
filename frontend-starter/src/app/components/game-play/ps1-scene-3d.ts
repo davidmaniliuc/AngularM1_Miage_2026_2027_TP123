@@ -23,6 +23,7 @@ import {
   blitFrameToDisplay,
   distanceToFitScreen,
 } from './scene-helpers';
+import { RoomLife, createRoomLife } from './room-life';
 import { applyProceduralTextures } from './scene-textures';
 
 export type CameraPreset = 'hero' | 'screen';
@@ -35,6 +36,8 @@ interface CameraPose {
 }
 
 const CAMERA_FOV = 37;
+// The city seen through the window reaches about 55 m away, its sky corners further
+const CAMERA_FAR = 120;
 
 // Placeholder poses used until the model is loaded and real poses are computed from it
 const FALLBACK_POSES: Record<CameraPreset, CameraPose> = {
@@ -170,6 +173,7 @@ export class Ps1Scene3dComponent {
   private displayCanvas?: HTMLCanvasElement;
   private displayCtx?: CanvasRenderingContext2D;
   private proceduralTextures: THREE.Texture[] = [];
+  private roomLife?: RoomLife;
   private poses: Record<CameraPreset, CameraPose> = FALLBACK_POSES;
   private screenInfo?: ScreenInfo;
   private heroBox?: THREE.Box3;
@@ -298,7 +302,7 @@ export class Ps1Scene3dComponent {
     envScene.dispose();
     pmrem.dispose();
 
-    const camera = new THREE.PerspectiveCamera(CAMERA_FOV, width / height, 0.02, 20);
+    const camera = new THREE.PerspectiveCamera(CAMERA_FOV, width / height, 0.02, CAMERA_FAR);
     const initialPose = this.poses[this.cameraPreset()];
     camera.position.copy(initialPose.pos);
     this.camera = camera;
@@ -392,6 +396,11 @@ export class Ps1Scene3dComponent {
         if (this.disposed) return;
         this.setupModel(gltf.scene);
         scene.add(gltf.scene);
+        this.roomLife = createRoomLife(gltf.scene, {
+          reducedMotion: this.reducedMotion,
+          anisotropy: Math.min(8, renderer.capabilities.getMaxAnisotropy()),
+          pixelRatio: renderer.getPixelRatio(),
+        });
         this.positionLightsAndPoses(gltf.scene);
         this.applyCameraPreset(this.cameraPreset(), true);
         this.loadingModel.set(false);
@@ -461,6 +470,7 @@ export class Ps1Scene3dComponent {
         }
       }
 
+      this.roomLife?.update(now / 1000, new Date());
       controls.update();
       // Never let the camera sink under the floor
       if (camera.position.y < 0.08) camera.position.y = 0.08;
@@ -659,6 +669,8 @@ export class Ps1Scene3dComponent {
       this.scene = undefined;
     }
 
+    this.roomLife?.dispose();
+    this.roomLife = undefined;
     for (const tex of this.proceduralTextures) tex.dispose();
     this.proceduralTextures = [];
     this.screenTexture?.dispose();

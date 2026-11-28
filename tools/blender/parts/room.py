@@ -13,11 +13,16 @@ from mathutils import Euler, Matrix, Vector
 
 RUG_TOP = 0.008
 WALL_Y = 0.78
-rbox("Room_Floor", (5.0, 4.0, 0.02), (0, -1.2 + WALL_Y / 2 + 0.6, -0.01), M["oak"], uv_scale=1.0)
-rbox("Room_Wall", (5.0, 0.04, 2.6), (0, WALL_Y + 0.02, 1.3), M["wall"])
-rbox("Room_WallSide", (0.04, 4.0, 2.6), (-1.9, WALL_Y - 2.0, 1.3), M["wall"])
-rbox("Room_Baseboard", (5.0, 0.016, 0.08), (0, WALL_Y - 0.008, 0.04), M["skirting"], bevel=0.003)
-rbox("Room_BaseboardSide", (0.016, 4.0, 0.08), (-1.9 + 0.028, WALL_Y - 2.0, 0.04), M["skirting"], bevel=0.003)
+SIDE_X = -1.88                     # room face of the window wall (the wall itself is built around the opening)
+SIDE_T = 0.2
+RIGHT_X = 3.5                      # room face of the right wall
+ROOM_W, ROOM_CX = RIGHT_X + 0.04 - (SIDE_X - SIDE_T), (RIGHT_X + 0.04 + SIDE_X - SIDE_T) / 2
+rbox("Room_Floor", (ROOM_W, 4.0, 0.02), (ROOM_CX, -1.2 + WALL_Y / 2 + 0.6, -0.01), M["oak"], uv_scale=1.0)
+rbox("Room_Wall", (ROOM_W, 0.04, 2.6), (ROOM_CX, WALL_Y + 0.02, 1.3), M["wall"])
+rbox("Room_WallRight", (0.04, 4.0, 2.6), (RIGHT_X + 0.02, WALL_Y - 2.0, 1.3), M["wall"])
+rbox("Room_Baseboard", (RIGHT_X - SIDE_X, 0.016, 0.08), ((RIGHT_X + SIDE_X) / 2, WALL_Y - 0.008, 0.04), M["skirting"], bevel=0.003)
+rbox("Room_BaseboardSide", (0.016, 4.0, 0.08), (SIDE_X + 0.008, WALL_Y - 2.0, 0.04), M["skirting"], bevel=0.003)
+rbox("Room_BaseboardRight", (0.016, 4.0, 0.08), (RIGHT_X - 0.008, WALL_Y - 2.0, 0.04), M["skirting"], bevel=0.003)
 rbox("Rug", (1.7, 1.15, RUG_TOP), (0.05, -0.36, RUG_TOP / 2), M["rug"], bevel=0.002, seg=1, uv=(0, 1))
 
 # ---------------------------------------------------------------- TV cabinet (mid-century walnut)
@@ -188,7 +193,7 @@ px, py = CAB_W / 2 + 0.22, CAB_Y - 0.02
 cylinder("Plant_Pot", 0.1, 0.13, 0.26, (px, py, 0.13), M["ceramic"], seg=40, bevel=0.006)
 build_plant(px, py, 0.25)
 
-# ---------------------------------------------------------------- wall: poster and window
+# ---------------------------------------------------------------- wall: poster
 
 def poster(name, w, h, cx, cz, mat):
     y = WALL_Y - 0.012
@@ -199,20 +204,6 @@ def poster(name, w, h, cx, cz, mat):
 
 poster("Poster_B", 0.40, 0.56, 0.98, 1.3, M["poster_b"])
 
-# window on the side wall with a night sky and half-open blinds
-wy, wz, ww, wh = -0.55, 1.35, 0.9, 1.0
-wx = -1.9 + 0.02
-rbox("Window_Night", (0.004, ww, wh), (wx + 0.03, wy, wz), M["window_night"], uv=(1, 2))
-rbox("Window_Glass", (0.002, ww, wh), (wx + 0.02, wy, wz), M["case_clear"])
-OBJ["Window_Glass"].hide_render = False
-for i, (dy, dz, sy, sz) in enumerate([(0, wh / 2 + 0.03, ww + 0.1, 0.06), (0, -wh / 2 - 0.03, ww + 0.14, 0.06),
-                                      (ww / 2 + 0.03, 0, 0.06, wh + 0.12), (-ww / 2 - 0.03, 0, 0.06, wh + 0.12),
-                                      (0, 0, 0.035, wh)]):
-    rbox(f"Window_Frame_{i}", (0.06, sy, sz), (wx + 0.03, wy + dy, wz + dz), M["window_frame"], bevel=0.004)
-for i in range(14):
-    rbox(f"Window_Blind_{i}", (0.004, ww, 0.025), (wx + 0.06, wy, wz + wh / 2 - 0.02 - i * 0.031), M["blind"],
-         rot=(math.radians(55), 0, 0), seg=1)
-rbox("Window_Sill", (0.12, ww + 0.2, 0.025), (wx + 0.06, wy, wz - wh / 2 - 0.07), M["window_frame"], bevel=0.004)
 
 
 
@@ -338,6 +329,118 @@ for i in range(9):
     leaf_into(sl, Vector((bx, by, ztop(5) + 0.09)), Vector((math.cos(a) * 0.35, math.sin(a) * 0.35, 1.0)),
               0.2 + 0.1 * (i % 3) / 2, 0.035, droop=0.35, fold=0.4)
 finish("Shelf_PlantLeaves", sl, M["leaf"], uv=None, smooth_angle=60)
+
+# ---- window wall: a real opening with venetian blinds, and the city outside at true distance
+WIN_Y, WIN_Z, WIN_W, WIN_H = -0.55, 1.35, 0.9, 1.0
+wy = WIN_Y
+win_a, win_b = WIN_Y - WIN_W / 2, WIN_Y + WIN_W / 2
+win_lo, win_hi = WIN_Z - WIN_H / 2, WIN_Z + WIN_H / 2
+WALL_H = 2.6
+
+M["glass"] = material("Window_Glass", (0.75, 0.8, 0.88), 0.04)
+M["glass"].node_tree.nodes["Principled BSDF"].inputs["Alpha"].default_value = 0.1
+M["glass"].surface_render_method = "BLENDED"
+M["blind_cord"] = material("Blind_Cord", (0.82, 0.8, 0.74), 0.9)
+
+wall = Batch()
+xc, y0, y1 = SIDE_X - SIDE_T / 2, WALL_Y - 4.0, WALL_Y + 0.04
+wall.box((SIDE_T, win_a - y0, WALL_H), (xc, (y0 + win_a) / 2, WALL_H / 2))
+wall.box((SIDE_T, y1 - win_b, WALL_H), (xc, (win_b + y1) / 2, WALL_H / 2))
+wall.box((SIDE_T, WIN_W, win_lo), (xc, WIN_Y, win_lo / 2))
+wall.box((SIDE_T, WIN_W, WALL_H - win_hi), (xc, WIN_Y, (win_hi + WALL_H) / 2))
+wall.done("Room_WallSide", M["wall"])
+
+# sash and glass sit in the middle of the reveal
+SASH_X = SIDE_X - 0.12
+fr = Batch()
+fr.box((0.06, WIN_W, 0.05), (SASH_X, WIN_Y, win_hi - 0.025), bevel=0.004)
+fr.box((0.06, WIN_W, 0.05), (SASH_X, WIN_Y, win_lo + 0.025), bevel=0.004)
+for yy in (win_a + 0.025, win_b - 0.025):
+    fr.box((0.06, 0.05, WIN_H - 0.1), (SASH_X, yy, WIN_Z), bevel=0.004)
+fr.box((0.06, 0.04, WIN_H - 0.1), (SASH_X, WIN_Y, WIN_Z), bevel=0.004)
+fr.done("Window_Frame", M["window_frame"])
+rbox("Window_Glass", (0.006, WIN_W - 0.04, WIN_H - 0.04), (SASH_X, WIN_Y, WIN_Z), M["glass"])
+casing = Batch()
+casing.box((0.015, WIN_W + 0.14, 0.07), (SIDE_X + 0.0075, WIN_Y, win_hi + 0.035), bevel=0.003)
+for yy in (win_a - 0.035, win_b + 0.035):
+    casing.box((0.015, 0.07, WIN_H + 0.07), (SIDE_X + 0.0075, yy, WIN_Z + 0.035), bevel=0.003)
+casing.box((0.015, WIN_W + 0.1, 0.06), (SIDE_X + 0.0075, WIN_Y, win_lo - 0.06), bevel=0.003)
+casing.done("Window_Casing", M["window_frame"])
+rbox("Window_Sill", (SASH_X + 0.03 - (SIDE_X + 0.08), WIN_W + 0.16, 0.03), ((SASH_X + 0.03 + SIDE_X + 0.08) / 2, WIN_Y, win_lo - 0.015),
+     M["window_frame"], bevel=0.004)
+
+# Venetian blind, inside mount, raised to the top third. Slats tilt about Y, the wall's horizontal axis.
+BL_X = SIDE_X - 0.045
+slat_l = WIN_W - 0.02
+rbox("Blind_Headrail", (0.035, WIN_W - 0.01, 0.03), (BL_X, WIN_Y, win_hi - 0.015), M["blind"], bevel=0.003)
+slats = Batch()
+z = win_hi - 0.045
+for i in range(7):
+    slats.box((0.025, slat_l, 0.0015), (BL_X, WIN_Y, z), rot=(0, math.radians(38), 0))
+    z -= 0.022
+z += 0.01
+for i in range(30):
+    slats.box((0.025, slat_l, 0.0015), (BL_X + rng.uniform(-0.001, 0.001), WIN_Y, z), rot=(rng.uniform(-0.01, 0.01), rng.uniform(-0.04, 0.04), 0))
+    z -= 0.0034
+slats.done("Blind_Slats", M["blind"])
+rail_z = z - 0.006
+rbox("Blind_BottomRail", (0.028, slat_l, 0.012), (BL_X, WIN_Y, rail_z), M["blind"], bevel=0.003)
+cords = Batch()
+for yy in (WIN_Y - 0.3, WIN_Y + 0.3):
+    for sx in (-1, 1):
+        cords.box((0.0012, 0.004, win_hi - 0.03 - rail_z), (BL_X + sx * 0.0125, yy, (win_hi - 0.03 + rail_z) / 2))
+cord_y = win_b - 0.06
+cords.cyl(0.0012, win_hi - 0.03 - 1.02, (BL_X - 0.016, cord_y, (win_hi - 0.03 + 1.02) / 2), seg=6)
+cords.cyl(0.0012, win_hi - 0.03 - 1.06, (BL_X - 0.016, cord_y - 0.008, (win_hi - 0.03 + 1.06) / 2), seg=6)
+cords.cyl(0.008, 0.035, (BL_X - 0.016, cord_y - 0.004, 1.02), seg=12, r2=0.004)
+cords.done("Blind_Cords", M["blind_cord"])
+cylinder("Blind_Wand", 0.004, 0.004, 0.5, (BL_X - 0.016, win_a + 0.05, win_hi - 0.03 - 0.25), M["case_clear"], seg=8)
+
+# Outside: the flat is high up, so the street is far below and the skyline sits around eye level.
+# Three.js swaps every Outside_* material for an unlit, fog-free one and animates some of them (room-life.ts).
+def outside_mat(name, emit, strength=1.0, alpha=None):
+    m = material(name, (0, 0, 0), 1.0, emit=emit, emit_strength=strength)
+    if alpha is not None:
+        m.node_tree.nodes["Principled BSDF"].inputs["Alpha"].default_value = alpha
+        m.surface_render_method = "BLENDED"
+    return m
+
+GROUND_Z = -24.0
+rbox("Outside_Sky", (0.05, 140, 90), (-52, 10, 15), outside_mat("Outside_Sky", (0.03, 0.05, 0.12)), uv=(1, 2))
+MOON = (-50.0, -9.0, 10.0)
+cylinder("Outside_Moon", 1.3, 1.3, 0.05, MOON, outside_mat("Outside_Moon", (0.9, 0.88, 0.8), 2.0), seg=48,
+         rot=(0, math.pi / 2, 0), uv=(1, 2))
+cylinder("Outside_MoonHalo", 6.0, 6.0, 0.02, (MOON[0] - 0.5, MOON[1], MOON[2]), outside_mat("Outside_MoonHalo", (0.3, 0.35, 0.5), alpha=0.3),
+         seg=48, rot=(0, math.pi / 2, 0), uv=(1, 2))
+rbox("Outside_Clouds", (0.02, 110, 36), (-44, 5, 12), outside_mat("Outside_Clouds", (0.1, 0.12, 0.18), alpha=0.25), uv=(1, 2))
+
+
+def skyline(name, x_front, depth, tops, widths, gap, emit, y_from=-30.0, y_to=24.0, extra=()):
+    b = Batch()
+    y = y_from
+    while y < y_to:
+        w = rng.uniform(*widths)
+        d = rng.uniform(*depth)
+        top = rng.uniform(*tops)
+        xf = x_front + rng.uniform(-1.5, 1.5)
+        b.box((d, w, top - GROUND_Z), (xf - d / 2, y + w / 2, (top + GROUND_Z) / 2))
+        y += w + rng.uniform(*gap)
+    for size, center in extra:
+        b.box(size, center)
+    return b.done(name, outside_mat(name.replace("Buildings", "Facade"), emit), uv_scale=1.0)
+
+
+skyline("Outside_Buildings_Near", -13.0, (5, 9), (-3.5, 1.2), (3.0, 7.0), (1.0, 4.0), (0.02, 0.022, 0.03))
+TOWER = (-25.0, -4.0)
+TOWER_TOP = 5.6
+skyline("Outside_Buildings_Mid", -24.0, (5, 8), (0.0, 4.2), (3.5, 8.0), (0.3, 2.0), (0.03, 0.035, 0.05),
+        y_from=-40.0, y_to=30.0,
+        extra=[((4.0, 3.4, TOWER_TOP - GROUND_Z), (TOWER[0], TOWER[1], (TOWER_TOP + GROUND_Z) / 2)),
+               ((0.15, 0.15, 1.4), (TOWER[0], TOWER[1], TOWER_TOP + 0.7))])
+cylinder("Outside_AviationLight", 0.22, 0.22, 0.22, (TOWER[0], TOWER[1], TOWER_TOP + 1.45),
+         outside_mat("Outside_AviationLight", (1.0, 0.06, 0.03), 6.0), seg=12)
+skyline("Outside_Buildings_Far", -35.0, (6, 10), (1.5, 7.0), (4.0, 10.0), (0.0, 1.5), (0.04, 0.05, 0.08),
+        y_from=-50.0, y_to=40.0)
 
 # ---- curtains + rod on the window wall, radiator under the window
 cx = -1.78

@@ -27,7 +27,7 @@ interface TextureContext {
   plasticNoise(): THREE.CanvasTexture;
 }
 
-function makeCanvas(w: number, h: number): [HTMLCanvasElement, Ctx2D] {
+export function makeCanvas(w: number, h: number): [HTMLCanvasElement, Ctx2D] {
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
