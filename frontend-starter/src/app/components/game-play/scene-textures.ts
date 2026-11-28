@@ -329,46 +329,6 @@ function applyGrille(mat: THREE.MeshStandardMaterial, tc: TextureContext): void 
   mat.roughness = 0.55;
 }
 
-function drawPosterSymbols(ctx: Ctx2D, w: number, h: number): void {
-  ctx.fillStyle = '#0b0b0c';
-  ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = '#2a2a2d';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(24, 24, w - 48, h - 48);
-  const cell = (w - 96) / 2;
-  const gx = [48 + cell / 2, 48 + cell * 1.5];
-  const gy = [140 + cell / 2, 140 + cell * 1.5];
-  const s = cell * 0.3;
-  ctx.lineWidth = 14;
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  ctx.strokeStyle = PS_TRIANGLE;
-  ctx.beginPath();
-  ctx.moveTo(gx[0], gy[0] - s);
-  ctx.lineTo(gx[0] + s * 1.05, gy[0] + s * 0.85);
-  ctx.lineTo(gx[0] - s * 1.05, gy[0] + s * 0.85);
-  ctx.closePath();
-  ctx.stroke();
-  ctx.strokeStyle = PS_CIRCLE;
-  ctx.beginPath();
-  ctx.arc(gx[1], gy[0], s, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = PS_CROSS;
-  ctx.beginPath();
-  ctx.moveTo(gx[0] - s, gy[1] - s);
-  ctx.lineTo(gx[0] + s, gy[1] + s);
-  ctx.moveTo(gx[0] + s, gy[1] - s);
-  ctx.lineTo(gx[0] - s, gy[1] + s);
-  ctx.stroke();
-  ctx.strokeStyle = PS_SQUARE;
-  ctx.strokeRect(gx[1] - s, gy[1] - s, 2 * s, 2 * s);
-  ctx.fillStyle = '#8a8a8e';
-  ctx.font = '500 15px ui-monospace, Menlo, monospace';
-  ctx.fillText('SYMBOLES  01-04', 52, h - 62);
-  ctx.fillStyle = '#4a4a4e';
-  ctx.fillText('JEU / ARCADE / 1995', 52, h - 40);
-}
-
 function drawPosterSunset(ctx: Ctx2D, w: number, h: number): void {
   const horizon = h * 0.58;
   const sky = ctx.createLinearGradient(0, 0, 0, horizon);
@@ -427,10 +387,9 @@ function drawPosterSunset(ctx: Ctx2D, w: number, h: number): void {
   ctx.fillText('COURSE DE NUIT  /  2 JOUEURS', 36, h * 0.3 + 26);
 }
 
-function applyPoster(mat: THREE.MeshStandardMaterial, tc: TextureContext, kind: 'A' | 'B'): void {
+function applyPoster(mat: THREE.MeshStandardMaterial, tc: TextureContext): void {
   const [canvas, ctx] = makeCanvas(512, 716);
-  if (kind === 'A') drawPosterSymbols(ctx, 512, 716);
-  else drawPosterSunset(ctx, 512, 716);
+  drawPosterSunset(ctx, 512, 716);
   mat.map = toTexture(tc, canvas, { srgb: true, wrap: false });
   mat.color.set(0xffffff);
   mat.roughness = 0.6;
@@ -486,7 +445,7 @@ function applyPlastic(mat: THREE.MeshStandardMaterial, tc: TextureContext): void
   mat.bumpScale = 0.25;
 }
 
-const FABRIC_MATERIALS = new Set(['Curtain_Fabric', 'Beanbag_Fabric', 'Cushion_Fabric', 'Rug_Fringe']);
+const FABRIC_MATERIALS = new Set(['Curtain_Fabric', 'Rug_Fringe']);
 
 /** Woven fabric: keeps the Blender colour, adds a fine weave bump + roughness (box UVs in metres). */
 function applyFabric(mat: THREE.MeshStandardMaterial, tc: TextureContext): void {
@@ -584,11 +543,8 @@ export function applyProceduralTextures(root: THREE.Object3D, anisotropy: number
         case 'TV_Grille':
           if (uv) applyGrille(mat, tc);
           break;
-        case 'Poster_A':
-          if (uv) applyPoster(mat, tc, 'A');
-          break;
         case 'Poster_B':
-          if (uv) applyPoster(mat, tc, 'B');
+          if (uv) applyPoster(mat, tc);
           break;
         case 'Window_Night':
           if (uv) applyWindowNight(mat, tc);

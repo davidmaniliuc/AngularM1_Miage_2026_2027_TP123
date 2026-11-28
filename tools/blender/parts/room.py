@@ -1,4 +1,4 @@
-"""Room: floor, walls, rug, walnut TV cabinet, jewel cases, lamp, plant, posters, window, props.
+"""Room: floor, walls, rug, walnut TV cabinet, jewel cases, lamp, plant, poster, window, props.
 
 Executed by build_living_room.py in a shared namespace (helpers, materials M,
 layout constants and base objects are already defined)."""
@@ -92,8 +92,6 @@ rbox("Magazine_1", (0.21, 0.28, 0.006), (-0.62, -0.2, RUG_TOP + 0.003), M["magaz
      rot=(0, 0, math.radians(20)), uv=(0, 1))
 cylinder("Soda_Can", 0.033, 0.033, 0.12, (0.58, 0.12, RUG_TOP + 0.06), M["can"], seg=32, bevel=0.004)
 cylinder("Soda_Top", 0.029, 0.029, 0.002, (0.58, 0.12, RUG_TOP + 0.121), M["can_top"], seg=32)
-rbox("Floor_Cushion", (0.5, 0.42, 0.13), (-0.78, -0.86, 0.065), M["cushion"], bevel=0.05, seg=5,
-     rot=(0, 0, math.radians(18)), smooth_angle=80)
 
 # ---------------------------------------------------------------- table lamp on the cabinet
 
@@ -190,7 +188,7 @@ px, py = CAB_W / 2 + 0.22, CAB_Y - 0.02
 cylinder("Plant_Pot", 0.1, 0.13, 0.26, (px, py, 0.13), M["ceramic"], seg=40, bevel=0.006)
 build_plant(px, py, 0.25)
 
-# ---------------------------------------------------------------- wall: posters and window
+# ---------------------------------------------------------------- wall: poster and window
 
 def poster(name, w, h, cx, cz, mat):
     y = WALL_Y - 0.012
@@ -199,7 +197,6 @@ def poster(name, w, h, cx, cz, mat):
     rbox(name, (w, 0.004, h), (cx, y, cz), mat, uv=(0, 2))
 
 
-poster("Poster_A", 0.46, 0.64, -0.92, 1.36, M["poster_a"])
 poster("Poster_B", 0.40, 0.56, 0.98, 1.3, M["poster_b"])
 
 # window on the side wall with a night sky and half-open blinds
@@ -224,7 +221,6 @@ rbox("Window_Sill", (0.12, ww + 0.2, 0.025), (wx + 0.06, wy, wz - wh / 2 - 0.07)
 # new materials (Three.js textures them by name)
 M["fringe"] = material("Rug_Fringe", (0.5, 0.44, 0.34), 0.95)
 M["curtain"] = material("Curtain_Fabric", (0.2, 0.13, 0.14), 0.95)           # box UV, 1 unit = 1 m
-M["beanbag"] = material("Beanbag_Fabric", (0.16, 0.2, 0.17), 0.95)           # box UV, 1 unit = 1 m
 M["radiator"] = material("Radiator_Paint", (0.72, 0.71, 0.67), 0.5)
 M["vhs"] = material("VHS_Shell", (0.025, 0.025, 0.03), 0.4)
 M["vhs_label"] = material("VHS_Label", (0.78, 0.76, 0.7), 0.7)
@@ -411,20 +407,10 @@ fc.done("Wall_FigureDark", M["fig_dark"])
 # a few cases standing on the wall shelf, leaning
 for i in range(3):
     jewel_case(f"Case_WallShelf_{i}", (shx + 0.21 + 0.0118 * i - 0.0, WALL_Y - 0.07, zt + 0.0625 + 0.0), (0, 0, 0))
-OBJ.get("Case_WallShelf_0") and None
 rbox("Switch_Plate", (0.08, 0.008, 0.12), (2.15, WALL_Y - 0.004, 1.1), M["switch"], bevel=0.003)
 rbox("Switch_Rocker", (0.026, 0.006, 0.05), (2.15, WALL_Y - 0.01, 1.105), M["switch"], bevel=0.003, rot=(0.15, 0, 0))
 
-# ---- floor: bean bag, snack bowl, memory card
-bm = bmesh.new()
-bmesh.ops.create_uvsphere(bm, u_segments=28, v_segments=16, radius=0.5)
-for v in bm.verts:
-    z = v.co.z
-    v.co = Vector((v.co.x * 0.62, v.co.y * 0.58, (z * 0.7) * (0.9 if z < 0 else 1.0) + (0.0 if z > -0.45 else 0)))
-    v.co.z = max(v.co.z, -0.2) + 0.2
-    v.co.x += 0.05 * v.co.z * v.co.y
-bmesh.ops.transform(bm, matrix=Matrix.Translation((1.2, -0.62, 0.0)) @ Euler((0, 0.08, math.radians(35))).to_matrix().to_4x4(), verts=bm.verts[:])
-finish("Beanbag", bm, M["beanbag"], smooth_angle=90)
+# ---- floor: snack bowl, memory card
 # bowl by revolve
 bm = bmesh.new()
 prof = [(0.0, 0.0), (0.05, 0.0), (0.075, 0.03), (0.09, 0.052), (0.092, 0.056), (0.085, 0.056), (0.07, 0.034), (0.0, 0.006)]
@@ -442,6 +428,3 @@ for i in range(14):
 ch.done("Snack_Chips", M["chips"])
 rbox("Memory_Card", (0.058, 0.04, 0.004), (-0.52, -0.1, RUG_TOP + 0.002), M["card"], bevel=0.002, seg=1,
      rot=(0, 0, math.radians(25)), uv=(0, 1))
-# throw blanket on the floor cushion
-rbox("Floor_Blanket", (0.5, 0.34, 0.012), (-0.84, -0.8, 0.14), M["curtain"], bevel=0.005, seg=2,
-     rot=(0.03, 0.05, math.radians(-8)), smooth_angle=80)
