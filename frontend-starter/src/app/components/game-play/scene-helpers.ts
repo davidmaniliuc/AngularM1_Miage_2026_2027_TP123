@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 /** Fixed display size: the PS1 always outputs 4:3 whatever its pixel resolution. */
 export const DISPLAY_WIDTH = 640;
 export const DISPLAY_HEIGHT = 480;
@@ -58,4 +60,67 @@ export function hashString(value: string): number {
     h = Math.imul(h, 16777619);
   }
   return h >>> 0;
+}
+
+/** A volume the camera must stay out of: an axis-aligned box in its own (possibly rotated) frame. */
+export interface ColliderVolume {
+  readonly box: THREE.Box3;
+  /** Maps world space into the box's frame. */
+  readonly worldToBox: THREE.Matrix4;
+}
+
+/**
+ * Builds one volume per glTF `collider` extra (a name shared by several meshes): the union of
+ * its meshes' bounds, expressed in the frame of its first mesh so a turned sofa keeps a tight box.
+ */
+export function collectColliders(root: THREE.Object3D): ColliderVolume[] {
+  root.updateMatrixWorld(true);
+  const volumes = new Map<string, ColliderVolume>();
+  root.traverse((obj) => {
+    const name = obj.userData['collider'];
+    if (typeof name !== 'string' || !(obj instanceof THREE.Mesh)) return;
+    let volume = volumes.get(name);
+    if (!volume) {
+      volume = { box: new THREE.Box3(), worldToBox: obj.matrixWorld.clone().invert() };
+      volumes.set(name, volume);
+    }
+    obj.geometry.computeBoundingBox();
+    const meshToBox = volume.worldToBox.clone().multiply(obj.matrixWorld);
+    volume.box.union(obj.geometry.boundingBox!.clone().applyMatrix4(meshToBox));
+  });
+  return [...volumes.values()];
+}
+
+const armFrom = new THREE.Vector3();
+const armTo = new THREE.Vector3();
+const armHit = new THREE.Vector3();
+const armRay = new THREE.Ray();
+
+/**
+ * Spring arm: the camera position on the target-to-`desired` segment, pulled toward the target to
+ * `margin` before the first volume the segment enters. Volumes that contain the target are ignored.
+ */
+export function springArm(
+  target: THREE.Vector3,
+  desired: THREE.Vector3,
+  volumes: readonly ColliderVolume[],
+  margin: number,
+  out = new THREE.Vector3(),
+): THREE.Vector3 {
+  const length = target.distanceTo(desired);
+  let reach = length;
+  for (const { box, worldToBox } of volumes) {
+    armFrom.copy(target).applyMatrix4(worldToBox);
+    if (box.containsPoint(armFrom)) continue;
+    armTo.copy(desired).applyMatrix4(worldToBox).sub(armFrom);
+    const span = armTo.length();
+    if (span < 1e-9) continue;
+    armRay.set(armFrom, armTo.divideScalar(span));
+    if (!armRay.intersectBox(box, armHit)) continue;
+    // A fraction along the segment survives the rigid change of frame
+    const fraction = armFrom.distanceTo(armHit) / span;
+    if (fraction < 1) reach = Math.min(reach, fraction * length - margin);
+  }
+  if (reach >= length) return out.copy(desired);
+  return out.copy(target).lerp(desired, Math.max(0, reach) / length);
 }

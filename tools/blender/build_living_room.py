@@ -56,7 +56,7 @@ for ob in OBJ:
     ob.select_set(ob.type == "MESH" or ob.type == "EMPTY")
 bpy.ops.export_scene.gltf(filepath=DST, export_format="GLB", use_selection=False, export_apply=True,
                           export_yup=True, export_lights=False, export_cameras=False,
-                          export_draco_mesh_compression_enable=False)
+                          export_draco_mesh_compression_enable=False, export_extras=True)
 print("EXPORTED", DST, len([o for o in OBJ if o.type == "MESH"]), "meshes")
 
 # ---------------------------------------------------------------- optional preview render

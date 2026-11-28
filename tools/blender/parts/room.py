@@ -610,3 +610,17 @@ for i, sx in enumerate((-1, 1)):
         k = min(1.0, math.hypot(2 * v.co.x / size[0], 2 * v.co.y / size[1]) / math.sqrt(2))
         v.co.z *= 1 - 0.5 * k ** 2
     sofa_part(f"Sofa_Pillow_{i}", bm, M["pillow"], (sx * 0.6, 0.06, 0.64), rot=(math.radians(68), sx * 0.12, sx * -0.3))
+
+# ---- camera colliders: glTF extra "collider" = volume name. Three.js merges each volume's meshes
+# into one box in the first member's frame, and keeps the orbiting camera out of it.
+COLLIDERS = {
+    "WallBack": ["Room_Wall"],
+    "WallSide": ["Room_WallSide", "Curtain_A", "Curtain_B", "Radiator"],
+    "WallRight": ["Room_WallRight"],
+    "Bookshelf": ["Shelf_SideL", "Shelf_SideR", "Shelf_Back"],
+    "PlantPot": ["Plant_Pot"],
+    "Sofa": ["Sofa_Base", "Sofa_Arm_L", "Sofa_Arm_R", "Sofa_Back"],
+}
+for volume, names in COLLIDERS.items():
+    for n in names:
+        OBJ[n]["collider"] = volume

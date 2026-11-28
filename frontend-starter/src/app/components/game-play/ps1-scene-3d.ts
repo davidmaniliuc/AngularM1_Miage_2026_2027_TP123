@@ -18,10 +18,13 @@ import { PAD_IDLE } from '../../shared/utils/pad';
 import { createCrtScreenMaterial } from './crt-shader';
 import { PS1_BUTTON_BINDINGS } from './frame-color';
 import {
+  ColliderVolume,
   DISPLAY_HEIGHT,
   DISPLAY_WIDTH,
   blitFrameToDisplay,
+  collectColliders,
   distanceToFitScreen,
+  springArm,
 } from './scene-helpers';
 import { RoomLife, createRoomLife } from './room-life';
 import { applyProceduralTextures } from './scene-textures';
@@ -38,6 +41,8 @@ interface CameraPose {
 const CAMERA_FOV = 37;
 // The city seen through the window reaches about 55 m away, its sky corners further
 const CAMERA_FAR = 120;
+// Distance the spring arm keeps between the camera and a wall or a piece of furniture
+const CAMERA_MARGIN = 0.15;
 
 // Placeholder poses used until the model is loaded and real poses are computed from it
 const FALLBACK_POSES: Record<CameraPreset, CameraPose> = {
@@ -174,6 +179,8 @@ export class Ps1Scene3dComponent {
   private displayCtx?: CanvasRenderingContext2D;
   private proceduralTextures: THREE.Texture[] = [];
   private roomLife?: RoomLife;
+  private colliders: ColliderVolume[] = [];
+  private readonly orbitPosition = new THREE.Vector3();
   private poses: Record<CameraPreset, CameraPose> = FALLBACK_POSES;
   private screenInfo?: ScreenInfo;
   private heroBox?: THREE.Box3;
@@ -396,6 +403,7 @@ export class Ps1Scene3dComponent {
         if (this.disposed) return;
         this.setupModel(gltf.scene);
         scene.add(gltf.scene);
+        this.colliders = collectColliders(gltf.scene);
         this.roomLife = createRoomLife(gltf.scene, {
           reducedMotion: this.reducedMotion,
           anisotropy: Math.min(8, renderer.capabilities.getMaxAnisotropy()),
@@ -474,7 +482,11 @@ export class Ps1Scene3dComponent {
       controls.update();
       // Never let the camera sink under the floor
       if (camera.position.y < 0.08) camera.position.y = 0.08;
+      // Render from the spring-arm position, then hand OrbitControls back its own so zoom is never eroded
+      this.orbitPosition.copy(camera.position);
+      springArm(controls.target, this.orbitPosition, this.colliders, CAMERA_MARGIN, camera.position);
       renderer.render(scene, camera);
+      camera.position.copy(this.orbitPosition);
     };
     this.rafHandle = requestAnimationFrame(renderLoop);
   }
@@ -692,5 +704,6 @@ export class Ps1Scene3dComponent {
       this.renderer = undefined;
     }
     this.buttons = [];
+    this.colliders = [];
   }
 }

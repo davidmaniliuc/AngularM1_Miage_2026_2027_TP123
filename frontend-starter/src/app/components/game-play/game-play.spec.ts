@@ -10,13 +10,16 @@ import { SaveService } from '../../shared/services/save.service';
 import { PAD_BUTTONS, PAD_IDLE } from '../../shared/utils/pad';
 import { PS1_BUTTON_BINDINGS, sampleFrameColor } from './frame-color';
 import { GamePlayComponent } from './game-play';
+import * as THREE from 'three';
 import {
   DISPLAY_HEIGHT,
   DISPLAY_WIDTH,
   blitFrameToDisplay,
+  collectColliders,
   distanceToFitScreen,
   hashString,
   mulberry32,
+  springArm,
 } from './scene-helpers';
 
 describe('frame-color helpers', () => {
@@ -274,5 +277,63 @@ describe('scene helpers', () => {
     const a = mulberry32(hashString('Floor_Oak'));
     const b = mulberry32(hashString('Floor_Oak'));
     expect([a(), a(), a()]).toEqual([b(), b(), b()]);
+  });
+});
+
+describe('camera spring arm', () => {
+  const target = new THREE.Vector3(0, 0, 0);
+  const wall = (minX: number, maxX: number) => ({
+    box: new THREE.Box3(new THREE.Vector3(minX, -1, -1), new THREE.Vector3(maxX, 1, 1)),
+    worldToBox: new THREE.Matrix4(),
+  });
+
+  it('keeps the desired position when nothing is in the way', () => {
+    const pos = springArm(target, new THREE.Vector3(2, 0, 0), [wall(3, 4)], 0.1);
+    expect(pos.toArray()).toEqual([2, 0, 0]);
+  });
+
+  it('stops the camera before a volume between it and the target', () => {
+    const pos = springArm(target, new THREE.Vector3(5, 0, 0), [wall(3, 4)], 0.1);
+    expect(pos.x).toBeCloseTo(2.9, 6);
+    expect(pos.y).toBe(0);
+  });
+
+  it('pulls a camera that ended up inside a volume back out of it', () => {
+    const pos = springArm(target, new THREE.Vector3(3.5, 0, 0), [wall(3, 4)], 0.1);
+    expect(pos.x).toBeCloseTo(2.9, 6);
+  });
+
+  it('uses the nearest of several volumes', () => {
+    const pos = springArm(target, new THREE.Vector3(5, 0, 0), [wall(3, 4), wall(1.5, 2)], 0.1);
+    expect(pos.x).toBeCloseTo(1.4, 6);
+  });
+
+  it('ignores a volume that contains the target', () => {
+    const pos = springArm(target, new THREE.Vector3(2, 0, 0), [wall(-1, 1)], 0.1);
+    expect(pos.toArray()).toEqual([2, 0, 0]);
+  });
+
+  it('merges a turned piece of furniture into one tight box from its collider extra', () => {
+    const root = new THREE.Group();
+    // A 2 m x 0.2 m slab turned 45 degrees about Y, centred 2 m along +X
+    for (const z of [-0.5, 0.5]) {
+      const part = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1, 1));
+      part.position.set(2, 0, 0);
+      part.rotation.y = Math.PI / 4;
+      part.geometry.translate(0, 0, z);
+      part.userData['collider'] = 'Slab';
+      root.add(part);
+    }
+    root.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1)));
+    const volumes = collectColliders(root);
+    expect(volumes).toHaveLength(1);
+
+    // Straight through the slab: stopped in front of it
+    const through = springArm(target, new THREE.Vector3(4, 0, 0), volumes, 0.05);
+    expect(through.x).toBeLessThan(2);
+    expect(through.x).toBeGreaterThan(1.7);
+    // Past its corner, inside the world-aligned bounds but outside the turned slab: not stopped
+    const past = springArm(target, new THREE.Vector3(1.4, 0, 0.6), volumes, 0.05);
+    expect(past.toArray()).toEqual([1.4, 0, 0.6]);
   });
 });
