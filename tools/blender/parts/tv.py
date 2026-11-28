@@ -65,10 +65,10 @@ def _rod(name, p0, p1, radius, mat, seg=10):
 
 # ---------------------------------------------------------------- dimensions
 
-TV_W, TV_H, TV_FRAME_D = 0.68, 0.565, 0.10
+TV_W, TV_H = 0.68, 0.565
 TV_FOOT = 0.014
 TV_R = 0.032                        # front corner radius
-tv_y0 = cab_front + 0.03
+tv_y0 = cab_front + 0.02
 tv_bottom = CAB_H + TV_FOOT
 tv_top = tv_bottom + TV_H
 tv_cz = tv_bottom + TV_H / 2
@@ -108,29 +108,68 @@ def glass_y_at(x, z):
     return (screen.matrix_world @ loc).y if hit else None
 
 
-# ---------------------------------------------------------------- front shell: rounded corners, sharp aperture
+# ---------------------------------------------------------------- cabinet side profile
+
+# Sections front to back as (y, width, height, centre z, corner radius). The moulded front cabinet keeps
+# full size for FRONT_D (with a slight moulding draft), rounds over at its back edge, and the rear
+# housing steps in by STEP per side before tapering to the tube neck.
+RND = 0.012                         # front edge rounding
+FRONT_D, DRAFT, BACK_R, STEP = 0.20, 0.004, 0.014, 0.03
+
+
+def _inset(d, inset, lift=0.0, r=None):
+    return (tv_y0 + d, TV_W - 2 * inset, TV_H - 2 * inset, tv_cz + lift, r if r else max(TV_R - inset, 0.012))
+
+
+# lift=-DRAFT keeps the bottom flat on the feet while the top and sides take the draft
+FRONT_SECTIONS = [_inset(RND, 0), _inset(FRONT_D - BACK_R, DRAFT, -DRAFT)] + [
+    _inset(FRONT_D - BACK_R + BACK_R * math.sin(a), DRAFT + BACK_R * (1 - math.cos(a)), -DRAFT)
+    for a in (math.radians(30), math.radians(60), math.radians(90))
+]
+REAR_SECTIONS = [
+    _inset(FRONT_D - 0.003, STEP, 0, 0.035),
+    _inset(FRONT_D + 0.008, STEP + 0.004, 0.002, 0.04),
+    (tv_y0 + 0.28, TV_W - 0.12, TV_H - 0.11, tv_cz + 0.008, 0.055),
+    (tv_y0 + 0.36, 0.44, 0.36, tv_cz + 0.014, 0.07),
+    (tv_y0 + 0.425, 0.33, 0.27, tv_cz + 0.02, 0.08),
+    (tv_y0 + 0.445, 0.28, 0.22, tv_cz + 0.022, 0.08),
+]
+SECTIONS = FRONT_SECTIONS + REAR_SECTIONS
+
+
+def _along(y, value):
+    """Linear interpolation of value(section) along the cabinet depth."""
+    for a, b in zip(SECTIONS[:-1], SECTIONS[1:]):
+        if a[0] <= y <= b[0]:
+            t = (y - a[0]) / max(b[0] - a[0], 1e-6)
+            return value(a) * (1 - t) + value(b) * t
+    return value(SECTIONS[0] if y < SECTIONS[0][0] else SECTIONS[-1])
+
+
+def top_at(y):
+    return _along(y, lambda s: s[3] + s[2] / 2)
+
+
+def half_w_at(y):
+    return _along(y, lambda s: s[1] / 2)
+
+
+# ---------------------------------------------------------------- front cabinet: rounded corners, sharp aperture
 
 bm = bmesh.new()
-RND = 0.012  # front edge rounding
 outer0 = _rr_loop(0, tv_cz, TV_W - 2 * RND, TV_H - 2 * RND, TV_R - RND)
 outer1 = _rr_loop(0, tv_cz, TV_W - 0.5 * RND, TV_H - 0.5 * RND, TV_R - 0.5 * RND)
-outer1b = _rr_loop(0, tv_cz, TV_W, TV_H, TV_R)
 aperture = _rr_loop(0, open_cz, OPEN_W, OPEN_H, 0.03)
 L = [
-    _loop_verts(bm, aperture, tv_y0),                                  # 0 aperture lip on the front plane
-    _loop_verts(bm, outer0, tv_y0),                                    # 1 start of the front rounding
-    _loop_verts(bm, outer1, tv_y0 + RND * 0.35),                       # 2
-    _loop_verts(bm, outer1b, tv_y0 + RND),                             # 3 full size
-    _loop_verts(bm, outer1b, tv_y0 + TV_FRAME_D),                      # 4 back of the front shell
-]
-# front face is an annulus aperture -> outer0
-bm.faces.new  # (strip below)
+    _loop_verts(bm, aperture, tv_y0),                                  # aperture lip on the front plane
+    _loop_verts(bm, outer0, tv_y0),                                    # start of the front rounding
+    _loop_verts(bm, outer1, tv_y0 + RND * 0.35),
+] + [_loop_verts(bm, _rr_loop(0, cz, w, h, r), y) for y, w, h, cz, r in FRONT_SECTIONS]
 _bridge(bm, [L[0], L[1]])
 _bridge(bm, L[1:])
-# back of the shell is closed by the rear housing; close it with a flat cap so the mesh stays watertight
-bm.faces.new(list(reversed(L[4])))
+# flat back face of the front cabinet; the rear housing grows out of it
+bm.faces.new(list(reversed(L[-1])))
 fr = _done("TV_FrontFrame", bm, M["tv_shell"], flip=True)
-# (normals recalculated in finish; the aperture is open so the cap is only approximately outward)
 
 # ---------------------------------------------------------------- sloped bezel following the curved glass
 
@@ -154,42 +193,18 @@ bz = OBJ["TV_BezelSlope"]
 
 # ---------------------------------------------------------------- deep tapered rear housing
 
-REAR_Y1 = tv_y0 + 0.43
-loops_spec = [
-    (tv_y0 + TV_FRAME_D - 0.004, TV_W - 0.045, TV_H - 0.045, tv_cz, 0.032),
-    (tv_y0 + 0.17, TV_W - 0.10, TV_H - 0.10, tv_cz + 0.005, 0.05),
-    (tv_y0 + 0.30, 0.46, 0.38, tv_cz + 0.012, 0.07),
-    (REAR_Y1 - 0.02, 0.33, 0.27, tv_cz + 0.02, 0.08),
-    (REAR_Y1, 0.28, 0.22, tv_cz + 0.022, 0.08),
-]
 bm = bmesh.new()
-rear_loops = [_loop_verts(bm, _rr_loop(0, cz, w, h, r), y) for y, w, h, cz, r in loops_spec]
+rear_loops = [_loop_verts(bm, _rr_loop(0, cz, w, h, r), y) for y, w, h, cz, r in REAR_SECTIONS]
 _bridge(bm, rear_loops, close_a=False, close_b=True)
 bm.faces.new(rear_loops[0])
 _done("TV_RearHousing", bm, M["tv_shell"], smooth_angle=45)
 
 
-def top_at(y):
-    """Top surface (z) of the rear housing at depth y."""
-    for (ya, w, h, cz, r), (yb, w2, h2, cz2, r2) in zip(loops_spec[:-1], loops_spec[1:]):
-        if ya <= y <= yb:
-            t = (y - ya) / (yb - ya)
-            return (cz + h / 2) * (1 - t) + (cz2 + h2 / 2) * t
-    return loops_spec[-1][3] + loops_spec[-1][2] / 2
-
-
-def half_w_at(y):
-    for (ya, w, h, cz, r), (yb, w2, h2, cz2, r2) in zip(loops_spec[:-1], loops_spec[1:]):
-        if ya <= y <= yb:
-            t = (y - ya) / (yb - ya)
-            return (w / 2) * (1 - t) + (w2 / 2) * t
-    return loops_spec[-1][1] / 2
-
-
 # vent slots on the top of the housing (follow the slope) and on both sides
 vi = 0
-for k in range(9):
-    y = tv_y0 + 0.17 + k * 0.022
+VENT_Y0 = tv_y0 + FRONT_D + 0.035
+for k in range(8):
+    y = VENT_Y0 + k * 0.022
     y2 = y + 0.011
     zt = top_at(y)
     slope = math.atan2(top_at(y2) - zt, 0.011)
@@ -197,7 +212,7 @@ for k in range(9):
     vi += 1
 for sx in (-1, 1):
     for k in range(6):
-        y = tv_y0 + 0.19 + k * 0.022
+        y = VENT_Y0 + 0.01 + k * 0.022
         zc = tv_cz + 0.01
         x = sx * (half_w_at(y) - 0.004)
         a = math.atan2(half_w_at(y + 0.011) - half_w_at(y), 0.011)
@@ -253,11 +268,11 @@ cylinder("TV_StandbyLED", 0.003, 0.003, 0.004, (-0.14, PY - 0.0025, upper_z), M[
 
 for sx in (-1, 1):
     for sy in (0, 1):
-        rbox(f"TV_Foot_{sx}_{sy}", (0.06, 0.05, TV_FOOT), (sx * 0.25, tv_y0 + 0.07 + sy * 0.3, CAB_H + TV_FOOT / 2), M["recess"], bevel=0.002)
+        rbox(f"TV_Foot_{sx}_{sy}", (0.06, 0.05, TV_FOOT), (sx * 0.25, tv_y0 + 0.045 + sy * 0.11, CAB_H + TV_FOOT / 2), M["recess"], bevel=0.002)
 
 # ---------------------------------------------------------------- rabbit-ear antenna
 
-ant_y = tv_y0 + 0.17
+ant_y = tv_y0 + FRONT_D * 0.6
 ant_z = top_at(ant_y)
 ant_x = 0.0
 cylinder("TV_AntennaBase", 0.04, 0.05, 0.022, (ant_x, ant_y, ant_z + 0.006), M["tv_shell"], seg=24, bevel=0.004)
