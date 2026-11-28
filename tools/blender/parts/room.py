@@ -611,6 +611,50 @@ for i, sx in enumerate((-1, 1)):
         v.co.z *= 1 - 0.5 * k ** 2
     sofa_part(f"Sofa_Pillow_{i}", bm, M["pillow"], (sx * 0.6, 0.06, 0.64), rot=(math.radians(68), sx * 0.12, sx * -0.3))
 
+# ---- wall clock between the bookshelf and the TV, above the lamp; Three.js turns the hands (room-life.ts)
+M["clock_case"] = material("Clock_Case", (0.035, 0.035, 0.04), 0.35)
+M["clock_dial"] = material("Clock_Dial", (0.9, 0.88, 0.82), 0.6)
+M["clock_hand"] = material("Clock_Hand", (0.025, 0.025, 0.028), 0.45)
+M["clock_second"] = material("Clock_HandSecond", (0.72, 0.07, 0.05), 0.45)
+CLOCK_X, CLOCK_Z, CLOCK_R = -0.8, 1.04, 0.13
+cylinder("Clock_Case", CLOCK_R - 0.004, CLOCK_R - 0.004, 0.03, (CLOCK_X, WALL_Y - 0.015, CLOCK_Z), M["clock_case"], seg=64,
+         rot=(math.pi / 2, 0, 0))
+bm = bmesh.new()
+prof = [(CLOCK_R - 0.012, -0.03), (CLOCK_R - 0.01, -0.042), (CLOCK_R - 0.004, -0.047), (CLOCK_R + 0.001, -0.043),
+        (CLOCK_R + 0.002, -0.03), (CLOCK_R, 0.0)]
+pv = [bm.verts.new((r, y, 0)) for r, y in prof]
+pe = [bm.edges.new((pv[i], pv[i + 1])) for i in range(len(pv) - 1)]
+bmesh.ops.spin(bm, geom=pv + pe, axis=(0, 1, 0), cent=(0, 0, 0), angle=2 * math.pi, steps=64)
+bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-6)
+bmesh.ops.transform(bm, matrix=Matrix.Translation((CLOCK_X, WALL_Y, CLOCK_Z)), verts=bm.verts[:])
+finish("Clock_Rim", bm, M["clock_case"], smooth_angle=50)
+cylinder("Clock_Dial", CLOCK_R - 0.011, CLOCK_R - 0.011, 0.002, (CLOCK_X, WALL_Y - 0.031, CLOCK_Z), M["clock_dial"], seg=64,
+         rot=(math.pi / 2, 0, 0), uv=(0, 2))
+
+
+def clock_hand(name, length, tail, w0, w1, depth, mat):
+    """Flat tapered hand pointing at 12, its origin on the dial centre so one rotation about Y turns it."""
+    bm = bmesh.new()
+    pts = [(-w0 / 2, -tail), (w0 / 2, -tail), (w1 / 2, length), (0, length + w1), (-w1 / 2, length)]
+    t = 0.0016
+    front = [bm.verts.new((x, -t / 2, z)) for x, z in pts]
+    back = [bm.verts.new((x, t / 2, z)) for x, z in pts]
+    bm.faces.new(front)
+    bm.faces.new(list(reversed(back)))
+    for i in range(len(pts)):
+        j = (i + 1) % len(pts)
+        bm.faces.new([front[i], front[j], back[j], back[i]])
+    ob = finish(name, bm, mat, smooth_angle=10)
+    ob.location = (CLOCK_X, WALL_Y - depth, CLOCK_Z)
+    return ob
+
+
+clock_hand("Clock_HandHour", 0.062, 0.014, 0.011, 0.007, 0.034, M["clock_hand"])
+clock_hand("Clock_HandMinute", 0.094, 0.016, 0.008, 0.005, 0.036, M["clock_hand"])
+clock_hand("Clock_HandSecond", 0.1, 0.026, 0.0026, 0.0018, 0.038, M["clock_second"])
+cylinder("Clock_Pin", 0.0045, 0.0045, 0.008, (CLOCK_X, WALL_Y - 0.038, CLOCK_Z), M["clock_second"], seg=16,
+         rot=(math.pi / 2, 0, 0))
+
 # ---- camera colliders: glTF extra "collider" = volume name. Three.js merges each volume's meshes
 # into one box in the first member's frame, and keeps the orbiting camera out of it.
 COLLIDERS = {

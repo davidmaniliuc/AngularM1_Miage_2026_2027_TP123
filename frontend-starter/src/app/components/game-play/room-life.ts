@@ -44,6 +44,10 @@ const BINDINGS: Readonly<Record<string, Binding>> = {
   Outside_Buildings_Mid: (mesh, kit) => bindFacade(mesh, kit, FACADES.mid),
   Outside_Buildings_Far: (mesh, kit) => bindFacade(mesh, kit, FACADES.far),
   Outside_AviationLight: bindAviationLight,
+  Clock_Dial: bindClockDial,
+  Clock_HandHour: (mesh) => clockHand(mesh, (now) => (now.getHours() % 12) / 12 + now.getMinutes() / 720),
+  Clock_HandMinute: (mesh) => clockHand(mesh, (now) => now.getMinutes() / 60 + now.getSeconds() / 3600),
+  Clock_HandSecond: bindSecondHand,
 };
 
 export function createRoomLife(root: THREE.Object3D, options: RoomLifeOptions): RoomLife {
@@ -314,7 +318,7 @@ const TILE_H = 22.4;
 const COLS = 14;
 const FLOORS = 8;
 
-function bindFacade(mesh: THREE.Mesh, kit: LifeKit, style: FacadeStyle): Animate | void {
+function bindFacade(mesh: THREE.Mesh, kit: LifeKit, style: FacadeStyle): void {
   const W = 512;
   const H = 768;
   const cw = W / COLS;
@@ -365,4 +369,62 @@ function prepareFacadeGeometry(geometry: THREE.BufferGeometry): void {
 
 function bindAviationLight(mesh: THREE.Mesh): void {
   basicOf(mesh).color.setRGB(3, 0.18, 0.08);
+}
+
+// ---------------------------------------------------------------- wall clock
+
+/** A hand modelled pointing at 12, its origin on the dial centre; `turns` is the fraction of a full turn. */
+function clockHand(mesh: THREE.Object3D, turns: (now: Date) => number): Animate {
+  return (_seconds, now) => {
+    mesh.rotation.z = -turns(now) * Math.PI * 2;
+  };
+}
+
+/** A quartz second hand ticks once a second; under reduced motion the clock goes without one. */
+function bindSecondHand(mesh: THREE.Mesh, kit: LifeKit): Animate | void {
+  if (kit.reducedMotion) {
+    mesh.visible = false;
+    return;
+  }
+  return clockHand(mesh, (now) => now.getSeconds() / 60);
+}
+
+/** Cream dial with minute marks and bold numerals; UVs span the dial's bounds. */
+function bindClockDial(mesh: THREE.Mesh, kit: LifeKit): void {
+  const S = 512;
+  const c = S / 2;
+  const [canvas, ctx] = makeCanvas(S, S);
+  const face = ctx.createRadialGradient(c, c * 0.8, 20, c, c, c);
+  face.addColorStop(0, '#f3eee0');
+  face.addColorStop(1, '#ddd5c2');
+  ctx.fillStyle = face;
+  ctx.fillRect(0, 0, S, S);
+  ctx.strokeStyle = '#1b1b1d';
+  ctx.lineCap = 'butt';
+  for (let i = 0; i < 60; i++) {
+    const a = (i / 60) * Math.PI * 2;
+    const hour = i % 5 === 0;
+    const r0 = c * (hour ? 0.8 : 0.86);
+    ctx.lineWidth = hour ? 9 : 3;
+    ctx.beginPath();
+    ctx.moveTo(c + Math.sin(a) * r0, c - Math.cos(a) * r0);
+    ctx.lineTo(c + Math.sin(a) * c * 0.93, c - Math.cos(a) * c * 0.93);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#161618';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '700 48px "Helvetica Neue", Helvetica, Arial, sans-serif';
+  for (let h = 1; h <= 12; h++) {
+    const a = (h / 12) * Math.PI * 2;
+    ctx.fillText(String(h), c + Math.sin(a) * c * 0.61, c - Math.cos(a) * c * 0.61 + 2);
+  }
+  ctx.fillStyle = '#6b665c';
+  ctx.font = '500 20px "Helvetica Neue", Helvetica, Arial, sans-serif';
+  ctx.fillText('QUARTZ', c, c + c * 0.34);
+  const mat = mesh.material as THREE.MeshStandardMaterial;
+  mat.map = kit.texture(canvas);
+  mat.color.set(0xffffff);
+  mat.roughness = 0.55;
+  mat.needsUpdate = true;
 }

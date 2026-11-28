@@ -10,6 +10,7 @@ import { SaveService } from '../../shared/services/save.service';
 import { PAD_BUTTONS, PAD_IDLE } from '../../shared/utils/pad';
 import { PS1_BUTTON_BINDINGS, sampleFrameColor } from './frame-color';
 import { GamePlayComponent } from './game-play';
+import { createRoomLife } from './room-life';
 import * as THREE from 'three';
 import {
   DISPLAY_HEIGHT,
@@ -335,5 +336,50 @@ describe('camera spring arm', () => {
     // Past its corner, inside the world-aligned bounds but outside the turned slab: not stopped
     const past = springArm(target, new THREE.Vector3(1.4, 0, 0.6), volumes, 0.05);
     expect(past.toArray()).toEqual([1.4, 0, 0.6]);
+  });
+});
+
+describe('room life', () => {
+  const build = () => {
+    const root = new THREE.Group();
+    for (const name of ['Clock_HandHour', 'Clock_HandMinute', 'Clock_HandSecond']) {
+      const hand = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.1, 0.002));
+      hand.name = name;
+      root.add(hand);
+    }
+    const light = new THREE.Mesh(
+      new THREE.SphereGeometry(0.2),
+      new THREE.MeshStandardMaterial({ emissive: 0xff1008 }),
+    );
+    light.name = 'Outside_AviationLight';
+    root.add(light);
+    return root;
+  };
+  const turns = (root: THREE.Object3D, name: string) =>
+    -root.getObjectByName(name)!.rotation.z / (Math.PI * 2);
+  const options = { anisotropy: 1, pixelRatio: 1 };
+
+  it('sets the clock hands to the wall-clock time, turning clockwise', () => {
+    const root = build();
+    const life = createRoomLife(root, { ...options, reducedMotion: false });
+    life.update(5, new Date(2026, 10, 28, 15, 15, 30));
+    expect(turns(root, 'Clock_HandHour')).toBeCloseTo(3.25 / 12, 3);
+    expect(turns(root, 'Clock_HandMinute')).toBeCloseTo(15.5 / 60, 3);
+    expect(turns(root, 'Clock_HandSecond')).toBeCloseTo(30 / 60, 6);
+  });
+
+  it('holds the outside still and drops the second hand under reduced motion', () => {
+    const root = build();
+    const life = createRoomLife(root, { ...options, reducedMotion: true });
+    const light = (root.getObjectByName('Outside_AviationLight') as THREE.Mesh)
+      .material as THREE.MeshBasicMaterial;
+    const colours = [0.3, 1.1, 7.6].map((seconds) => {
+      life.update(seconds, new Date(2026, 10, 28, 9, 41, 0));
+      return light.color.getHex();
+    });
+    expect(new Set(colours).size).toBe(1);
+    expect(light.color.r).toBeGreaterThan(1);
+    expect(root.getObjectByName('Clock_HandSecond')!.visible).toBe(false);
+    expect(turns(root, 'Clock_HandMinute')).toBeCloseTo(41 / 60, 3);
   });
 });
